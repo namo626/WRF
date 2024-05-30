@@ -6,10 +6,10 @@ set -e
 casename="codee_test01"  #identifier for the new simulation
 
 #email address to receive notifications from the slurm system
-myemail="Koichi.Sakaguchi@pnnl.gov" 
+myemail="namo26june@gmail.com"
 
 #directory where we run wrf.exe and writes output
-rundir="/pscratch/sd/k/ksa/simulation/WRF/WRFSIG/${casename}" 
+rundir="/pscratch/sd/n/namo/conus-12km"
 
 # -------------------
 scriptdir=$(pwd)
@@ -38,4 +38,4 @@ cp ${scriptdir}/sub_wrf_pm_testcase.sh ${rundir}/sub_testcase.sh
 sed -i "s/elvis@nersc.gov/${myemail}/" sub_testcase.sh
 sed -i "s/elvis_test01/${casename}/" sub_testcase.sh
 
-sbatch sub_testcase.sh
+#sbatch sub_testcase.sh

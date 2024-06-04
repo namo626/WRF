@@ -4,7 +4,7 @@ set -o pipefail
 
 ##############################
 
-# mod_perftools=""
+mod_perftools=""
 # mod_perftools=perftools-lite  # perftools-lite
 #mod_perftools=perftools       # perftools
 
@@ -50,8 +50,8 @@ module load cray-hdf5  #required to load netcdf library
 module load cray-netcdf 
 module load cray-parallel-netcdf
 module load perftools-base
-#[[ -n ${mod_perftools} ]] && ml ${mod_perftools}
-module load perftools-lite
+[[ -n ${mod_perftools} ]] && ml ${mod_perftools}
+#module load perftools-lite
 
 module list #check what modules are loaded
 

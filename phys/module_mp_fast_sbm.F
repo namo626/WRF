@@ -6225,7 +6225,7 @@ enddo
 
   implicit none
 
-  integer :: nkr
+  integer, intent(in) :: nkr
   real(kind=r4size),intent(in) :: dtime_coal,p_z
 
   ! ### Locals
@@ -6257,8 +6257,8 @@ enddo
  	end do
 
  	! ... ECOALMASSM is from "BreakIniit_KS"
- 	DO I=1,NKR
- 	 DO J=1,NKR
+ 	DO J=1,NKR
+ 	 DO I=1,NKR
  		CWLL(I,J) = ECOALMASSM(I,J)*CWLL(I,J)
  	 END DO
   END DO

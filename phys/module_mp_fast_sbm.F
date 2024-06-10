@@ -6498,8 +6498,8 @@ enddo
  		 end do
    endif
 
- 		do i=1,nkr
- 		 do j=1,nkr
+ 		do j=1,nkr
+ 		 do i=1,nkr
  ! columns - water
  		  cwil_1(i,j)=cwli_1(j,i)
  ! plates - water

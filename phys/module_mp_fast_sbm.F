@@ -6246,8 +6246,8 @@ enddo
  	p_1=p1
  	p_2=p2
  	p_3=p3
- 	do i=1,nkr
- 		do j=1,nkr
+ 	do j=1,nkr
+ 		do i=1,nkr
  			! 1. water - water
  			ckern_1 = YWLL_1000mb(i,j)
  			ckern_2 = YWLL_750mb(i,j)

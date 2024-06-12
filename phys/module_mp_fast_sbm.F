@@ -6198,6 +6198,8 @@ enddo
    cwih_1(:,:) = 0.0e0 ; cwih_2(:,:) = 0.0e0 ; cwih_3(:,:) = 0.0e0
    cwsg(:,:) = 0.0e0 ; cwss(:,:) = 0.0e0
 
+   !$acc enter data copyin( YWLI_300MB, YWLG_300MB, YWLH_300MB, YWLS_300MB, YWII_300MB, YWIS_300MB, YWSG_300MB, YWSS_300MB)
+
    call Kernals_KS(dt,nkr,7.6E6)
 
  !+---+-----------------------------------------+
@@ -6240,7 +6242,7 @@ enddo
  ! p4=0.30D6 dynes/cm^2 =  300.0 mb
 
   scal = 1.0
- 	dlnr = dlog(2.0d0)/(3.0d0*scal)
+  dlnr = dlog(2.0d0)/(3.0d0*scal)
  	dtimelnr = dtime_coal*dlnr
 
  	p_1=p1
@@ -6257,8 +6259,8 @@ enddo
  	end do
 
  	! ... ECOALMASSM is from "BreakIniit_KS"
- 	DO I=1,NKR
- 	 DO J=1,NKR
+    DO J=1,NKR
+ 	 DO I=1,NKR
  		CWLL(I,J) = ECOALMASSM(I,J)*CWLL(I,J)
  	 END DO
   END DO
@@ -6295,6 +6297,11 @@ enddo
  	endif
 
  	if (p_z <= p_3) then
+ 	!$acc data copyin(nkr, dtimelnr)&
+     !$acc  copyout(cwli_1, cwli_2, cwli_3, cwlg, cwlh, cwls, cwii_1_1, cwii_1_2, cwii_1_3, cwii_2_1, cwii_2_2, cwii_2_3, cwii_3_1, cwii&
+!$acc _3_2, cwii_3_3, cwis_1, cwis_2, cwis_3, cwsg, cwss)
+ 		!$acc parallel
+ 		!$acc loop
  		do j=1,nkr
  		  do i=1,nkr
  			cwli_1(i,j) = ywli_300mb(i,j,1)*dtimelnr
@@ -6319,6 +6326,8 @@ enddo
  			cwss(i,j) = ywss_300mb(i,j)*dtimelnr
  		  end do
  		end do
+ 		!$acc end parallel
+ 		!$acc end data
  	  endif
 
  	  if (p_z <  p_1  .and. p_z >= p_2) then

@@ -6271,14 +6271,14 @@ enddo
  	p_2=p3
  	p_3=p4
 
- 	if(p_z >= p_1) then
        !$acc data copyin(nkr, dtimelnr)&
      !$acc  copyout(cwli_1, cwli_2, cwli_3, cwlg, cwlh, cwls, cwii_1_1, cwii_1_2, cwii_1_3, cwii_2_1, cwii_2_2, cwii_2_3, cwii_3_1, cwii&
 !$acc _3_2, cwii_3_3, cwis_1, cwis_2, cwis_3, cwsg, cwss)
+
+ 	if(p_z >= p_1) then
  		!$acc parallel
  		!$acc loop
  		do j=1,nkr
-           !$acc loop
  	  		do i=1,nkr
  				cwli_1(i,j) = ywli_750mb(i,j,1)*dtimelnr
  				cwli_2(i,j) = ywli_750mb(i,j,2)*dtimelnr
@@ -6303,13 +6303,9 @@ enddo
  	  		end do
  		end do
  		!$acc end parallel
- 		!$acc end data
  	endif
 
  	if (p_z <= p_3) then
- 	!$acc data copyin(nkr, dtimelnr)&
-     !$acc  copyout(cwli_1, cwli_2, cwli_3, cwlg, cwlh, cwls, cwii_1_1, cwii_1_2, cwii_1_3, cwii_2_1, cwii_2_2, cwii_2_3, cwii_3_1, cwii&
-!$acc _3_2, cwii_3_3, cwis_1, cwis_2, cwis_3, cwsg, cwss)
  		!$acc parallel
  		!$acc loop
  		do j=1,nkr
@@ -6337,14 +6333,10 @@ enddo
  		  end do
  		end do
  		!$acc end parallel
- 		!$acc end data
  	  endif
 
  	  if (p_z <  p_1  .and. p_z >= p_2) then
  		pdm = (p_z-p_2)/(p_1-p_2)
- 		!$acc data copyin(nkr, pdm, dtimelnr) copyout(cwli_1, cwli_2,&
-!$acc  cwli_3, cwlg, cwlh, cwls, cwii_1_1, cwii_1_2, cwii_1_3, cwii_2_1, cwii_2_2, cwii_2_3, cwii_3_1, cwii_3_2, cwii_3_3, cwis_1, &
-!$acc cwis_2, cwis_3, cwsg, cwss)
  		!$acc parallel
  		!$acc loop
  		do j=1,nkr
@@ -6432,11 +6424,12 @@ enddo
  		   end do
  		 end do
  		!$acc end parallel
- 		!$acc end data
  	   endif
 
   		if (p_z <  p_2  .and. p_z >  p_3) then
  		   pdm = (p_z-p_3)/(p_2-p_3)
+           !$acc parallel
+           !$acc loop
  		   do j=1,nkr
  		     do i=1,nkr
 
@@ -6522,7 +6515,9 @@ enddo
 
  		   end do
  		 end do
+         !$acc end parallel
    endif
+      !$acc end data
 
  		do i=1,nkr
  		 do j=1,nkr

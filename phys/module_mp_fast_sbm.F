@@ -6200,6 +6200,7 @@ enddo
 
    !$acc enter data copyin( YWLI_300MB, YWLG_300MB, YWLH_300MB, YWLS_300MB, YWII_300MB, YWIS_300MB, YWSG_300MB, YWSS_300MB)
    !$acc enter data copyin( YWLI_750MB, YWLG_750MB, YWLH_750MB, YWLS_750MB, YWII_750MB, YWIS_750MB, YWSG_750MB, YWSS_750MB)
+   !$acc enter data copyin( YWLI_500MB, YWLG_500MB, YWLH_500MB, YWLS_500MB, YWII_500MB, YWIS_500MB, YWSG_500MB, YWSS_500MB)
 
    call Kernals_KS(dt,nkr,7.6E6)
 
@@ -6341,6 +6342,11 @@ enddo
 
  	  if (p_z <  p_1  .and. p_z >= p_2) then
  		pdm = (p_z-p_2)/(p_1-p_2)
+ 		!$acc data copyin(nkr, pdm, dtimelnr) copyout(cwli_1, cwli_2,&
+!$acc  cwli_3, cwlg, cwlh, cwls, cwii_1_1, cwii_1_2, cwii_1_3, cwii_2_1, cwii_2_2, cwii_2_3, cwii_3_1, cwii_3_2, cwii_3_3, cwis_1, &
+!$acc cwis_2, cwis_3, cwsg, cwss)
+ 		!$acc parallel
+ 		!$acc loop
  		do j=1,nkr
  		  do i=1,nkr
  		  	ckern_1=ywli_750mb(i,j,1)
@@ -6425,6 +6431,8 @@ enddo
  			cwss(i,j)=(ckern_2+(ckern_1-ckern_2)*pdm)*dtimelnr
  		   end do
  		 end do
+ 		!$acc end parallel
+ 		!$acc end data
  	   endif
 
   		if (p_z <  p_2  .and. p_z >  p_3) then

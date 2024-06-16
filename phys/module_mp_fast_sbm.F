@@ -6379,25 +6379,6 @@ enddo
  	dlnr = dlog(2.0d0)/(3.0d0*scal)
  	dtimelnr = dtime_coal*dlnr
 
- 	p_1=p1
- 	p_2=p2
- 	p_3=p3
- 	do i=1,nkr
- 		do j=1,nkr
- 			! 1. water - water
- 			ckern_1 = YWLL_1000mb(i,j)
- 			ckern_2 = YWLL_750mb(i,j)
- 			ckern_3 = YWLL_500mb(i,j)
- 			cwll(i,j) = ckern_z(p_z,p_1,p_2,p_3,ckern_1,ckern_2,ckern_3)*dtime_coal*dlnr
- 		end do
- 	end do
-
- 	! ... ECOALMASSM is from "BreakIniit_KS"
- 	DO I=1,NKR
- 	 DO J=1,NKR
- 		CWLL(I,J) = ECOALMASSM(I,J)*CWLL(I,J)
- 	 END DO
-  END DO
 
  	p_1=p2
  	p_2=p3
@@ -6412,20 +6393,20 @@ enddo
  				cwlg(i,j) = ywlg_750mb(i,j)*dtimelnr
  				cwlh(i,j) = ywlh_750mb(i,j)*dtimelnr
  				cwls(i,j) = ywls_750mb(i,j)*dtimelnr
- 				cwii_1_1(i,j) = ywii_750mb(i,j,1,1)*dtimelnr
- 				cwii_1_2(i,j) = ywii_750mb(i,j,1,2)*dtimelnr
- 				cwii_1_3(i,j) = ywii_750mb(i,j,1,3)*dtimelnr
- 				cwii_2_1(i,j) = ywii_750mb(i,j,2,1)*dtimelnr
- 				cwii_2_2(i,j) = ywii_750mb(i,j,2,2)*dtimelnr
- 				cwii_2_3(i,j) = ywii_750mb(i,j,2,3)*dtimelnr
- 				cwii_3_1(i,j) = ywii_750mb(i,j,3,1)*dtimelnr
- 				cwii_3_2(i,j) = ywii_750mb(i,j,3,2)*dtimelnr
- 				cwii_3_3(i,j) = ywii_750mb(i,j,3,3)*dtimelnr
+ 				!cwii_1_1(i,j) = ywii_750mb(i,j,1,1)*dtimelnr
+ 				!cwii_1_2(i,j) = ywii_750mb(i,j,1,2)*dtimelnr
+ 				!cwii_1_3(i,j) = ywii_750mb(i,j,1,3)*dtimelnr
+ 				!cwii_2_1(i,j) = ywii_750mb(i,j,2,1)*dtimelnr
+ 				!cwii_2_2(i,j) = ywii_750mb(i,j,2,2)*dtimelnr
+ 				!cwii_2_3(i,j) = ywii_750mb(i,j,2,3)*dtimelnr
+ 				!cwii_3_1(i,j) = ywii_750mb(i,j,3,1)*dtimelnr
+ 				!cwii_3_2(i,j) = ywii_750mb(i,j,3,2)*dtimelnr
+ 				!cwii_3_3(i,j) = ywii_750mb(i,j,3,3)*dtimelnr
  				cwis_1(i,j) = ywis_750mb(i,j,1)*dtimelnr
  				cwis_2(i,j) = ywis_750mb(i,j,2)*dtimelnr
  				cwis_3(i,j) = ywis_750mb(i,j,3)*dtimelnr
  				cwsg(i,j) = ywsg_750mb(i,j)*dtimelnr
- 				cwss(i,j) = ywss_750mb(i,j)*dtimelnr
+ 				!cwss(i,j) = ywss_750mb(i,j)*dtimelnr
  	  		end do
  		end do
  	endif
@@ -6439,20 +6420,20 @@ enddo
  			cwlg(i,j) = ywlg_300mb(i,j)*dtimelnr
  			cwlh(i,j) = ywlh_300mb(i,j)*dtimelnr
  			cwls(i,j) = ywls_300mb(i,j)*dtimelnr
- 			cwii_1_1(i,j) = ywii_300mb(i,j,1,1)*dtimelnr
- 			cwii_1_2(i,j) = ywii_300mb(i,j,1,2)*dtimelnr
- 			cwii_1_3(i,j) = ywii_300mb(i,j,1,3)*dtimelnr
- 			cwii_2_1(i,j) = ywii_300mb(i,j,2,1)*dtimelnr
- 			cwii_2_2(i,j) = ywii_300mb(i,j,2,2)*dtimelnr
- 			cwii_2_3(i,j) = ywii_300mb(i,j,2,3)*dtimelnr
- 			cwii_3_1(i,j) = ywii_300mb(i,j,3,1)*dtimelnr
- 			cwii_3_2(i,j) = ywii_300mb(i,j,3,2)*dtimelnr
- 			cwii_3_3(i,j) = ywii_300mb(i,j,3,3)*dtimelnr
- 			cwis_1(i,j) = ywis_300mb(i,j,1)*dtimelnr
- 			cwis_2(i,j) = ywis_300mb(i,j,2)*dtimelnr
- 			cwis_3(i,j) = ywis_300mb(i,j,3)*dtimelnr
+ 			!cwii_1_1(i,j) = ywii_300mb(i,j,1,1)*dtimelnr
+ 			!cwii_1_2(i,j) = ywii_300mb(i,j,1,2)*dtimelnr
+ 			!cwii_1_3(i,j) = ywii_300mb(i,j,1,3)*dtimelnr
+ 			!cwii_2_1(i,j) = ywii_300mb(i,j,2,1)*dtimelnr
+ 			!cwii_2_2(i,j) = ywii_300mb(i,j,2,2)*dtimelnr
+ 			!cwii_2_3(i,j) = ywii_300mb(i,j,2,3)*dtimelnr
+ 			!cwii_3_1(i,j) = ywii_300mb(i,j,3,1)*dtimelnr
+ 			!cwii_3_2(i,j) = ywii_300mb(i,j,3,2)*dtimelnr
+ 			!cwii_3_3(i,j) = ywii_300mb(i,j,3,3)*dtimelnr
+ 			!cwis_1(i,j) = ywis_300mb(i,j,1)*dtimelnr
+ 			!cwis_2(i,j) = ywis_300mb(i,j,2)*dtimelnr
+ 			!cwis_3(i,j) = ywis_300mb(i,j,3)*dtimelnr
  			cwsg(i,j) = ywsg_300mb(i,j)*dtimelnr
- 			cwss(i,j) = ywss_300mb(i,j)*dtimelnr
+ 			!cwss(i,j) = ywss_300mb(i,j)*dtimelnr
  		  end do
  		end do
  	  endif
@@ -6540,7 +6521,7 @@ enddo
 
  			ckern_1=ywss_750mb(i,j)
  			ckern_2=ywss_500mb(i,j)
- 			cwss(i,j)=(ckern_2+(ckern_1-ckern_2)*pdm)*dtimelnr
+ 			!cwss(i,j)=(ckern_2+(ckern_1-ckern_2)*pdm)*dtimelnr
  		   end do
  		 end do
  	   endif
@@ -6628,7 +6609,7 @@ enddo
 
    			ckern_2=ywss_500mb(i,j)
    			ckern_3=ywss_300mb(i,j)
-   			cwss(i,j)=(ckern_3+(ckern_2-ckern_3)*pdm)*dtimelnr
+   			!cwss(i,j)=(ckern_3+(ckern_2-ckern_3)*pdm)*dtimelnr
 
  		   end do
  		 end do

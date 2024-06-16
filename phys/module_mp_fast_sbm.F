@@ -635,20 +635,34 @@ enddo
   return
   end subroutine coll_xyy_lwf
 ! +-----------------------------------------------------+
-  subroutine coll_xxx_lwf(g,fl,ckxx,x,c,ima,prdkrn,nkr)
+  subroutine coll_xxx_lwf(g,fl,f_cw,dtime_coal, nkr, p_z,yw_300,yw_500,yw_750,x,c,ima,prdkrn)
 
     implicit none
 
-    integer,intent(in) :: nkr
     real(kind=r8size),intent(inout) :: g(:),fl(:)
-    real(kind=r8size),intent(in) ::	ckxx(:,:),x(:), c(:,:)
+    !real(kind=r8size),intent(in) ::	ckxx(:,:),x(:), c(:,:)
+    real(kind=r8size),intent(in) ::	x(:), c(:,:)
     integer,intent(in) :: ima(:,:)
     real(kind=r8size),intent(in) :: prdkrn
+
+      interface
+         pure real(kind=8) function f_cw(dtime_coal, nkr, p_z, i, j, yw_300, yw_500, yw_750)
+         implicit none
+         integer, intent(in) :: nkr, i, j
+         real(kind=4),intent(in) :: dtime_coal,p_z
+         real(kind=4),intent(in) :: yw_300(:,:), yw_500(:,:), yw_750(:,:)
+         end function f_cw
+      end interface
+
+      real(kind=r4size),intent(in) :: yw_300(:,:), yw_500(:,:), yw_750(:,:)
+      integer, intent(in) :: nkr
+      real(kind=r4size),intent(in) :: dtime_coal,p_z
 
 ! ... Locals
    real(kind=r8size):: gmin,x01,x02,x03,gsi,gsj,gsk,gsi_w,gsj_w,gsk_w,gk, &
                        gk_w,fl_gk,fl_gsk,flux,x1,flux_w,g_k_w,g_kp_old,g_kp_w
    integer :: i,ix0,ix1,j,k,kp
+   real(kind=r8size) :: ckxx
 ! ... Locals
 
   gmin=g_lim*1.0d3
@@ -676,7 +690,12 @@ enddo
             if(g(j).le.gmin) goto 2021
             k=ima(i,j)
             kp=k+1
-            x01=ckxx(i,j)*g(i)*g(j)*prdkrn
+
+            ! no lookup
+            ckxx = f_cw(dtime_coal, nkr, p_z, i, j, yw_300, yw_500, yw_750)
+            !x01=ckxx(i,j)*g(i)*g(j)*prdkrn
+            x01=ckxx*g(i)*g(j)*prdkrn
+
             x02=dmin1(x01,g(i)*x(j))
             if(j.ne.k) x03=dmin1(x02,g(j)*x(i))
             if(j.eq.k) x03=x02
@@ -755,7 +774,8 @@ enddo
               print*,     ix0,ix1
 
               print*,   'ckxx(i,j),x01,x02,x03'
-                print 204, ckxx(i,j),x01,x02,x03
+                !print 204, ckxx(i,j),x01,x02,x03
+                print 204, ckxx,x01,x02,x03
 
               print*,   'gsi,gsj,gsk'
                 print 203, gsi,gsj,gsk
@@ -8474,7 +8494,8 @@ enddo
   if (icol_drop.eq.1)then
 ! ... Drop-Drop collisions
   fl1 = 1.0
-  call coll_xxx_lwf (G1,fl1,CWLL,XL_MG,CHUCM,IMA,1.d0,NKR)
+  !call coll_xxx_lwf (G1,fl1,CWLL,XL_MG,CHUCM,IMA,1.d0,NKR)
+  call coll_xxx_lwf (G1,fl1,get_cwll,dt_coll,nkr,PP_r,ywll_1000mb,ywll_750mb,ywll_500mb,XL_MG,CHUCM,IMA,1.d0)
 ! ... Breakup
   if(icol_drop_brk == 1)then
     ndiv = 1
@@ -8662,7 +8683,8 @@ end if
 
  		if(icol_snow == 1) then
  		! ... interactions between snowflakes
-			call coll_xxx_lwf(g3,rf3,cwss,xs_mg,chucm,ima,prdkrn,nkr)
+			!call coll_xxx_lwf(g3,rf3,cwss,xs_mg,chucm,ima,prdkrn,nkr)
+		   call coll_xxx_lwf(g3,rf3,get_cw,dt_coll,nkr,PP_r,ywss_300mb,ywss_500mb,ywss_750mb,xs_mg,chucm,ima,prdkrn)
  		! in case icolxz_snow.ne.0
  		endif
 

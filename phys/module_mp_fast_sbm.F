@@ -6221,6 +6221,53 @@ enddo
 
   END SUBROUTINE FAST_HUCMINIT
  ! -----------------------------------------------------------------+
+
+  pure real(kind=r8size) function get_ywli(dtime_coal, nkr, p_z, i, j, m)
+      implicit none
+
+      integer, intent(in) :: nkr, i, j, m
+      real(kind=r4size),intent(in) :: dtime_coal,p_z
+
+  ! ### Locals
+  real(kind=r4size),parameter :: p1=1.0e6,p2=0.75e6,p3=0.50e6,p4=0.3e6
+  real(kind=r4size) :: dlnr, scal, dtimelnr, pdm, p_1, p_2, p_3, ckern_1, ckern_2, &
+  					  ckern_3
+
+    scal = 1.0
+ 	dlnr = dlog(2.0d0)/(3.0d0*scal)
+ 	dtimelnr = dtime_coal*dlnr
+
+ 	p_1=p1
+ 	p_2=p3
+ 	p_3=p4
+
+      if(p_z >= p_1) then
+         get_ywli = ywli_750mb(i,j,m)*dtimelnr
+
+      elseif (p_z <= p_3) then
+         get_ywli = ywli_300mb(i,j,m)*dtimelnr
+
+ 	  elseif (p_z <  p_1  .and. p_z >= p_2) then
+         ckern_1=ywli_750mb(i,j,m)
+         ckern_2=ywli_500mb(i,j,m)
+         get_ywli =(ckern_2+(ckern_1-ckern_2)*pdm)*dtimelnr
+
+      elseif (p_z <  p_2  .and. p_z >  p_3) then
+         pdm = (p_z-p_3)/(p_2-p_3)
+         ckern_2=ywli_500mb(i,j,m)
+         ckern_3=ywli_300mb(i,j,m)
+         get_ywli=(ckern_3+(ckern_2-ckern_3)*pdm)*dtimelnr
+      else
+         get_ywli = 0.
+
+      endif
+  end function get_ywli
+
+
+
+
+
+
   subroutine Kernals_KS(dtime_coal,nkr,p_z)
 
   implicit none

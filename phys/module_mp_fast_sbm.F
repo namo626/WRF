@@ -832,19 +832,33 @@ enddo
  return
  end subroutine coll_xxx_lwf
 ! +----------------------------------------------------+
- subroutine coll_xyx_lwf (gx,gy,flx,fly,ckxy,x,y, &
-					               c,ima,prdkrn,nkr,indc,dm_rime)
+ subroutine coll_xyx_lwf (gx,gy,flx,fly,f_cw,dtime_coal,nkr,p_z,yw_300,yw_500,yw_700, &
+      x,y, c,ima,prdkrn,indc,dm_rime)
 	implicit none
 
-	integer,intent(in) :: nkr
 	real(kind=r8size),intent(inout) :: gy(:),gx(:),fly(:),flx(:),dm_rime(:)
-	real(kind=r8size),intent(in) :: ckxy(:,:),x(:),y(:),c(:,:),prdkrn
+	real(kind=r8size),intent(in) :: x(:),y(:),c(:,:),prdkrn
 	integer,intent(in) :: ima(:,:)
+
+      interface
+         pure real(kind=8) function f_cw(dtime_coal, nkr, p_z, i, j, yw_300, yw_500, yw_750)
+         implicit none
+         integer, intent(in) :: nkr, i, j
+         real(kind=4),intent(in) :: dtime_coal,p_z
+         real(kind=4),intent(in) :: yw_300(:,:), yw_500(:,:), yw_750(:,:)
+         end function f_cw
+      end interface
+
+      real(kind=r4size),intent(in) :: yw_300(:,:), yw_500(:,:), yw_750(:,:)
+      integer, intent(in) :: nkr
+      real(kind=r4size),intent(in) :: dtime_coal,p_z
+
 
 ! ... Locals
 	real(kind=r8size) :: gmin,x01,x02,x03,gsi,gsj,gsk,gk,flux,x1,gsi_w,gsj_w,gsk_w, &
     	                gk_w,fl_gk,fl_gsk,flux_w,gx_k_w,gx_kp_old,gx_kp_w,frac_split
 	integer :: j, jx0, jx1, i, iy0, iy1, jmin, indc, k, kp
+      real(kind=r8size) :: ckxy
 ! ... Locals
 
 	gmin=g_lim*1.0d3
@@ -890,7 +904,11 @@ enddo
               if(gx(j).le.gmin) goto 2021
               k=ima(i,j)
               kp=k+1
-              x01=ckxy(j,i)*gy(i)*gx(j)*prdkrn
+              ! no lookup
+              ckxy = f_cw(dtime_coal,nkr,p_z,j,i,yw_300,yw_500,yw_750)
+              x01=ckxy*gy(i)*gx(j)*prdkrn
+              !x01=ckxy(j,i)*gy(i)*gx(j)*prdkrn
+C
               x02=dmin1(x01,gy(i)*x(j))
 			! new change of 20.01.11                                      (start)
               if(j.ne.k) x03=dmin1(x02,gx(j)*y(i))
@@ -977,7 +995,8 @@ enddo
                 	print 201, gx_kp_old
 
                 print*,   'ckxy(j,i),x01,x02,x03'
-                	print 204, ckxy(j,i),x01,x02,x03
+                	!print 204, ckxy(j,i),x01,x02,x03
+                	print 204, ckxy,x01,x02,x03
 
                 print*,   'gsi,gsj,gsk'
                 	print 203, gsi,gsj,gsk

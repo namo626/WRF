@@ -6221,6 +6221,46 @@ enddo
 
   END SUBROUTINE FAST_HUCMINIT
  ! -----------------------------------------------------------------+
+  pure real(kind=r8size) function get_cw(dtime_coal, nkr, p_z, i, j, yw_300, yw_500, yw_750)
+      ! Compute cwlg, cwlh, cwsg, cwss at entry i,j based on the input yw array
+      implicit none
+
+      integer, intent(in) :: nkr, i, j
+      real(kind=r4size),intent(in) :: dtime_coal,p_z
+      real(kind=r4size),intent(in) :: yw_300(:,:), yw_500(:,:), yw_750(:,:)
+
+  ! ### Locals
+  real(kind=r4size),parameter :: p1=1.0e6,p2=0.75e6,p3=0.50e6,p4=0.3e6
+  real(kind=r4size) :: dlnr, scal, dtimelnr, pdm, p_1, p_2, p_3, ckern_1, ckern_2, &
+  					  ckern_3
+
+    scal = 1.0
+ 	dlnr = dlog(2.0d0)/(3.0d0*scal)
+ 	dtimelnr = dtime_coal*dlnr
+
+ 	p_1=p1
+ 	p_2=p3
+ 	p_3=p4
+
+ 	if(p_z >= p_1) then
+       get_cw = yw_750(i,j)*dtimelnr
+ 	elseif (p_z <= p_3) then
+       get_cw = yw_300(i,j)
+    elseif (p_z <  p_1  .and. p_z >= p_2) then
+       pdm = (p_z-p_2)/(p_1-p_2)
+       ckern_1=yw_750(i,j)
+       ckern_2=yw_500(i,j)
+       get_cw = (ckern_2+(ckern_1-ckern_2)*pdm)*dtimelnr
+    elseif (p_z <  p_2  .and. p_z >  p_3) then
+       pdm = (p_z-p_3)/(p_2-p_3)
+       ckern_2=yw_500(i,j)
+       ckern_3=yw_300(i,j)
+       get_cw = (ckern_3+(ckern_2-ckern_3)*pdm)*dtimelnr
+    else
+       get_cw = 0.0
+      endif
+
+  end function get_cw
 
   pure real(kind=r8size) function get_ywli(dtime_coal, nkr, p_z, i, j, m)
       implicit none
@@ -6262,6 +6302,7 @@ enddo
 
       endif
   end function get_ywli
+
 
 
 

@@ -6665,7 +6665,8 @@ enddo
       ckern_1 = YWLL_1000mb(i,j)
       ckern_2 = YWLL_750mb(i,j)
       ckern_3 = YWLL_500mb(i,j)
-      get_cwll = ecoalmassm(i,j)*ckern_z(p_z,p_1,p_2,p_3,ckern_1,ckern_2,ckern_3)*dtime_coal*dlnr
+      get_cwll = ckern_z(p_z,p_1,p_2,p_3,ckern_1,ckern_2,ckern_3)*dtime_coal*dlnr
+      get_cwll = ecoalmassm(i,j)*get_cwll
 
   end function get_cwll
  ! -----------------------------------------------------------------+

@@ -434,6 +434,7 @@ end module module_mp_SBM_BreakUp
 
  private
  public coll_xyy_lwf, coll_xyx_lwf, coll_xxx_lwf, &
+        coll_xxx_lwf_nlu, &
         coll_xyz_lwf, coll_xxy_lwf, &
         modkrn_KS, coll_breakup_KS, courant_bott_KS
 
@@ -8802,6 +8803,7 @@ enddo
   		              	Iin,Jin,Kin,itimestep,CollEff)
 
     use module_mp_SBM_Collision,only:coll_xyy_lwf,coll_xyx_lwf,coll_xxx_lwf,    &
+                     coll_xxx_lwf_nlu, &
 				     coll_xyz_lwf, modkrn_KS, coll_breakup_KS, 	&
 				     coll_xxy_lwf
 
@@ -9035,7 +9037,7 @@ end if
    		 							           chucm,ima,prdkrn1,nkr,1,dm_rime)
    					!call coll_xyx_lwf(g4,g1,rf4,rf1,get_cw_inv,dt_coll,nkr,PP_r, &
                             !ywlg_300mb, ywlg_500mb, ywlg_750mb, &
-                            xg_mg,xl_mg, chucm,ima,prdkrn1,1,dm_rime)
+                            !xg_mg,xl_mg, chucm,ima,prdkrn1,1,dm_rime)
   			else
           rf1 = 1.0
           rf5 = 0.0

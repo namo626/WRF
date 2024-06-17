@@ -9346,11 +9346,15 @@ end if
  				rf5 = 0.0
  				rf4 = 0.0
  				if(hail_opt == 1)then
- 					call coll_xyz_lwf(g1,g3,g5,rf1,rf3,rf5,cwls,xl_mg,xs_mg, &
-             	         	   	      	 chucm,ima,prdkrn1,nkr,0)
+ 					!call coll_xyz_lwf(g1,g3,g5,rf1,rf3,rf5,cwls,xl_mg,xs_mg, &
+             	         	   	      	 !chucm,ima,prdkrn1,nkr,0)
+ 					call coll_xyz_lwf_nlu(g1,g3,g5,rf1,rf3,rf5,&
+                       get_cw, dt_coll,nkr,PP_r, ywls_300mb,ywls_500mb,ywls_750mb, &
+                       xl_mg,xs_mg, chucm,ima,prdkrn1,0)
  				else
- 					call coll_xyz_lwf(g1,g3,g4,rf1,rf3,rf4,cwls,xl_mg,xs_mg, &
-             	         	   		  	  chucm,ima,prdkrn1,nkr,0)
+ 					call coll_xyz_lwf_nlu(g1,g3,g4,rf1,rf3,rf4,&
+                       get_cw, dt_coll,nkr,PP_r, ywls_300mb,ywls_500mb,ywls_750mb, &
+                       xl_mg,xs_mg, chucm,ima,prdkrn1,0)
  				endif
 		    rf1 = 1.0
         rf5 = 0.0
@@ -9363,11 +9367,17 @@ end if
                      xs_mg,xl_mg, chucm,ima,prdkrn1,1,dm_rime)
 		    else
  					if(hail_opt == 1)then
- 						call coll_xyz_lwf(g3,g1,g5,rf3,rf1,rf5,cwsl,xs_mg,xl_mg, &
-									           chucm,ima,prdkrn1,nkr,1)
+ 						!call coll_xyz_lwf(g3,g1,g5,rf3,rf1,rf5,cwsl,xs_mg,xl_mg, &
+									           !chucm,ima,prdkrn1,nkr,1)
+ 						call coll_xyz_lwf_nlu(g3,g1,g5,rf3,rf1,rf5,&
+                            get_cw_inv,dt_coll,nkr,PP_r,ywls_300mb,ywls_500mb,ywls_750mb, &
+                            xs_mg,xl_mg, chucm,ima,prdkrn1,1)
  					else
- 						call coll_xyz_lwf(g3,g1,g4,rf3,rf1,rf4,cwsl,xs_mg,xl_mg, &
- 										         chucm,ima,prdkrn1,nkr,1)
+ 						!call coll_xyz_lwf(g3,g1,g4,rf3,rf1,rf4,cwsl,xs_mg,xl_mg, &
+ 										         !chucm,ima,prdkrn1,nkr,1)
+ 						call coll_xyz_lwf_nlu(g3,g1,g4,rf3,rf1,rf4, &
+                            get_cw_inv,dt_coll,nkr,PP_r,ywls_300mb,ywls_500mb,ywls_750mb, &
+                            xs_mg,xl_mg, chucm,ima,prdkrn1,1)
  					endif
  				endif
  			! in case : icolxz_snow.ne.0
@@ -9382,8 +9392,11 @@ end if
     		if(alwc < alcr_g) then
   		    rf1 = 1.0
   		    rf4 = 0.0
-  				call coll_xyy_lwf(g1,g4,rf1,rf4,cwlg,xl_mg,xg_mg, &
-    		 	     	         	  chucm,ima,prdkrn1,nkr,0)
+  				!call coll_xyy_lwf(g1,g4,rf1,rf4,cwlg,xl_mg,xg_mg, &
+    		 	     	         	  !chucm,ima,prdkrn1,nkr,0)
+  				call coll_xyy_lwf_nlu(g1,g4,rf1,rf4,&
+                    get_cw,dt_coll,nkr,PP_r,ywlg_300mb,ywlg_500mb,ywlg_750mb,&
+                    xl_mg,xg_mg, chucm,ima,prdkrn1,0)
    					! ... for ice multiplication
    					conc_old = 0.0
        			conc_new = 0.0
@@ -9401,8 +9414,11 @@ end if
           rf1 = 1.0
           rf5 = 0.0
           rf4 = 0.0
- 					call coll_xyz_lwf(g1,g4,g5,rf1,rf4,rf5,cwlg,xl_mg,xg_mg, &
-           			      			  chucm,ima,prdkrn1,nkr,1)
+ 					!call coll_xyz_lwf(g1,g4,g5,rf1,rf4,rf5,cwlg,xl_mg,xg_mg, &
+           			      			  !chucm,ima,prdkrn1,nkr,1)
+ 					call coll_xyz_lwf_nlu(g1,g4,g5,rf1,rf4,rf5,&
+                            get_cw,dt_coll,nkr,PP_r,ywlg_300mb, ywlg_500mb, ywlg_750mb,&
+                            xl_mg,xg_mg, chucm,ima,prdkrn1,1)
  					! ... for ice multiplication
  					conc_old = 0.0
    			  conc_new = 0.0
@@ -9412,8 +9428,11 @@ end if
           rf1 = 1.0
           rf5 = 0.0
           rf4 = 0.0
- 					call coll_xyz_lwf(g4,g1,g5,rf4,rf1,rf5,cwgl,xg_mg,xl_mg, &
-           			            chucm,ima,prdkrn1,nkr,1)
+ 					!call coll_xyz_lwf(g4,g1,g5,rf4,rf1,rf5,cwgl,xg_mg,xl_mg, &
+           			            !chucm,ima,prdkrn1,nkr,1)
+ 					call coll_xyz_lwf_nlu(g4,g1,g5,rf4,rf1,rf5,&
+                          get_cw_inv,dt_coll,nkr,PP_r,ywlg_300mb,ywlg_500mb,ywlg_750mb,&
+                          xg_mg,xl_mg, chucm,ima,prdkrn1,1)
     		end if
  			! in case icol_graup == 1
   		endif
@@ -9424,8 +9443,11 @@ end if
    			! hail - water = hail
          rf1 = 1.0
          rf5 = 0.0
-  	     call coll_xyy_lwf(g1,g5,rf1,rf5,cwlh,xl_mg,xh_mg, &
-             		          chucm,ima,prdkrn1,nkr,0)
+  	     !call coll_xyy_lwf(g1,g5,rf1,rf5,cwlh,xl_mg,xh_mg, &
+             		          !chucm,ima,prdkrn1,nkr,0)
+  	     call coll_xyy_lwf_nlu(g1,g5,rf1,rf5,&
+                    get_cw,dt_coll,nkr,PP_r,ywlh_300mb,ywlh_500mb,ywlh_750mb,&
+                     xl_mg,xh_mg, chucm,ima,prdkrn1,0)
   			 ! ... for ice multiplication
   			 conc_old = 0.0
        	 conc_new = 0.0

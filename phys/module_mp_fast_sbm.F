@@ -433,7 +433,7 @@ end module module_mp_SBM_BreakUp
  module module_mp_SBM_Collision
 
  private
- public coll_xyy_lwf, coll_xyx_lwf, coll_xxx_lwf, &
+ public coll_xyy_lwf, coll_xyy_lwf_nlu, coll_xyx_lwf, coll_xxx_lwf, &
         coll_xxx_lwf_nlu, coll_xyx_lwf_nlu, &
         coll_xyz_lwf, coll_xyz_lwf_nlu, coll_xxy_lwf, coll_xxy_lwf_nlu, &
         modkrn_KS, coll_breakup_KS, courant_bott_KS
@@ -447,6 +447,209 @@ end module module_mp_SBM_BreakUp
 
  contains
 ! +------------------------------------------------+
+subroutine coll_xyy_lwf_nlu (gx,gy,flx,fly,&
+      f_cw,dtime_coal,nkr,p_z,yw_300,yw_500,yw_750,&
+      x,y, c,ima,prdkrn,indc)
+	implicit none
+
+	real(kind=r8size),intent(inout) :: gy(:),gx(:),fly(:),flx(:)
+	real(kind=r8size),intent(in) :: x(:),y(:),c(:,:)
+	integer,intent(in) :: ima(:,:)
+	real(kind=r8size),intent(in) :: prdkrn
+
+      interface
+         pure real(kind=8) function f_cw(dtime_coal, nkr, p_z, i, j, yw_300, yw_500, yw_750)
+         implicit none
+         integer, intent(in) :: nkr, i, j
+         real(kind=4),intent(in) :: dtime_coal,p_z
+         real(kind=4),intent(in) :: yw_300(:,:), yw_500(:,:), yw_750(:,:)
+         end function f_cw
+      end interface
+
+      real(kind=r4size),intent(in) :: yw_300(:,:), yw_500(:,:), yw_750(:,:)
+      integer, intent(in) :: nkr
+      real(kind=r4size),intent(in) :: dtime_coal,p_z
+
+! ... Locals
+ real(kind=r8size) :: gmin,ckxy_ji,x01,x02,x03,gsi,gsj,gsk,gsi_w,gsj_w,gsk_w,gk,gk_w,&
+                      fl_gk,fl_gsk,flux,x1,flux_w,gy_k_w,gy_kp_old,gy_kp_w
+ integer :: j,jx0,jx1,i,iy0,iy1,jmin,indc,k,kp
+! ... Locals
+
+	  gmin = 1.0d-60
+
+! jx0 - lower limit of integration by j
+do j=1,nkr-1
+   jx0=j
+   if(gx(j).gt.gmin) goto 2000
+enddo
+2000   continue
+if(jx0.eq.nkr-1) return
+
+! jx1 - upper limit of integration by j
+do j=nkr-1,jx0,-1
+   jx1=j
+   if(gx(j).gt.gmin) goto 2010
+enddo
+2010   continue
+
+! iy0 - lower limit of integration by i
+do i=1,nkr-1
+   iy0=i
+   if(gy(i).gt.gmin) goto 2001
+enddo
+2001   continue
+if(iy0.eq.nkr-1) return
+
+! iy1 - upper limit of integration by i
+do i=nkr-1,iy0,-1
+   iy1=i
+   if(gy(i).gt.gmin) goto 2011
+enddo
+2011   continue
+
+! collisions :
+        do i = iy0,iy1
+           if(gy(i).le.gmin) goto 2020
+           jmin = i
+           if(jmin.eq.nkr-1) return
+           if(i.lt.jx0) jmin=jx0-indc
+            do j=jmin+indc,jx1
+              if(gx(j).le.gmin) goto 2021
+              k=ima(i,j)
+              kp=k+1
+              !ckxy_ji=ckxy(j,i)
+              ckxy_ji=f_cw(dtime_coal,nkr,p_z,j,i,yw_300,yw_500,yw_750)
+              x01=ckxy_ji*gy(i)*gx(j)*prdkrn
+              x02=dmin1(x01,gy(i)*x(j))
+              x03=dmin1(x02,gx(j)*y(i))
+              gsi=x03/x(j)
+              gsj=x03/y(i)
+              gsk=gsi+gsj
+              if(gsk.le.gmin) goto 2021
+              gsi_w=gsi*fly(i)
+              gsj_w=gsj*flx(j)
+              gsk_w=gsi_w+gsj_w
+              gsk_w=dmin1(gsk_w,gsk)
+              gy(i)=gy(i)-gsi
+              gy(i)=dmax1(gy(i),0.0d0)
+              gx(j)=gx(j)-gsj
+              gx(j)=dmax1(gx(j),0.0d0)
+              gk=gy(k)+gsk
+              if(gk.le.gmin) goto 2021
+              gk_w=gy(k)*fly(k)+gsk_w
+              gk_w=dmin1(gk_w,gk)
+
+	            fl_gk=gk_w/gk
+
+              fl_gsk=gsk_w/gsk
+
+              flux=0.d0
+              x1=dlog(gy(kp)/gk+1.d-15)
+              flux=gsk/x1*(dexp(0.5d0*x1)-dexp(x1*(0.5d0-c(i,j))))
+              flux=dmin1(flux,gsk)
+              flux=dmin1(flux,gk)
+
+              if(kp.gt.kp_flux_max) flux=0.5d0*flux
+              flux_w=flux*fl_gsk
+              flux_w=dmin1(flux_w,gsk_w)
+              flux_w=dmin1(flux_w,gk_w)
+
+                gy(k)=gk-flux
+                gy(k)=dmax1(gy(k),gmin)
+                gy_k_w=gk*fl_gk-flux_w
+                gy_k_w=dmin1(gy_k_w,gy(k))
+                gy_k_w=dmax1(gy_k_w,0.0d0)
+                fly(k)=gy_k_w/gy(k)
+                gy_kp_old=gy(kp)
+                gy(kp)=gy(kp)+flux
+                gy(kp)=dmax1(gy(kp),gmin)
+                gy_kp_w=gy_kp_old*fly(kp)+flux_w
+                gy_kp_w=dmin1(gy_kp_w,gy(kp))
+                fly(kp)=gy_kp_w/gy(kp)
+
+                if(fly(k).gt.1.0d0.and.fly(k).le.1.0001d0) &
+                   fly(k)=1.0d0
+                if(fly(kp).gt.1.0d0.and.fly(kp).le.1.0001d0) &
+                   fly(kp)=1.0d0
+                if(fly(k).gt.1.0001d0.or.fly(kp).gt.1.0001d0 &
+                   .or.fly(k).lt.0.0d0.or.fly(kp).lt.0.0d0) then
+
+                print*,    'in subroutine coll_xyy_lwf'
+
+                if(fly(k).gt.1.0001d0)  print*, 'fly(k).gt.1.0001d0'
+                if(fly(kp).gt.1.0001d0) print*, 'fly(kp).gt.1.0001d0'
+
+                if(fly(k).lt.0.0d0)  print*, 'fly(k).lt.0.0d0'
+                if(fly(kp).lt.0.0d0) print*, 'fly(kp).lt.0.0d0'
+
+                print*,    'i,j,k,kp'
+                print*,     i,j,k,kp
+
+                print*,    'jx0,jx1,iy0,iy1'
+                print*,     jx0,jx1,iy0,iy1
+
+                print*,   'ckxy(j,i),x01,x02,x03'
+                print 204, ckxy_ji,x01,x02,x03
+
+                print*,   'gsi,gsj,gsk'
+                print 203, gsi,gsj,gsk
+
+                print*,   'gsi_w,gsj_w,gsk_w'
+                print 203, gsi_w,gsj_w,gsk_w
+
+                print*,   'gk,gk_w'
+                print 202, gk,gk_w
+
+                print*,   'fl_gk,fl_gsk'
+                print 202, fl_gk,fl_gsk
+
+                print*,   'x1,c(i,j)'
+                print 202, x1,c(i,j)
+
+                print*,   'flux'
+                print 201, flux
+
+                print*,   'flux_w'
+                print 201, flux_w
+
+                print*,   'gy_k_w'
+                print 201, gy_k_w
+
+                print*,   'gy_kp_w'
+                print 201, gy_kp_w
+
+		            if(fly(k).lt.0.0d0) print*, &
+				            'stop 2022: in subroutine coll_xyy_lwf, fly(k) < 0'
+
+                if(fly(kp).lt.0.0d0) print*, &
+					           'stop 2022: in subroutine coll_xyy_lwf, fly(kp) < 0'
+
+                if(fly(k).gt.1.0001d0) print*, &
+					           'stop 2022: in sub. coll_xyy_lwf, fly(k) > 1.0001'
+
+				        if(fly(kp).gt.1.0001d0) print*, &
+					           'stop 2022: in sub. coll_xyy_lwf, fly(kp) > 1.0001'
+
+                     call wrf_error_fatal("in coal_bott coll_xyy_lwf, model stop")
+! in case fly(k).gt.1.0001d0.or.fly(kp).gt.1.0001d0
+!        .or.fly(k).lt.0.0d0.or.fly(kp).lt.0.0d0
+          endif
+ 2021   continue
+       enddo
+! cycle by j
+ 2020   continue
+    enddo
+! cycle by i
+
+ 201    format(1x,d13.5)
+ 202    format(1x,2d13.5)
+ 203    format(1x,3d13.5)
+ 204    format(1x,4d13.5)
+
+  return
+  end subroutine coll_xyy_lwf_nlu
+
 subroutine coll_xyy_lwf (gx,gy,flx,fly,ckxy,x,y, &
 						            c,ima,prdkrn,nkr,indc)
 	implicit none
@@ -9161,7 +9364,7 @@ enddo
 			    	DEL1in, DEL2in,                             &
   		              	Iin,Jin,Kin,itimestep,CollEff)
 
-    use module_mp_SBM_Collision,only:coll_xyy_lwf,coll_xyx_lwf,coll_xxx_lwf,    &
+    use module_mp_SBM_Collision,only:coll_xyy_lwf, coll_xyy_lwf_nlu,coll_xyx_lwf,coll_xxx_lwf,    &
                      coll_xxx_lwf_nlu, coll_xyx_lwf_nlu, &
 				     coll_xyz_lwf, coll_xyz_lwf_nlu, modkrn_KS, coll_breakup_KS, 	&
 				     coll_xxy_lwf, coll_xxy_lwf_nlu

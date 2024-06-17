@@ -435,7 +435,7 @@ end module module_mp_SBM_BreakUp
  private
  public coll_xyy_lwf, coll_xyx_lwf, coll_xxx_lwf, &
         coll_xxx_lwf_nlu, coll_xyx_lwf_nlu, &
-        coll_xyz_lwf, coll_xyz_lwf_nlu, coll_xxy_lwf, &
+        coll_xyz_lwf, coll_xyz_lwf_nlu, coll_xxy_lwf, coll_xxy_lwf_nlu, &
         modkrn_KS, coll_breakup_KS, courant_bott_KS
 
   ! Kind paramater
@@ -1861,6 +1861,144 @@ enddo
  return
  end subroutine coll_xyz_lwf
 ! -----------------------------------------------+
+ subroutine coll_xxy_lwf_nlu(gx,gy,flx,fly,&
+      f_cw,dtime_coal,nkr,p_z,yw_300,yw_500,yw_750, &
+      x, c,ima,prdkrn)
+
+  implicit none
+
+  real(kind=r8size),intent(inout):: gx(nkr),gy(nkr),flx(nkr),fly(nkr)
+  real(kind=r8size),intent(in) :: x(nkr), c(nkr,nkr)
+  real(kind=r8size),intent(in) :: prdkrn
+  integer,intent(in) :: ima(nkr,nkr)
+
+      interface
+         pure real(kind=8) function f_cw(dtime_coal, nkr, p_z, i, j, yw_300, yw_500, yw_750)
+         implicit none
+         integer, intent(in) :: nkr, i, j
+         real(kind=4),intent(in) :: dtime_coal,p_z
+         real(kind=4),intent(in) :: yw_300(:,:), yw_500(:,:), yw_750(:,:)
+         end function f_cw
+      end interface
+
+      real(kind=r4size),intent(in) :: yw_300(:,:), yw_500(:,:), yw_750(:,:)
+      integer, intent(in) :: nkr
+      real(kind=r4size),intent(in) :: dtime_coal,p_z
+
+! ... Locals
+  real(kind=r8size) :: gmin,ckxx_ij,x01,x02,x03,gsi,gsj,gsk,gsi_w,gsj_w,gsk_w, &
+                       gk,gk_w,flux,flux_w,fl_gk,fl_gsk,x1,gy_k_w,gy_kp_w, &
+                       gy_kp_old
+  integer::i,ix0,ix1,j,k,kp
+! ... Locals
+
+!gmin=g_lim*1.0d3
+gmin = 1.0d-60
+
+! ix0 - lower limit of integration by i
+do i=1,nkr-1
+   ix0=i
+   if(gx(i).gt.gmin) goto 2000
+enddo
+2000   continue
+if(ix0.eq.nkr-1) return
+
+! ix1 - upper limit of integration by i
+do i=nkr-1,ix0,-1
+   ix1=i
+   if(gx(i).gt.gmin) goto 2010
+enddo
+2010   continue
+
+! ... collisions
+      do i=ix0,ix1
+         if(gx(i).le.gmin) goto 2020
+         do j=i,ix1
+            if(gx(j).le.gmin) goto 2021
+            k=ima(i,j)
+            kp=k+1
+            !ckxx_ij = ckxx(i,j)
+            ckxx_ij = f_cw(dtime_coal, nkr, p_z, i, j, yw_300,yw_500,yw_750)
+            x01=ckxx_ij*gx(i)*gx(j)*prdkrn
+            x02=dmin1(x01,gx(i)*x(j))
+            x03=dmin1(x02,gx(j)*x(i))
+            gsi=x03/x(j)
+            gsj=x03/x(i)
+            gsk=gsi+gsj
+
+            if(gsk.le.gmin) goto 2021
+
+            gsi_w=gsi*flx(i)
+            gsj_w=gsj*flx(j)
+            gsk_w=gsi_w+gsj_w
+            gsk_w=dmin1(gsk_w,gsk)
+
+            gx(i)=gx(i)-gsi
+            gx(i)=dmax1(gx(i),0.0d0)
+
+            gx(j)=gx(j)-gsj
+            gx(j)=dmax1(gx(j),0.0d0)
+
+            gk=gy(k)+gsk
+
+            if(gk.le.gmin) goto 2021
+
+            gk_w=gy(k)*fly(k)+gsk_w
+            gk_w=dmin1(gk_w,gk)
+            fl_gk=gk_w/gk
+            fl_gsk=gsk_w/gsk
+
+            flux=0.d0
+
+            x1=dlog(gy(kp)/gk+1.d-15)
+            !		print *,'nir1',gy(kp),gk,kp,i,j
+            flux=gsk/x1*(dexp(0.5d0*x1)-dexp(x1*(0.5d0-c(i,j))))
+            flux=dmin1(flux,gsk)
+            flux=dmin1(flux,gk)
+
+            if(kp.gt.kp_flux_max) flux=0.5d0*flux
+
+            flux_w=flux*fl_gsk
+            flux_w=dmin1(flux_w,gk_w)
+            flux_w=dmin1(flux_w,gsk_w)
+            flux_w=dmax1(flux_w,0.0d0)
+
+            gy(k)=gk-flux
+            gy_k_w=gk*fl_gk-flux_w
+            gy_k_w=dmin1(gy_k_w,gy(k))
+            gy_k_w=dmax1(gy_k_w,0.0d0)
+            !		print *,'nirxxylwf4',k,gy(k),gy_k_w,x1,flux
+            if (gy(k)/=0.0) then
+              fly(k)=gy_k_w/gy(k)
+            else
+              fly(k)=0.0d0
+            endif
+            gy_kp_old=gy(kp)
+            gy(kp)=gy(kp)+flux
+            gy_kp_w=gy_kp_old*fly(kp)+flux_w
+            gy_kp_w=dmin1(gy_kp_w,gy(kp))
+            if (gy(kp)/=0.0) then
+              fly(kp)=gy_kp_w/gy(kp)
+            else
+              fly(kp)=0.0d0
+            endif
+2021  continue
+
+      if(fly(k).gt.1.0d0.and.fly(k).le.1.0001d0) &
+          fly(k)=1.0d0
+
+        if(fly(kp).gt.1.0d0.and.fly(kp).le.1.0001d0) &
+          fly(kp)=1.0d0
+
+         end do
+! cycle by j
+2020      continue
+      end do
+! cycle by i
+
+ return
+ end subroutine coll_xxy_lwf_nlu
+
  subroutine coll_xxy_lwf(gx,gy,flx,fly,ckxx,x, &
                         c,ima,prdkrn,nkr)
 
@@ -9026,7 +9164,7 @@ enddo
     use module_mp_SBM_Collision,only:coll_xyy_lwf,coll_xyx_lwf,coll_xxx_lwf,    &
                      coll_xxx_lwf_nlu, coll_xyx_lwf_nlu, &
 				     coll_xyz_lwf, coll_xyz_lwf_nlu, modkrn_KS, coll_breakup_KS, 	&
-				     coll_xxy_lwf
+				     coll_xxy_lwf, coll_xxy_lwf_nlu
 
      implicit none
 

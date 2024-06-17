@@ -434,7 +434,7 @@ end module module_mp_SBM_BreakUp
 
  private
  public coll_xyy_lwf, coll_xyx_lwf, coll_xxx_lwf, &
-        coll_xxx_lwf_nlu, coll_xyx_lwf_nlu &
+        coll_xxx_lwf_nlu, coll_xyx_lwf_nlu, &
         coll_xyz_lwf, coll_xxy_lwf, &
         modkrn_KS, coll_breakup_KS, courant_bott_KS
 

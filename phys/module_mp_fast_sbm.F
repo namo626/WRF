@@ -448,7 +448,7 @@ end module module_mp_SBM_BreakUp
  contains
 ! +------------------------------------------------+
 subroutine coll_xyy_lwf_nlu (gx,gy,flx,fly,&
-      f_cw,dtime_coal,nkr,p_z,yw_300,yw_500,yw_750,&
+      f_cw,dtime_coal,nkr,p_z,&
       x,y, c,ima,prdkrn,indc)
 	implicit none
 
@@ -457,16 +457,7 @@ subroutine coll_xyy_lwf_nlu (gx,gy,flx,fly,&
 	integer,intent(in) :: ima(:,:)
 	real(kind=r8size),intent(in) :: prdkrn
 
-      interface
-         pure real(kind=8) function f_cw(dtime_coal, nkr, p_z, i, j, yw_300, yw_500, yw_750)
-         implicit none
-         integer, intent(in) :: nkr, i, j
-         real(kind=4),intent(in) :: dtime_coal,p_z
-         real(kind=4),intent(in) :: yw_300(:,:), yw_500(:,:), yw_750(:,:)
-         end function f_cw
-      end interface
-
-      real(kind=r4size),intent(in) :: yw_300(:,:), yw_500(:,:), yw_750(:,:)
+      real(kind=r8size), external :: f_cw
       integer, intent(in) :: nkr
       real(kind=r4size),intent(in) :: dtime_coal,p_z
 
@@ -519,7 +510,7 @@ enddo
               k=ima(i,j)
               kp=k+1
               !ckxy_ji=ckxy(j,i)
-              ckxy_ji=f_cw(dtime_coal,nkr,p_z,j,i,yw_300,yw_500,yw_750)
+              ckxy_ji=f_cw(dtime_coal,nkr,p_z,j,i)
               x01=ckxy_ji*gy(i)*gx(j)*prdkrn
               x02=dmin1(x01,gy(i)*x(j))
               x03=dmin1(x02,gx(j)*y(i))
@@ -839,7 +830,7 @@ enddo
   return
   end subroutine coll_xyy_lwf
 ! +-----------------------------------------------------+
-  subroutine coll_xxx_lwf_nlu(g,fl,f_cw,dtime_coal, nkr, p_z,yw_300,yw_500,yw_750,x,c,ima,prdkrn)
+  subroutine coll_xxx_lwf_nlu(g,fl,f_cw,dtime_coal, nkr, p_z,x,c,ima,prdkrn)
 
     implicit none
 
@@ -849,16 +840,8 @@ enddo
     integer,intent(in) :: ima(:,:)
     real(kind=r8size),intent(in) :: prdkrn
 
-      interface
-         pure real(kind=8) function f_cw(dtime_coal, nkr, p_z, i, j, yw_300, yw_500, yw_750)
-         implicit none
-         integer, intent(in) :: nkr, i, j
-         real(kind=4),intent(in) :: dtime_coal,p_z
-         real(kind=4),intent(in) :: yw_300(:,:), yw_500(:,:), yw_750(:,:)
-         end function f_cw
-      end interface
+      real(kind=r8size), external :: f_cw
 
-      real(kind=r4size),intent(in) :: yw_300(:,:), yw_500(:,:), yw_750(:,:)
       integer, intent(in) :: nkr
       real(kind=r4size),intent(in) :: dtime_coal,p_z
 
@@ -896,7 +879,7 @@ enddo
             kp=k+1
 
             ! no lookup
-            ckxx = f_cw(dtime_coal, nkr, p_z, i, j, yw_300, yw_500, yw_750)
+            ckxx = f_cw(dtime_coal, nkr, p_z, i, j)
             !x01=ckxx(i,j)*g(i)*g(j)*prdkrn
             x01=ckxx*g(i)*g(j)*prdkrn
 
@@ -1213,7 +1196,7 @@ enddo
  return
  end subroutine coll_xxx_lwf
 ! +----------------------------------------------------+
- subroutine coll_xyx_lwf_nlu (gx,gy,flx,fly,f_cw,dtime_coal,nkr,p_z,yw_300,yw_500,yw_750, &
+ subroutine coll_xyx_lwf_nlu (gx,gy,flx,fly,f_cw,dtime_coal,nkr,p_z, &
       x,y, c,ima,prdkrn,indc,dm_rime)
 	implicit none
 
@@ -1221,16 +1204,7 @@ enddo
 	real(kind=r8size),intent(in) :: x(:),y(:),c(:,:),prdkrn
 	integer,intent(in) :: ima(:,:)
 
-      interface
-         pure real(kind=8) function f_cw(dtime_coal, nkr, p_z, i, j, yw_300, yw_500, yw_750)
-         implicit none
-         integer, intent(in) :: nkr, i, j
-         real(kind=4),intent(in) :: dtime_coal,p_z
-         real(kind=4),intent(in) :: yw_300(:,:), yw_500(:,:), yw_750(:,:)
-         end function f_cw
-      end interface
-
-      real(kind=r4size),intent(in) :: yw_300(:,:), yw_500(:,:), yw_750(:,:)
+      real(kind=r8size), external :: f_cw
       integer, intent(in) :: nkr
       real(kind=r4size),intent(in) :: dtime_coal,p_z
 
@@ -1286,7 +1260,7 @@ enddo
               k=ima(i,j)
               kp=k+1
               ! no lookup
-              ckxy = f_cw(dtime_coal,nkr,p_z,j,i,yw_300,yw_500,yw_750)
+              ckxy = f_cw(dtime_coal,nkr,p_z,j,i)
               x01=ckxy*gy(i)*gx(j)*prdkrn
               !x01=ckxy(j,i)*gy(i)*gx(j)*prdkrn
 
@@ -1639,7 +1613,7 @@ enddo
  end subroutine coll_xyx_lwf
 
  subroutine coll_xyz_lwf_nlu(gx,gy,gz,flx,fly,flz,&
-      f_cw,dtime_coal, nkr, p_z, yw_300, yw_500, yw_750, &
+      f_cw,dtime_coal, nkr, p_z, &
       x,y, c,ima,prdkrn, indc)
 
  implicit none
@@ -1649,16 +1623,7 @@ enddo
  integer,intent(in) :: ima(:,:)
  real(kind=r8size),intent(in) :: prdkrn
 
-      interface
-         pure real(kind=8) function f_cw(dtime_coal, nkr, p_z, i, j, yw_300, yw_500, yw_750)
-         implicit none
-         integer, intent(in) :: nkr, i, j
-         real(kind=4),intent(in) :: dtime_coal,p_z
-         real(kind=4),intent(in) :: yw_300(:,:), yw_500(:,:), yw_750(:,:)
-         end function f_cw
-      end interface
-
-      real(kind=r4size),intent(in) :: yw_300(:,:), yw_500(:,:), yw_750(:,:)
+      real(kind=r8size), external :: f_cw
       integer, intent(in) :: nkr
       real(kind=r4size),intent(in) :: dtime_coal,p_z
 
@@ -1712,7 +1677,7 @@ enddo
             k=ima(i,j)
             kp=k+1
             !ckxy_ji=ckxy(j,i)
-            ckxy_ji= f_cw(dtime_coal,nkr,p_z,j,i,yw_300,yw_500,yw_750)
+            ckxy_ji= f_cw(dtime_coal,nkr,p_z,j,i)
             x01=ckxy_ji*gy(i)*gx(j)*prdkrn
             x02=dmin1(x01,gy(i)*x(j))
             x03=dmin1(x02,gx(j)*y(i))
@@ -2065,7 +2030,7 @@ enddo
  end subroutine coll_xyz_lwf
 ! -----------------------------------------------+
  subroutine coll_xxy_lwf_nlu(gx,gy,flx,fly,&
-      f_cw,dtime_coal,nkr,p_z,yw_300,yw_500,yw_750, &
+      f_cw,dtime_coal,nkr,p_z, &
       x, c,ima,prdkrn)
 
   implicit none
@@ -2075,16 +2040,7 @@ enddo
   real(kind=r8size),intent(in) :: prdkrn
   integer,intent(in) :: ima(nkr,nkr)
 
-      interface
-         pure real(kind=8) function f_cw(dtime_coal, nkr, p_z, i, j, yw_300, yw_500, yw_750)
-         implicit none
-         integer, intent(in) :: nkr, i, j
-         real(kind=4),intent(in) :: dtime_coal,p_z
-         real(kind=4),intent(in) :: yw_300(:,:), yw_500(:,:), yw_750(:,:)
-         end function f_cw
-      end interface
-
-      real(kind=r4size),intent(in) :: yw_300(:,:), yw_500(:,:), yw_750(:,:)
+      real(kind=r8size), external :: f_cw
       integer, intent(in) :: nkr
       real(kind=r4size),intent(in) :: dtime_coal,p_z
 
@@ -2121,7 +2077,7 @@ enddo
             k=ima(i,j)
             kp=k+1
             !ckxx_ij = ckxx(i,j)
-            ckxx_ij = f_cw(dtime_coal, nkr, p_z, i, j, yw_300,yw_500,yw_750)
+            ckxx_ij = f_cw(dtime_coal, nkr, p_z, i, j)
             x01=ckxx_ij*gx(i)*gx(j)*prdkrn
             x02=dmin1(x01,gx(i)*x(j))
             x03=dmin1(x02,gx(j)*x(i))

@@ -7202,20 +7202,18 @@ enddo
 
   END SUBROUTINE FAST_HUCMINIT
 
-  pure real(kind=r8size) function get_cwll(dtime_coal, nkr, p_z, i, j, yw_300, yw_500, yw_750)
+  pure real(kind=r8size) function get_cwll(dtime_coal, nkr, p_z, i, j)
       ! Compute cwll(i,j)
       implicit none
 
       integer, intent(in) :: nkr, i, j
       real(kind=r4size),intent(in) :: dtime_coal,p_z
-      ! These are actually unused
-      real(kind=r4size),intent(in) :: yw_300(:,:), yw_500(:,:), yw_750(:,:)
 
   ! ### Locals
   real(kind=r4size),parameter :: p1=1.0e6,p2=0.75e6,p3=0.50e6,p4=0.3e6
   real(kind=r4size) :: dlnr, scal, dtimelnr, pdm, p_1, p_2, p_3, ckern_1, ckern_2, &
   					  ckern_3
-  scal = 1.0
+    scal = 1.0
  	dlnr = dlog(2.0d0)/(3.0d0*scal)
  	dtimelnr = dtime_coal*dlnr
 

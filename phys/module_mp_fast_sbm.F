@@ -434,7 +434,7 @@ end module module_mp_SBM_BreakUp
 
  private
  public coll_xyy_lwf, coll_xyx_lwf, coll_xxx_lwf, &
-        coll_xxx_lwf_nlu, &
+        coll_xxx_lwf_nlu, coll_xyx_lwf_nlu &
         coll_xyz_lwf, coll_xxy_lwf, &
         modkrn_KS, coll_breakup_KS, courant_bott_KS
 
@@ -6793,25 +6793,25 @@ enddo
  	dlnr = dlog(2.0d0)/(3.0d0*scal)
  	dtimelnr = dtime_coal*dlnr
 
-      p_1=p1
- 	 p_2=p2
- 	p_3=p3
- 	do i=1,nkr
- 		do j=1,nkr
- 			! 1. water - water
- 			ckern_1 = YWLL_1000mb(i,j)
- 			ckern_2 = YWLL_750mb(i,j)
- 			ckern_3 = YWLL_500mb(i,j)
- 			cwll(i,j) = ckern_z(p_z,p_1,p_2,p_3,ckern_1,ckern_2,ckern_3)*dtime_coal*dlnr
- 		end do
- 	end do
+    !  p_1=p1
+ 	! p_2=p2
+ 	!p_3=p3
+ 	!do i=1,nkr
+ 	!	do j=1,nkr
+ 	!		! 1. water - water
+ 	!		ckern_1 = YWLL_1000mb(i,j)
+ 	!		ckern_2 = YWLL_750mb(i,j)
+ 	!		ckern_3 = YWLL_500mb(i,j)
+ 	!		cwll(i,j) = ckern_z(p_z,p_1,p_2,p_3,ckern_1,ckern_2,ckern_3)*dtime_coal*dlnr
+ 	!	end do
+ 	!end do
 
- 	! ... ECOALMASSM is from "BreakIniit_KS"
- 	DO I=1,NKR
- 	 DO J=1,NKR
- 		CWLL(I,J) = ECOALMASSM(I,J)*CWLL(I,J)
- 	 END DO
-  END DO
+ 	!! ... ECOALMASSM is from "BreakIniit_KS"
+ 	!DO I=1,NKR
+ 	! DO J=1,NKR
+ 	!	CWLL(I,J) = ECOALMASSM(I,J)*CWLL(I,J)
+ 	! END DO
+  !END DO
 
 
  	p_1=p2
@@ -6824,9 +6824,9 @@ enddo
  				cwli_1(i,j) = ywli_750mb(i,j,1)*dtimelnr
  				cwli_2(i,j) = ywli_750mb(i,j,2)*dtimelnr
  				cwli_3(i,j) = ywli_750mb(i,j,3)*dtimelnr
- 				cwlg(i,j) = ywlg_750mb(i,j)*dtimelnr
+ 				!cwlg(i,j) = ywlg_750mb(i,j)*dtimelnr
  				cwlh(i,j) = ywlh_750mb(i,j)*dtimelnr
- 				cwls(i,j) = ywls_750mb(i,j)*dtimelnr
+ 				!cwls(i,j) = ywls_750mb(i,j)*dtimelnr
  				cwii_1_1(i,j) = ywii_750mb(i,j,1,1)*dtimelnr
  				cwii_1_2(i,j) = ywii_750mb(i,j,1,2)*dtimelnr
  				cwii_1_3(i,j) = ywii_750mb(i,j,1,3)*dtimelnr
@@ -6851,9 +6851,9 @@ enddo
  			cwli_1(i,j) = ywli_300mb(i,j,1)*dtimelnr
  			cwli_2(i,j) = ywli_300mb(i,j,2)*dtimelnr
  			cwli_3(i,j) = ywli_300mb(i,j,3)*dtimelnr
- 			cwlg(i,j) = ywlg_300mb(i,j)*dtimelnr
+ 			!cwlg(i,j) = ywlg_300mb(i,j)*dtimelnr
  			cwlh(i,j) = ywlh_300mb(i,j)*dtimelnr
- 			cwls(i,j) = ywls_300mb(i,j)*dtimelnr
+ 			!cwls(i,j) = ywls_300mb(i,j)*dtimelnr
  			cwii_1_1(i,j) = ywii_300mb(i,j,1,1)*dtimelnr
  			cwii_1_2(i,j) = ywii_300mb(i,j,1,2)*dtimelnr
  			cwii_1_3(i,j) = ywii_300mb(i,j,1,3)*dtimelnr
@@ -6890,7 +6890,7 @@ enddo
 
  			ckern_1=ywlg_750mb(i,j)
  			ckern_2=ywlg_500mb(i,j)
- 			cwlg(i,j)=(ckern_2+(ckern_1-ckern_2)*pdm)*dtimelnr
+ 			!cwlg(i,j)=(ckern_2+(ckern_1-ckern_2)*pdm)*dtimelnr
 
  			ckern_1=ywlh_750mb(i,j)
  			ckern_2=ywlh_500mb(i,j)
@@ -6898,7 +6898,7 @@ enddo
 
  			ckern_1=ywls_750mb(i,j)
  			ckern_2=ywls_500mb(i,j)
- 			cwls(i,j)=(ckern_2+(ckern_1-ckern_2)*pdm)*dtimelnr
+ 			!cwls(i,j)=(ckern_2+(ckern_1-ckern_2)*pdm)*dtimelnr
 
  			ckern_1=ywii_750mb(i,j,1,1)
  			ckern_2=ywii_500mb(i,j,1,1)
@@ -6979,7 +6979,7 @@ enddo
 
  			  ckern_2=ywlg_500mb(i,j)
  			  ckern_3=ywlg_300mb(i,j)
- 			  cwlg(i,j)=(ckern_3+(ckern_2-ckern_3)*pdm)*dtimelnr
+ 			  !cwlg(i,j)=(ckern_3+(ckern_2-ckern_3)*pdm)*dtimelnr
 
    			ckern_2=ywlh_500mb(i,j)
    			ckern_3=ywlh_300mb(i,j)
@@ -6987,7 +6987,7 @@ enddo
 
    			ckern_2=ywls_500mb(i,j)
    			ckern_3=ywls_300mb(i,j)
-   			cwls(i,j)=(ckern_3+(ckern_2-ckern_3)*pdm)*dtimelnr
+   			!cwls(i,j)=(ckern_3+(ckern_2-ckern_3)*pdm)*dtimelnr
 
    			ckern_2=ywii_500mb(i,j,1,1)
    			ckern_3=ywii_300mb(i,j,1,1)
@@ -7058,11 +7058,11 @@ enddo
  ! dendrites - water
  		  cwil_3(i,j)=cwli_3(j,i)
  ! 3. graupel - water
- 		  cwgl(i,j)=cwlg(j,i)
+ 		  !cwgl(i,j)=cwlg(j,i)
  ! 4. hail - water
  		  cwhl(i,j)=cwlh(j,i)
  ! 5. snow - water
- 		  cwsl(i,j)=cwls(j,i)
+ 		  !cwsl(i,j)=cwls(j,i)
  ! 7.snow - crystals :
  ! snow - columns
  		  cwsi_1(i,j)=cwis_1(j,i)
@@ -8804,7 +8804,7 @@ enddo
   		              	Iin,Jin,Kin,itimestep,CollEff)
 
     use module_mp_SBM_Collision,only:coll_xyy_lwf,coll_xyx_lwf,coll_xxx_lwf,    &
-                     coll_xxx_lwf_nlu, &
+                     coll_xxx_lwf_nlu, coll_xyx_lwf_nlu, &
 				     coll_xyz_lwf, modkrn_KS, coll_breakup_KS, 	&
 				     coll_xxy_lwf
 
@@ -8998,11 +8998,11 @@ end if
         rf5 = 0.0
         rf4 = 0.0
 		    if(alwc < alcr) then
-    			call coll_xyx_lwf(g3,g1,rf3,rf1,cwsl,xs_mg,xl_mg, &
-         	         		      chucm,ima,prdkrn1,nkr,1,dm_rime)
-    			!call coll_xyx_lwf_nlu(g3,g1,rf3,rf1,get_cw_inv,dt_coll,nkr,PP_r,&
-                     !ywls_300mb, ywls_500mb, ywls_750mb, &
-                     !xs_mg,xl_mg, chucm,ima,prdkrn1,1,dm_rime)
+    			!call coll_xyx_lwf(g3,g1,rf3,rf1,cwsl,xs_mg,xl_mg, &
+         	         		      !chucm,ima,prdkrn1,nkr,1,dm_rime)
+    			call coll_xyx_lwf_nlu(g3,g1,rf3,rf1,get_cw_inv,dt_coll,nkr,PP_r,&
+                     ywls_300mb, ywls_500mb, ywls_750mb, &
+                     xs_mg,xl_mg, chucm,ima,prdkrn1,1,dm_rime)
 		    else
  					if(hail_opt == 1)then
  						call coll_xyz_lwf(g3,g1,g5,rf3,rf1,rf5,cwsl,xs_mg,xl_mg, &
@@ -9034,11 +9034,11 @@ end if
        			end do
        			rf1 = 1.0
        			rf4 = 0.0
-   					call coll_xyx_lwf(g4,g1,rf4,rf1,cwgl,xg_mg,xl_mg, &
-   		 							           chucm,ima,prdkrn1,nkr,1,dm_rime)
-   					!call coll_xyx_lwf(g4,g1,rf4,rf1,get_cw_inv,dt_coll,nkr,PP_r, &
-                            !ywlg_300mb, ywlg_500mb, ywlg_750mb, &
-                            !xg_mg,xl_mg, chucm,ima,prdkrn1,1,dm_rime)
+   					!call coll_xyx_lwf(g4,g1,rf4,rf1,cwgl,xg_mg,xl_mg, &
+   		 							           !chucm,ima,prdkrn1,nkr,1,dm_rime)
+   					call coll_xyx_lwf_nlu(g4,g1,rf4,rf1,get_cw_inv,dt_coll,nkr,PP_r, &
+                            ywlg_300mb, ywlg_500mb, ywlg_750mb, &
+                            xg_mg,xl_mg, chucm,ima,prdkrn1,1,dm_rime)
   			else
           rf1 = 1.0
           rf5 = 0.0
@@ -9076,11 +9076,11 @@ end if
   	     enddo
    			rf1 = 1.0
    			rf5 = 0.0
-  			call coll_xyx_lwf(g5,g1,rf5,rf1,cwhl,xh_mg,xl_mg, &
-                 			   chucm,ima,prdkrn1,nkr,1,dm_rime)
-  			!call coll_xyx_lwf(g5,g1,rf5,rf1,get_cw_inv,dt_coll,nkr,PP_r, &
-                  !ywlh_300mb, ywlh_500mb, ywlh_750mb, &
-                  !xh_mg,xl_mg, chucm,ima,prdkrn1,1,dm_rime)
+  			!call coll_xyx_lwf(g5,g1,rf5,rf1,cwhl,xh_mg,xl_mg, &
+                 			   !chucm,ima,prdkrn1,nkr,1,dm_rime)
+  			call coll_xyx_lwf_nlu(g5,g1,rf5,rf1,get_cw_inv,dt_coll,nkr,PP_r, &
+                  ywlh_300mb, ywlh_500mb, ywlh_750mb, &
+                  xh_mg,xl_mg, chucm,ima,prdkrn1,1,dm_rime)
    		! in case icol_hail == 1
   		endif
 
@@ -9108,8 +9108,8 @@ end if
 
  		if(icol_snow == 1) then
  		! ... interactions between snowflakes
-			call coll_xxx_lwf(g3,rf3,cwss,xs_mg,chucm,ima,prdkrn,nkr)
-		   !call coll_xxx_lwf(g3,rf3,get_cw,dt_coll,nkr,PP_r,ywss_300mb,ywss_500mb,ywss_750mb,xs_mg,chucm,ima,prdkrn)
+			!call coll_xxx_lwf(g3,rf3,cwss,xs_mg,chucm,ima,prdkrn,nkr)
+		   call coll_xxx_lwf_nlu(g3,rf3,get_cw,dt_coll,nkr,PP_r,ywss_300mb,ywss_500mb,ywss_750mb,xs_mg,chucm,ima,prdkrn)
  		! in case icolxz_snow.ne.0
  		endif
 

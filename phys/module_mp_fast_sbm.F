@@ -7226,18 +7226,6 @@ enddo
 
   end function get_cw
 
-  pure real(kind=r8size) function get_cw_inv(dtime_coal, nkr, p_z, i, j, yw_300, yw_500, yw_750)
-      ! Compute cwlg, cwlh, cwsg, cwss at entry i,j based on the input yw array
-      implicit none
-
-      integer, intent(in) :: nkr, i, j
-      real(kind=r4size),intent(in) :: dtime_coal,p_z
-      real(kind=r4size),intent(in) :: yw_300(:,:), yw_500(:,:), yw_750(:,:)
-
-      get_cw_inv = get_cw(dtime_coal, nkr, p_z, j, i, yw_300, yw_500, yw_750)
-
-
-  end function get_cw_inv
 
   pure real(kind=r8size) function get_cwlg(dtime_coal,nkr,p_z,i,j)
       implicit none
@@ -9436,7 +9424,7 @@ enddo
 ! ... Drop-Drop collisions
   fl1 = 1.0
   !call coll_xxx_lwf (G1,fl1,CWLL,XL_MG,CHUCM,IMA,1.d0,NKR)
-  call coll_xxx_lwf_nlu (G1,fl1,get_cwll,dt_coll,nkr,PP_r,ywll_1000mb,ywll_750mb,ywll_500mb,XL_MG,CHUCM,IMA,1.d0)
+  call coll_xxx_lwf_nlu (G1,fl1,get_cwll,dt_coll,nkr,PP_r,XL_MG,CHUCM,IMA,1.d0)
 ! ... Breakup
   if(icol_drop_brk == 1)then
     ndiv = 1
@@ -9516,11 +9504,11 @@ end if
  					!call coll_xyz_lwf(g1,g3,g5,rf1,rf3,rf5,cwls,xl_mg,xs_mg, &
              	         	   	      	 !chucm,ima,prdkrn1,nkr,0)
  					call coll_xyz_lwf_nlu(g1,g3,g5,rf1,rf3,rf5,&
-                       get_cw, dt_coll,nkr,PP_r, ywls_300mb,ywls_500mb,ywls_750mb, &
+                       get_cwls, dt_coll,nkr,PP_r,&
                        xl_mg,xs_mg, chucm,ima,prdkrn1,0)
  				else
  					call coll_xyz_lwf_nlu(g1,g3,g4,rf1,rf3,rf4,&
-                       get_cw, dt_coll,nkr,PP_r, ywls_300mb,ywls_500mb,ywls_750mb, &
+                       get_cwls, dt_coll,nkr,PP_r,&
                        xl_mg,xs_mg, chucm,ima,prdkrn1,0)
  				endif
 		    rf1 = 1.0
@@ -9529,21 +9517,20 @@ end if
 		    if(alwc < alcr) then
     			!call coll_xyx_lwf(g3,g1,rf3,rf1,cwsl,xs_mg,xl_mg, &
          	         		      !chucm,ima,prdkrn1,nkr,1,dm_rime)
-    			call coll_xyx_lwf_nlu(g3,g1,rf3,rf1,get_cw_inv,dt_coll,nkr,PP_r,&
-                     ywls_300mb, ywls_500mb, ywls_750mb, &
+    			call coll_xyx_lwf_nlu(g3,g1,rf3,rf1,get_cwsl,dt_coll,nkr,PP_r,&
                      xs_mg,xl_mg, chucm,ima,prdkrn1,1,dm_rime)
 		    else
  					if(hail_opt == 1)then
  						!call coll_xyz_lwf(g3,g1,g5,rf3,rf1,rf5,cwsl,xs_mg,xl_mg, &
 									           !chucm,ima,prdkrn1,nkr,1)
  						call coll_xyz_lwf_nlu(g3,g1,g5,rf3,rf1,rf5,&
-                            get_cw_inv,dt_coll,nkr,PP_r,ywls_300mb,ywls_500mb,ywls_750mb, &
+                            get_cwsl,dt_coll,nkr,PP_r,&
                             xs_mg,xl_mg, chucm,ima,prdkrn1,1)
  					else
  						!call coll_xyz_lwf(g3,g1,g4,rf3,rf1,rf4,cwsl,xs_mg,xl_mg, &
  										         !chucm,ima,prdkrn1,nkr,1)
  						call coll_xyz_lwf_nlu(g3,g1,g4,rf3,rf1,rf4, &
-                            get_cw_inv,dt_coll,nkr,PP_r,ywls_300mb,ywls_500mb,ywls_750mb, &
+                            get_cwsl,dt_coll,nkr,PP_r,&
                             xs_mg,xl_mg, chucm,ima,prdkrn1,1)
  					endif
  				endif
@@ -9562,7 +9549,7 @@ end if
   				!call coll_xyy_lwf(g1,g4,rf1,rf4,cwlg,xl_mg,xg_mg, &
     		 	     	         	  !chucm,ima,prdkrn1,nkr,0)
   				call coll_xyy_lwf_nlu(g1,g4,rf1,rf4,&
-                    get_cw,dt_coll,nkr,PP_r,ywlg_300mb,ywlg_500mb,ywlg_750mb,&
+                    get_cwlg,dt_coll,nkr,PP_r,&
                     xl_mg,xg_mg, chucm,ima,prdkrn1,0)
    					! ... for ice multiplication
    					conc_old = 0.0
@@ -9574,8 +9561,7 @@ end if
        			rf4 = 0.0
    					!call coll_xyx_lwf(g4,g1,rf4,rf1,cwgl,xg_mg,xl_mg, &
    		 							           !chucm,ima,prdkrn1,nkr,1,dm_rime)
-   					call coll_xyx_lwf_nlu(g4,g1,rf4,rf1,get_cw_inv,dt_coll,nkr,PP_r, &
-                            ywlg_300mb, ywlg_500mb, ywlg_750mb, &
+   					call coll_xyx_lwf_nlu(g4,g1,rf4,rf1,get_cwgl,dt_coll,nkr,PP_r, &
                             xg_mg,xl_mg, chucm,ima,prdkrn1,1,dm_rime)
   			else
           rf1 = 1.0
@@ -9584,7 +9570,7 @@ end if
  					!call coll_xyz_lwf(g1,g4,g5,rf1,rf4,rf5,cwlg,xl_mg,xg_mg, &
            			      			  !chucm,ima,prdkrn1,nkr,1)
  					call coll_xyz_lwf_nlu(g1,g4,g5,rf1,rf4,rf5,&
-                            get_cw,dt_coll,nkr,PP_r,ywlg_300mb, ywlg_500mb, ywlg_750mb,&
+                            get_cwlg,dt_coll,nkr,PP_r,&
                             xl_mg,xg_mg, chucm,ima,prdkrn1,1)
  					! ... for ice multiplication
  					conc_old = 0.0
@@ -9598,7 +9584,7 @@ end if
  					!call coll_xyz_lwf(g4,g1,g5,rf4,rf1,rf5,cwgl,xg_mg,xl_mg, &
            			            !chucm,ima,prdkrn1,nkr,1)
  					call coll_xyz_lwf_nlu(g4,g1,g5,rf4,rf1,rf5,&
-                          get_cw_inv,dt_coll,nkr,PP_r,ywlg_300mb,ywlg_500mb,ywlg_750mb,&
+                          get_cwgl,dt_coll,nkr,PP_r,&
                           xg_mg,xl_mg, chucm,ima,prdkrn1,1)
     		end if
  			! in case icol_graup == 1
@@ -9613,7 +9599,7 @@ end if
   	     !call coll_xyy_lwf(g1,g5,rf1,rf5,cwlh,xl_mg,xh_mg, &
              		          !chucm,ima,prdkrn1,nkr,0)
   	     call coll_xyy_lwf_nlu(g1,g5,rf1,rf5,&
-                    get_cw,dt_coll,nkr,PP_r,ywlh_300mb,ywlh_500mb,ywlh_750mb,&
+                    get_cwlh,dt_coll,nkr,PP_r,&
                      xl_mg,xh_mg, chucm,ima,prdkrn1,0)
   			 ! ... for ice multiplication
   			 conc_old = 0.0
@@ -9625,8 +9611,7 @@ end if
    			rf5 = 0.0
   			!call coll_xyx_lwf(g5,g1,rf5,rf1,cwhl,xh_mg,xl_mg, &
                  			   !chucm,ima,prdkrn1,nkr,1,dm_rime)
-  			call coll_xyx_lwf_nlu(g5,g1,rf5,rf1,get_cw_inv,dt_coll,nkr,PP_r, &
-                  ywlh_300mb, ywlh_500mb, ywlh_750mb, &
+  			call coll_xyx_lwf_nlu(g5,g1,rf5,rf1,get_cwhl,dt_coll,nkr,PP_r, &
                   xh_mg,xl_mg, chucm,ima,prdkrn1,1,dm_rime)
    		! in case icol_hail == 1
   		endif
@@ -9656,7 +9641,7 @@ end if
  		if(icol_snow == 1) then
  		! ... interactions between snowflakes
 			!call coll_xxx_lwf(g3,rf3,cwss,xs_mg,chucm,ima,prdkrn,nkr)
-		   call coll_xxx_lwf_nlu(g3,rf3,get_cw,dt_coll,nkr,PP_r,ywss_300mb,ywss_500mb,ywss_750mb,xs_mg,chucm,ima,prdkrn)
+		   call coll_xxx_lwf_nlu(g3,rf3,get_cwss,dt_coll,nkr,PP_r,xs_mg,chucm,ima,prdkrn)
  		! in case icolxz_snow.ne.0
  		endif
 

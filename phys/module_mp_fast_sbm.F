@@ -7285,52 +7285,62 @@ enddo
 
   end function get_cw_inv
 
-  pure real(kind=r8size) function get_ywli(dtime_coal, nkr, p_z, i, j, m)
+  pure real(kind=r8size) function get_cwlg(dtime_coal,nkr,p_z,i,j)
       implicit none
-
-      integer, intent(in) :: nkr, i, j, m
+      integer, intent(in) :: nkr, i, j
       real(kind=r4size),intent(in) :: dtime_coal,p_z
+      get_cwlg = get_cw(dtime_coal,nkr,p_z,i,j,ywlg_300mb, ywlg_500mb, ywlg_750mb)
+  end function get_cwlg
 
-  ! ### Locals
-  real(kind=r4size),parameter :: p1=1.0e6,p2=0.75e6,p3=0.50e6,p4=0.3e6
-  real(kind=r4size) :: dlnr, scal, dtimelnr, pdm, p_1, p_2, p_3, ckern_1, ckern_2, &
-  					  ckern_3
+  pure real(kind=r8size) function get_cwlh(dtime_coal,nkr,p_z,i,j)
+      implicit none
+      integer, intent(in) :: nkr, i, j
+      real(kind=r4size),intent(in) :: dtime_coal,p_z
+      get_cwlh = get_cw(dtime_coal,nkr,p_z,i,j,ywlh_300mb, ywlh_500mb, ywlh_750mb)
+  end function get_cwlh
 
-    scal = 1.0
- 	dlnr = dlog(2.0d0)/(3.0d0*scal)
- 	dtimelnr = dtime_coal*dlnr
-
- 	p_1=p1
- 	p_2=p3
- 	p_3=p4
-
-      if(p_z >= p_1) then
-         get_ywli = ywli_750mb(i,j,m)*dtimelnr
-
-      elseif (p_z <= p_3) then
-         get_ywli = ywli_300mb(i,j,m)*dtimelnr
-
- 	  elseif (p_z <  p_1  .and. p_z >= p_2) then
-         ckern_1=ywli_750mb(i,j,m)
-         ckern_2=ywli_500mb(i,j,m)
-         get_ywli =(ckern_2+(ckern_1-ckern_2)*pdm)*dtimelnr
-
-      elseif (p_z <  p_2  .and. p_z >  p_3) then
-         pdm = (p_z-p_3)/(p_2-p_3)
-         ckern_2=ywli_500mb(i,j,m)
-         ckern_3=ywli_300mb(i,j,m)
-         get_ywli=(ckern_3+(ckern_2-ckern_3)*pdm)*dtimelnr
-      else
-         get_ywli = 0.
-
-      endif
-  end function get_ywli
+  pure real(kind=r8size) function get_cwls(dtime_coal,nkr,p_z,i,j)
+      implicit none
+      integer, intent(in) :: nkr, i, j
+      real(kind=r4size),intent(in) :: dtime_coal,p_z
+      get_cwls = get_cw(dtime_coal,nkr,p_z,i,j,ywls_300mb, ywls_500mb, ywls_750mb)
+  end function get_cwls
 
 
+  pure real(kind=r8size) function get_cwsg(dtime_coal,nkr,p_z,i,j)
+      implicit none
+      integer, intent(in) :: nkr, i, j
+      real(kind=r4size),intent(in) :: dtime_coal,p_z
+      get_cwsg = get_cw(dtime_coal,nkr,p_z,i,j,ywsg_300mb, ywsg_500mb, ywsg_750mb)
+  end function get_cwsg
 
+  pure real(kind=r8size) function get_cwss(dtime_coal,nkr,p_z,i,j)
+      implicit none
+      integer, intent(in) :: nkr, i, j
+      real(kind=r4size),intent(in) :: dtime_coal,p_z
+      get_cwss = get_cw(dtime_coal,nkr,p_z,i,j,ywss_300mb, ywss_500mb, ywss_750mb)
+  end function get_cwss
 
+  pure real(kind=r8size) function get_cwgl(dtime_coal,nkr,p_z,i,j)
+      implicit none
+      integer, intent(in) :: nkr, i, j
+      real(kind=r4size),intent(in) :: dtime_coal,p_z
+      get_cwgl = get_cwlg(dtime_coal,nkr,p_z,j,i)
+  end function get_cwgl
 
+  pure real(kind=r8size) function get_cwhl(dtime_coal,nkr,p_z,i,j)
+      implicit none
+      integer, intent(in) :: nkr, i, j
+      real(kind=r4size),intent(in) :: dtime_coal,p_z
+      get_cwhl = get_cwlh(dtime_coal,nkr,p_z,j,i)
+  end function get_cwhl
 
+  pure real(kind=r8size) function get_cwsl(dtime_coal,nkr,p_z,i,j)
+      implicit none
+      integer, intent(in) :: nkr, i, j
+      real(kind=r4size),intent(in) :: dtime_coal,p_z
+      get_cwsl = get_cwls(dtime_coal,nkr,p_z,j,i)
+  end function get_cwsl
 
   subroutine Kernals_KS(dtime_coal,nkr,p_z)
 

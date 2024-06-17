@@ -9414,7 +9414,7 @@ enddo
     t_new = tt
 
     PP_r = PP
-    call Kernals_KS(dt_coll,nkr,PP_r)
+    !call Kernals_KS(dt_coll,nkr,PP_r)
     !CALL MODKRN_KS(TT,QQ,PP,RHO,PRDKRN,TTCOAL,1,1,Iin,Jin,Kin)
     CALL MODKRN_KS(TT,QQ,PP,RHO,PRDKRN,TTCOAL,11,1,Iin,Jin,Kin)
 

@@ -6312,7 +6312,7 @@ enddo
  	if(p_z >= p_1) then
        get_cw = yw_750(i,j)*dtimelnr
  	elseif (p_z <= p_3) then
-       get_cw = yw_300(i,j)
+       get_cw = yw_300(i,j)*dtimelnr
     elseif (p_z <  p_1  .and. p_z >= p_2) then
        pdm = (p_z-p_2)/(p_1-p_2)
        ckern_1=yw_750(i,j)

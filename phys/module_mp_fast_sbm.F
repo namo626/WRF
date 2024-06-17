@@ -832,7 +832,7 @@ enddo
  return
  end subroutine coll_xxx_lwf
 ! +----------------------------------------------------+
- subroutine coll_xyx_lwf (gx,gy,flx,fly,f_cw,dtime_coal,nkr,p_z,yw_300,yw_500,yw_700, &
+ subroutine coll_xyx_lwf (gx,gy,flx,fly,f_cw,dtime_coal,nkr,p_z,yw_300,yw_500,yw_750, &
       x,y, c,ima,prdkrn,indc,dm_rime)
 	implicit none
 
@@ -908,7 +908,7 @@ enddo
               ckxy = f_cw(dtime_coal,nkr,p_z,j,i,yw_300,yw_500,yw_750)
               x01=ckxy*gy(i)*gx(j)*prdkrn
               !x01=ckxy(j,i)*gy(i)*gx(j)*prdkrn
-C
+
               x02=dmin1(x01,gy(i)*x(j))
 			! new change of 20.01.11                                      (start)
               if(j.ne.k) x03=dmin1(x02,gx(j)*y(i))
@@ -6329,6 +6329,19 @@ enddo
 
   end function get_cw
 
+  pure real(kind=r8size) function get_cw_inv(dtime_coal, nkr, p_z, i, j, yw_300, yw_500, yw_750)
+      ! Compute cwlg, cwlh, cwsg, cwss at entry i,j based on the input yw array
+      implicit none
+
+      integer, intent(in) :: nkr, i, j
+      real(kind=r4size),intent(in) :: dtime_coal,p_z
+      real(kind=r4size),intent(in) :: yw_300(:,:), yw_500(:,:), yw_750(:,:)
+
+      get_cw_inv = get_cw(dtime_coal, nkr, p_z, j, i, yw_300, yw_500, yw_750)
+
+
+  end function get_cw_inv
+
   pure real(kind=r8size) function get_ywli(dtime_coal, nkr, p_z, i, j, m)
       implicit none
 
@@ -8582,8 +8595,11 @@ end if
         rf5 = 0.0
         rf4 = 0.0
 		    if(alwc < alcr) then
-    			call coll_xyx_lwf(g3,g1,rf3,rf1,cwsl,xs_mg,xl_mg, &
-         	         		      chucm,ima,prdkrn1,nkr,1,dm_rime)
+    			!call coll_xyx_lwf(g3,g1,rf3,rf1,cwsl,xs_mg,xl_mg, &
+         	         		      !chucm,ima,prdkrn1,nkr,1,dm_rime)
+    			call coll_xyx_lwf(g3,g1,rf3,rf1,get_cw_inv,dt_coll,nkr,PP_r,&
+                     ywls_300mb, ywls_500mb, ywls_750mb, &
+                     xs_mg,xl_mg, chucm,ima,prdkrn1,1,dm_rime)
 		    else
  					if(hail_opt == 1)then
  						call coll_xyz_lwf(g3,g1,g5,rf3,rf1,rf5,cwsl,xs_mg,xl_mg, &
@@ -8615,8 +8631,11 @@ end if
        			end do
        			rf1 = 1.0
        			rf4 = 0.0
-   					call coll_xyx_lwf(g4,g1,rf4,rf1,cwgl,xg_mg,xl_mg, &
-   		 							           chucm,ima,prdkrn1,nkr,1,dm_rime)
+   					!call coll_xyx_lwf(g4,g1,rf4,rf1,cwgl,xg_mg,xl_mg, &
+   		 							           !chucm,ima,prdkrn1,nkr,1,dm_rime)
+   					call coll_xyx_lwf(g4,g1,rf4,rf1,get_cw_inv,dt_coll,nkr,PP_r, &
+                            ywlg_300mb, ywlg_500mb, ywlg_750mb, &
+                            xg_mg,xl_mg, chucm,ima,prdkrn1,1,dm_rime)
   			else
           rf1 = 1.0
           rf5 = 0.0
@@ -8654,8 +8673,11 @@ end if
   	     enddo
    			rf1 = 1.0
    			rf5 = 0.0
-  			call coll_xyx_lwf(g5,g1,rf5,rf1,cwhl,xh_mg,xl_mg, &
-                 			   chucm,ima,prdkrn1,nkr,1,dm_rime)
+  			!call coll_xyx_lwf(g5,g1,rf5,rf1,cwhl,xh_mg,xl_mg, &
+                 			   !chucm,ima,prdkrn1,nkr,1,dm_rime)
+  			call coll_xyx_lwf(g5,g1,rf5,rf1,get_cw_inv,dt_coll,nkr,PP_r, &
+                  ywlh_300mb, ywlh_500mb, ywlh_750mb, &
+                  xh_mg,xl_mg, chucm,ima,prdkrn1,1,dm_rime)
    		! in case icol_hail == 1
   		endif
 

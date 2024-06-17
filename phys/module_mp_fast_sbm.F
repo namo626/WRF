@@ -6305,7 +6305,7 @@ enddo
  	dlnr = dlog(2.0d0)/(3.0d0*scal)
  	dtimelnr = dtime_coal*dlnr
 
- 	p_1=p1
+ 	p_1=p2
  	p_2=p3
  	p_3=p4
 

@@ -7284,6 +7284,66 @@ enddo
       get_cwsl = get_cwls(dtime_coal,nkr,p_z,j,i)
   end function get_cwsl
 
+  pure real(kind=r8size) function get_cwli_2(dtime_coal,nkr,p_z,i,j)
+      implicit none
+      integer, intent(in) :: nkr, i, j
+      real(kind=r4size),intent(in) :: dtime_coal,p_z
+      get_cwli_2 = get_cw(dtime_coal,nkr,p_z,i,j,ywli_300mb(:,:,2), ywli_500mb(:,:,2), ywli_750mb(:,:,2))
+  end function get_cwli_2
+
+  pure real(kind=r8size) function get_cwli_3(dtime_coal,nkr,p_z,i,j)
+      implicit none
+      integer, intent(in) :: nkr, i, j
+      real(kind=r4size),intent(in) :: dtime_coal,p_z
+      get_cwli_3 = get_cw(dtime_coal,nkr,p_z,i,j,ywli_300mb(:,:,3), ywli_500mb(:,:,3), ywli_750mb(:,:,3))
+  end function get_cwli_3
+
+  pure real(kind=r8size) function get_cwii_1_1(dtime_coal,nkr,p_z,i,j)
+      implicit none
+      integer, intent(in) :: nkr, i, j
+      real(kind=r4size),intent(in) :: dtime_coal,p_z
+      get_cwii_1_1 = get_cw(dtime_coal,nkr,p_z,i,j,ywii_300mb(:,:,1,1), ywii_500mb(:,:,1,1), ywii_750mb(:,:,1,1))
+  end function get_cwii_1_1
+  pure real(kind=r8size) function get_cwii_1_1(dtime_coal,nkr,p_z,i,j)
+      implicit none
+      integer, intent(in) :: nkr, i, j
+      real(kind=r4size),intent(in) :: dtime_coal,p_z
+      get_cwii_1_1 = get_cw(dtime_coal,nkr,p_z,i,j,ywii_300mb(:,:,1,1), ywii_500mb(:,:,1,1), ywii_750mb(:,:,1,1))
+  end function get_cwii_1_1
+  pure real(kind=r8size) function get_cwii_1_2(dtime_coal,nkr,p_z,i,j)
+      implicit none
+      integer, intent(in) :: nkr, i, j
+      real(kind=r4size),intent(in) :: dtime_coal,p_z
+      get_cwii_1_2 = get_cw(dtime_coal,nkr,p_z,i,j,ywii_300mb(:,:,1,2), ywii_500mb(:,:,1,2), ywii_750mb(:,:,1,2))
+  end function get_cwii_1_2
+  pure real(kind=r8size) function get_cwii_1_3(dtime_coal,nkr,p_z,i,j)
+      implicit none
+      integer, intent(in) :: nkr, i, j
+      real(kind=r4size),intent(in) :: dtime_coal,p_z
+      get_cwii_1_3 = get_cw(dtime_coal,nkr,p_z,i,j,ywii_300mb(:,:,1,3), ywii_500mb(:,:,1,3), ywii_750mb(:,:,1,3))
+  end function get_cwii_1_3
+
+  pure real(kind=r8size) function get_cwii_2_1(dtime_coal,nkr,p_z,i,j)
+      implicit none
+      integer, intent(in) :: nkr, i, j
+      real(kind=r4size),intent(in) :: dtime_coal,p_z
+      get_cwii_2_1 = get_cw(dtime_coal,nkr,p_z,i,j,ywii_300mb(:,:,2,1), ywii_500mb(:,:,2,1), ywii_750mb(:,:,2,1))
+  end function get_cwii_2_1
+
+  pure real(kind=r8size) function get_cwii_2_2(dtime_coal,nkr,p_z,i,j)
+      implicit none
+      integer, intent(in) :: nkr, i, j
+      real(kind=r4size),intent(in) :: dtime_coal,p_z
+      get_cwii_2_2 = get_cw(dtime_coal,nkr,p_z,i,j,ywii_300mb(:,:,2,2), ywii_500mb(:,:,2,2), ywii_750mb(:,:,2,2))
+  end function get_cwii_2_2
+
+  pure real(kind=r8size) function get_cwii_2_3(dtime_coal,nkr,p_z,i,j)
+      implicit none
+      integer, intent(in) :: nkr, i, j
+      real(kind=r4size),intent(in) :: dtime_coal,p_z
+      get_cwii_2_3 = get_cw(dtime_coal,nkr,p_z,i,j,ywii_300mb(:,:,2,3), ywii_500mb(:,:,2,3), ywii_750mb(:,:,2,3))
+  end function get_cwii_2_3
+
   subroutine Kernals_KS(dtime_coal,nkr,p_z)
 
   implicit none

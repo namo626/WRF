@@ -7186,7 +7186,9 @@ enddo
   end function get_cwll
  ! -----------------------------------------------------------------+
   pure real(kind=r8size) function get_cw(dtime_coal, nkr, p_z, i, j, yw_300, yw_500, yw_750)
-      ! Compute cwlg, cwlh, cwsg, cwss at entry i,j based on the input yw array
+      ! Compute the (i,j) entry of an collision table cw* based on the input yw* arrays.
+     ! For example, inputting ywls_300mb, ywls_500mb, ywls_750mb would correspond to
+     ! the value cwls(i,j)
       implicit none
 
       integer, intent(in) :: nkr, i, j
@@ -7220,8 +7222,6 @@ enddo
        ckern_2=yw_500(i,j)
        ckern_3=yw_300(i,j)
        get_cw = (ckern_3+(ckern_2-ckern_3)*pdm)*dtimelnr
-    else
-       get_cw = 0.0
       endif
 
   end function get_cw
@@ -7306,25 +7306,25 @@ enddo
  	dlnr = dlog(2.0d0)/(3.0d0*scal)
  	dtimelnr = dtime_coal*dlnr
 
-    !  p_1=p1
- 	! p_2=p2
- 	!p_3=p3
- 	!do i=1,nkr
- 	!	do j=1,nkr
- 	!		! 1. water - water
- 	!		ckern_1 = YWLL_1000mb(i,j)
- 	!		ckern_2 = YWLL_750mb(i,j)
- 	!		ckern_3 = YWLL_500mb(i,j)
- 	!		cwll(i,j) = ckern_z(p_z,p_1,p_2,p_3,ckern_1,ckern_2,ckern_3)*dtime_coal*dlnr
- 	!	end do
- 	!end do
+      p_1=p1
+ 	 p_2=p2
+ 	p_3=p3
+ 	do i=1,nkr
+ 		do j=1,nkr
+ 			! 1. water - water
+ 			ckern_1 = YWLL_1000mb(i,j)
+ 			ckern_2 = YWLL_750mb(i,j)
+ 			ckern_3 = YWLL_500mb(i,j)
+ 			cwll(i,j) = ckern_z(p_z,p_1,p_2,p_3,ckern_1,ckern_2,ckern_3)*dtime_coal*dlnr
+ 		end do
+ 	end do
 
- 	!! ... ECOALMASSM is from "BreakIniit_KS"
- 	!DO I=1,NKR
- 	! DO J=1,NKR
- 	!	CWLL(I,J) = ECOALMASSM(I,J)*CWLL(I,J)
- 	! END DO
-  !END DO
+ 	! ... ECOALMASSM is from "BreakIniit_KS"
+ 	DO I=1,NKR
+ 	 DO J=1,NKR
+ 		CWLL(I,J) = ECOALMASSM(I,J)*CWLL(I,J)
+ 	 END DO
+    END DO
 
 
  	p_1=p2
@@ -7337,9 +7337,9 @@ enddo
  				cwli_1(i,j) = ywli_750mb(i,j,1)*dtimelnr
  				cwli_2(i,j) = ywli_750mb(i,j,2)*dtimelnr
  				cwli_3(i,j) = ywli_750mb(i,j,3)*dtimelnr
- 				!cwlg(i,j) = ywlg_750mb(i,j)*dtimelnr
+ 				cwlg(i,j) = ywlg_750mb(i,j)*dtimelnr
  				cwlh(i,j) = ywlh_750mb(i,j)*dtimelnr
- 				!cwls(i,j) = ywls_750mb(i,j)*dtimelnr
+ 				cwls(i,j) = ywls_750mb(i,j)*dtimelnr
  				cwii_1_1(i,j) = ywii_750mb(i,j,1,1)*dtimelnr
  				cwii_1_2(i,j) = ywii_750mb(i,j,1,2)*dtimelnr
  				cwii_1_3(i,j) = ywii_750mb(i,j,1,3)*dtimelnr
@@ -7364,9 +7364,9 @@ enddo
  			cwli_1(i,j) = ywli_300mb(i,j,1)*dtimelnr
  			cwli_2(i,j) = ywli_300mb(i,j,2)*dtimelnr
  			cwli_3(i,j) = ywli_300mb(i,j,3)*dtimelnr
- 			!cwlg(i,j) = ywlg_300mb(i,j)*dtimelnr
+ 			cwlg(i,j) = ywlg_300mb(i,j)*dtimelnr
  			cwlh(i,j) = ywlh_300mb(i,j)*dtimelnr
- 			!cwls(i,j) = ywls_300mb(i,j)*dtimelnr
+ 			cwls(i,j) = ywls_300mb(i,j)*dtimelnr
  			cwii_1_1(i,j) = ywii_300mb(i,j,1,1)*dtimelnr
  			cwii_1_2(i,j) = ywii_300mb(i,j,1,2)*dtimelnr
  			cwii_1_3(i,j) = ywii_300mb(i,j,1,3)*dtimelnr
@@ -7403,7 +7403,7 @@ enddo
 
  			ckern_1=ywlg_750mb(i,j)
  			ckern_2=ywlg_500mb(i,j)
- 			!cwlg(i,j)=(ckern_2+(ckern_1-ckern_2)*pdm)*dtimelnr
+ 			cwlg(i,j)=(ckern_2+(ckern_1-ckern_2)*pdm)*dtimelnr
 
  			ckern_1=ywlh_750mb(i,j)
  			ckern_2=ywlh_500mb(i,j)
@@ -7411,7 +7411,7 @@ enddo
 
  			ckern_1=ywls_750mb(i,j)
  			ckern_2=ywls_500mb(i,j)
- 			!cwls(i,j)=(ckern_2+(ckern_1-ckern_2)*pdm)*dtimelnr
+ 			cwls(i,j)=(ckern_2+(ckern_1-ckern_2)*pdm)*dtimelnr
 
  			ckern_1=ywii_750mb(i,j,1,1)
  			ckern_2=ywii_500mb(i,j,1,1)
@@ -7492,7 +7492,7 @@ enddo
 
  			  ckern_2=ywlg_500mb(i,j)
  			  ckern_3=ywlg_300mb(i,j)
- 			  !cwlg(i,j)=(ckern_3+(ckern_2-ckern_3)*pdm)*dtimelnr
+ 			  cwlg(i,j)=(ckern_3+(ckern_2-ckern_3)*pdm)*dtimelnr
 
    			ckern_2=ywlh_500mb(i,j)
    			ckern_3=ywlh_300mb(i,j)
@@ -7500,7 +7500,7 @@ enddo
 
    			ckern_2=ywls_500mb(i,j)
    			ckern_3=ywls_300mb(i,j)
-   			!cwls(i,j)=(ckern_3+(ckern_2-ckern_3)*pdm)*dtimelnr
+   			cwls(i,j)=(ckern_3+(ckern_2-ckern_3)*pdm)*dtimelnr
 
    			ckern_2=ywii_500mb(i,j,1,1)
    			ckern_3=ywii_300mb(i,j,1,1)
@@ -7571,11 +7571,11 @@ enddo
  ! dendrites - water
  		  cwil_3(i,j)=cwli_3(j,i)
  ! 3. graupel - water
- 		  !cwgl(i,j)=cwlg(j,i)
+ 		  cwgl(i,j)=cwlg(j,i)
  ! 4. hail - water
  		  cwhl(i,j)=cwlh(j,i)
  ! 5. snow - water
- 		  !cwsl(i,j)=cwls(j,i)
+ 		  cwsl(i,j)=cwls(j,i)
  ! 7.snow - crystals :
  ! snow - columns
  		  cwsi_1(i,j)=cwis_1(j,i)

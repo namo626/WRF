@@ -4267,40 +4267,37 @@ enddo
 
  if (conserv)then
     DO j = jts,jte
-       DO i = its,ite
-          DO k = kts,kte
+       DO k = kts,kte
+          DO i = its,ite
 
             rhocgs(I,K,J)=rho_phy(I,K,J)*0.001
  				! ... Drops
-   				  KRR=0
+   				  !KRR=0
    				  DO KR=p_ff1i01,p_ff1i33
-			        KRR=KRR+1
+			        !KRR=KRR+1
+                       KRR = KR - p_ff1i01 + 1
 		          chem_new(I,K,J,KR)=chem_new(I,K,J,KR)*RHOCGS(I,K,J)/COL/XL(KRR)/XL(KRR)/3.0
    				  END DO
  				! ... Snow
-   				  KRR=0
    				  DO KR=p_ff5i01,p_ff5i33
-  			      KRR=KRR+1
+                       KRR = KR - p_ff5i01 + 1
   			      chem_new(I,K,J,KR)=chem_new(I,K,J,KR)*RHOCGS(I,K,J)/COL/XS(KRR)/XS(KRR)/3.0
    				  END DO
  				! ... Aerosols
-   				  KRR=0
    				  DO KR=p_ff8i01,p_ff8i43
-  		          KRR=KRR+1
+                       KRR = KR - p_ff8i01 + 1
    					    chem_new(I,K,J,KR) = chem_new(I,K,J,KR)*RHOCGS(I,K,J)/1000.0
    				  END DO
  				!  ... Hail or Graupel [same registry adresses]
            if(hail_opt == 1) then
-             KRR=0
              DO KR=p_ff6i01,p_ff6i33
-                 KRR=KRR+1
+                KRR = KR - p_ff6i01 + 1
                  chem_new(I,K,J,KR)=chem_new(I,K,J,KR)*RHOCGS(I,K,J)/COL/XH(KRR)/XH(KRR)/3.0
              END DO
 
            else
-             KRR=0
              DO KR=p_ff6i01,p_ff6i33
-                 KRR=KRR+1
+                KRR = KR - p_ff6i01 + 1
                  chem_new(I,K,J,KR)=chem_new(I,K,J,KR)*RHOCGS(I,K,J)/COL/XG(KRR)/XG(KRR)/3.0
              END DO
            endif

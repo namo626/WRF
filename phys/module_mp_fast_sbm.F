@@ -4268,7 +4268,7 @@ enddo
  if (conserv)then
       !$omp target data map(to: rho_phy(its:ite,kts:kte,jts:jte), XS,XL,XH,XG) &
           !$omp map(from: rhocgs(its:ite,kts:kte,jts:jte)) &
-         !$omp map(tofrom: chem_new(its:ite,kts:kte,jts:jte,n_chem))
+         !$omp map(tofrom: chem_new(its:ite,kts:kte,jts:jte,1:n_chem))
       !$omp target teams distribute parallel do collapse(3)
     DO j = jts,jte
        DO k = kts,kte

@@ -4266,6 +4266,10 @@ enddo
   DEL_BBR=BB1_MYN/DEL_BBN
 
  if (conserv)then
+      !$omp target data map(to: rho_phy(its:ite,kts:kte,jts:jte), XS,XL,XH,XG) &
+          !$omp map(from: rhocgs(its:ite,kts:kte,jts:jte)) &
+         !$omp map(tofrom: chem_new(its:ite,kts:kte,jts:jte,n_chem))
+      !$omp target teams distribute parallel do collapse(3)
     DO j = jts,jte
        DO k = kts,kte
           DO i = its,ite
@@ -4305,6 +4309,7 @@ enddo
  				END DO ! K
  			END DO	! I
  		END DO ! J
+        !$omp end target data
   end if
 
   DXHUCM=100.*DX

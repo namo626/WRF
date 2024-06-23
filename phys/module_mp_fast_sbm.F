@@ -4266,10 +4266,10 @@ enddo
   DEL_BBR=BB1_MYN/DEL_BBN
 
  if (conserv)then
-      !$omp target data map(to: rho_phy(its:ite,kts:kte,jts:jte), XS,XL,XH,XG) &
+      !$omp target data map(to: rho_phy(its:ite,kts:kte,jts:jte) ) &
           !$omp map(from: rhocgs(its:ite,kts:kte,jts:jte)) &
          !$omp map(tofrom: chem_new(its:ite,kts:kte,jts:jte,1:n_chem))
-      !$omp target teams distribute parallel do collapse(3)
+      !$omp target teams distribute parallel do collapse(2)
     DO j = jts,jte
        DO k = kts,kte
           DO i = its,ite
@@ -5615,6 +5615,9 @@ enddo
 
       WRITE(errmess, '(A,I2)') 'FAST_SBM_INIT : succesfull reading Table-3'
       CALL wrf_debug(000, errmess)
+
+      ! Store Table3 on device
+      !$omp target enter data map(to: XL,XS,XG,XH)
  ! +-------------------------------------------------------------------------+
 
  ! LookUpTable #4

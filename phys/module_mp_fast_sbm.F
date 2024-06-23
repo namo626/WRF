@@ -4248,6 +4248,9 @@ enddo
  ! ### (KS) ............................................................................................
  	INTEGER :: NZ,NZZ,II,JJ
 
+      real(kind=r4size) :: rhocgs_ijk
+
+
   XS_d = XS
 
   if (itimestep.eq.1)then
@@ -4267,42 +4270,42 @@ enddo
 
  if (conserv)then
       !$omp target data map(to: rho_phy ) &
-          !$omp map(from: rhocgs) &
          !$omp map(tofrom: chem_new)
       !$omp target teams distribute parallel do collapse(3)
     DO j = jts,jte
        DO k = kts,kte
           DO i = its,ite
 
-            rhocgs(I,K,J)=rho_phy(I,K,J)*0.001
+            !rhocgs(I,K,J)=rho_phy(I,K,J)*0.001
+            rhocgs_ijk = rho_phy(I,K,J)*0.001
  				! ... Drops
    				  !KRR=0
    				  DO KR=p_ff1i01,p_ff1i33
 			        !KRR=KRR+1
                        KRR = KR - p_ff1i01 + 1
-		          chem_new(I,K,J,KR)=chem_new(I,K,J,KR)*RHOCGS(I,K,J)/COL/XL(KRR)/XL(KRR)/3.0
+		          chem_new(I,K,J,KR)=chem_new(I,K,J,KR)*RHOCGS_ijk/COL/XL(KRR)/XL(KRR)/3.0
    				  END DO
  				! ... Snow
    				  DO KR=p_ff5i01,p_ff5i33
                        KRR = KR - p_ff5i01 + 1
-  			      chem_new(I,K,J,KR)=chem_new(I,K,J,KR)*RHOCGS(I,K,J)/COL/XS(KRR)/XS(KRR)/3.0
+  			      chem_new(I,K,J,KR)=chem_new(I,K,J,KR)*RHOCGS_ijk/COL/XS(KRR)/XS(KRR)/3.0
    				  END DO
  				! ... Aerosols
    				  DO KR=p_ff8i01,p_ff8i43
                        KRR = KR - p_ff8i01 + 1
-   					    chem_new(I,K,J,KR) = chem_new(I,K,J,KR)*RHOCGS(I,K,J)/1000.0
+   					    chem_new(I,K,J,KR) = chem_new(I,K,J,KR)*RHOCGS_ijk/1000.0
    				  END DO
  				!  ... Hail or Graupel [same registry adresses]
            if(hail_opt == 1) then
              DO KR=p_ff6i01,p_ff6i33
                 KRR = KR - p_ff6i01 + 1
-                 chem_new(I,K,J,KR)=chem_new(I,K,J,KR)*RHOCGS(I,K,J)/COL/XH(KRR)/XH(KRR)/3.0
+                 chem_new(I,K,J,KR)=chem_new(I,K,J,KR)*RHOCGS_ijk/COL/XH(KRR)/XH(KRR)/3.0
              END DO
 
            else
              DO KR=p_ff6i01,p_ff6i33
                 KRR = KR - p_ff6i01 + 1
-                 chem_new(I,K,J,KR)=chem_new(I,K,J,KR)*RHOCGS(I,K,J)/COL/XG(KRR)/XG(KRR)/3.0
+                 chem_new(I,K,J,KR)=chem_new(I,K,J,KR)*RHOCGS_ijk/COL/XG(KRR)/XG(KRR)/3.0
              END DO
            endif
 

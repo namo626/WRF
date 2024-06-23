@@ -4266,10 +4266,10 @@ enddo
   DEL_BBR=BB1_MYN/DEL_BBN
 
  if (conserv)then
-      !$omp target data map(to: rho_phy(its:ite,kts:kte,jts:jte) ) &
-          !$omp map(from: rhocgs(its:ite,kts:kte,jts:jte)) &
-         !$omp map(tofrom: chem_new(its:ite,kts:kte,jts:jte,1:n_chem))
-      !$omp target teams distribute parallel do collapse(2)
+      !$omp target data map(to: rho_phy ) &
+          !$omp map(from: rhocgs) &
+         !$omp map(tofrom: chem_new)
+      !$omp target teams distribute parallel do collapse(3)
     DO j = jts,jte
        DO k = kts,kte
           DO i = its,ite

@@ -5328,6 +5328,7 @@ enddo
    end do
 
    if (conserv)then
+      !$omp target teams distribute parallel do collapse(3)
  		  DO j = jts,jte
  		     DO i = its,ite
  		        DO k = kts,kte

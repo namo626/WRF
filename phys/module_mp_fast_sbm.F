@@ -5107,6 +5107,8 @@ enddo
 
  998   format(' ',10(f10.1,1x))
 
+       !$omp target data
+       !$omp target teams distribute parallel do collapse(2)
   DO j = jts,jte
     DO i = its,ite
       RAINNCV(I,J) = 0.0
@@ -5176,6 +5178,7 @@ enddo
 ! ..........................................
 ! ... Polarimetric Forward Radar Operator
 ! ..........................................
+#if 0
   if ( PRESENT (diagflag) ) then
     if( diagflag .and. IPolar_HUCM .and. (sbm_diagnostics==1) ) then
 
@@ -5312,7 +5315,7 @@ enddo
  		endif
  	! PRESENT(diagflag)
  	endif
-
+#endif
    ! cycle by I
    END DO
  ! cycle by J
@@ -5373,6 +5376,7 @@ enddo
  		        END DO
        END IF
 
+       !$omp end target data
    RETURN
    END SUBROUTINE FAST_SBM
  ! +-------------------------------------------------------------+

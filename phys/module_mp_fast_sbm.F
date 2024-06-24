@@ -5107,7 +5107,7 @@ enddo
 
  998   format(' ',10(f10.1,1x))
 
-       !$omp target data
+       !$omp target data map(tofrom: chem_new)
        !$omp target teams distribute parallel do collapse(2)
   DO j = jts,jte
     DO i = its,ite

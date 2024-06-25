@@ -4155,6 +4155,12 @@ enddo
       REAL (KIND=R4SIZE),DIMENSION (nkr) :: FF1IN,FF3IN,FF4IN,FF5IN,&
       &              FF1R,FF3R,FF4R,FF5R,FLIQFR_S,FRIMFR_S,FLIQFR_G,FLIQFR_H, &
       &              FF1R_NEW,FF3R_NEW,FF4R_NEW,FF5R_NEW
+      ! storing FF across loops
+      REAL (KIND=R4SIZE), DIMENSION (its:ite, kts:kte, jts:jte, nkr) :: &
+                     FF1R_all, FF3R_all, FF4R_all,FF5R_all
+      REAL (KIND=R4SIZE), DIMENSION (its:ite, kts:kte, jts:jte, nkr_aerosol) :: FCCN_all
+
+
       REAL (KIND=R4SIZE),DIMENSION (nkr) :: FL3R,FL4R,FL5R,FL3R_NEW,FL4R_NEW,FL5R_NEW
 
       REAL (KIND=R4SIZE),DIMENSION (nkr,icemax) :: FF2IN,FF2R,FLIQFR_I
@@ -4901,37 +4907,50 @@ enddo
     ! Update temperature at the end of MP
   	th_phy(i,k,j) = t_new(i,k,j)/pi_phy(i,k,j)
 
+      FF1R_all(i,k,j,:) = FF1R
+      FCCN_all(i,k,j,:) = FCCN
+      FF3R_all(i,k,j,:) = FF3R
+      FF5R_all(i,k,j,:) = FF5R
+      FF4R_all(i,k,j,:) = FF4R
+
+          END DO
+        END DO
+      END DO
+
+   DO j = jts,jte
+      DO k = kts,kte
+         DO i = its,ite
     ! ... Drops
 	  KRR = 0
 	  DO kr = p_ff1i01,p_ff1i33
 		 KRR = KRR+1
-		 chem_new(I,K,J,KR) = FF1R(KRR)
+		 chem_new(I,K,J,KR) = FF1R_all(i,k,j,KRR)
 	  END DO
 	  ! ... CCN
 	  KRR = 0
 	  DO kr=p_ff8i01,p_ff8i43
 		  KRR=KRR+1
-		  chem_new(I,K,J,KR)=FCCN(KRR)
+		  chem_new(I,K,J,KR)=FCCN_all(i,k,j,KRR)
 	  END DO
 	  IF (ICEPROCS == 1)THEN
 	  ! ... Snow
 		  KRR = 0
 		  DO kr=p_ff5i01,p_ff5i33
 			  KRR=KRR+1
-			  chem_new(I,K,J,KR)=FF3R(KRR)
+			  chem_new(I,K,J,KR)=FF3R_all(i,k,j,KRR)
 		  END DO
      ! ... Hail/ Graupel
       if(hail_opt == 1)then
        KRR = 0
        DO KR=p_ff6i01,p_ff6i33
            KRR=KRR+1
-           chem_new(I,K,J,KR) = FF5R(KRR)
+           chem_new(I,K,J,KR) = FF5R_all(i,k,j,KRR)
        END DO
       else
        KRR = 0
        DO KR=p_ff6i01,p_ff6i33
            KRR=KRR+1
-           chem_new(I,K,J,KR) = FF4R(KRR)
+           chem_new(I,K,J,KR) = FF4R_all(i,k,j,KRR)
        END DO
       endif
       ! ICEPROCS == 1

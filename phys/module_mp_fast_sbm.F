@@ -4156,10 +4156,10 @@ enddo
       &              FF1R,FF3R,FF4R,FF5R,FLIQFR_S,FRIMFR_S,FLIQFR_G,FLIQFR_H, &
       &              FF1R_NEW,FF3R_NEW,FF4R_NEW,FF5R_NEW
       ! storing FF across loops
-      REAL (KIND=R4SIZE), DIMENSION (its:ite, kts:kte, jts:jte, nkr) :: &
+      REAL (KIND=R4SIZE), DIMENSION (nkr, its:ite, kts:kte, jts:jte) :: &
                      FF1R_all, FF3R_all, FF4R_all,FF5R_all
-      REAL (KIND=R4SIZE), DIMENSION (its:ite, kts:kte, jts:jte, nkr_aerosol) :: FCCN_all
-      REAL (KIND=R4SIZE), DIMENSION (its:ite, kts:kte, jts:jte, nkr, icemax) :: FF2R_all
+      REAL (KIND=R4SIZE), DIMENSION (nkr_aerosol, its:ite, kts:kte, jts:jte) :: FCCN_all
+      REAL (KIND=R4SIZE), DIMENSION (nkr, icemax, its:ite, kts:kte, jts:jte) :: FF2R_all
 
 
       REAL (KIND=R4SIZE),DIMENSION (nkr) :: FL3R,FL4R,FL5R,FL3R_NEW,FL4R_NEW,FL5R_NEW
@@ -4850,12 +4850,12 @@ enddo
         ! in case T_OLD(I,K,J).GT.213.15
         END IF
 
-      FF1R_all(i,k,j,:) = FF1R
-      FF2R_all(i,k,j,:,:) = FF2R
-      FCCN_all(i,k,j,:) = FCCN
-      FF3R_all(i,k,j,:) = FF3R
-      FF5R_all(i,k,j,:) = FF5R
-      FF4R_all(i,k,j,:) = FF4R
+      FF1R_all(:,i,k,j) = FF1R
+      FF2R_all(:,:,i,k,j) = FF2R
+      FCCN_all(:,i,k,j) = FCCN
+      FF3R_all(:,i,k,j) = FF3R
+      FF5R_all(:,i,k,j) = FF5R
+      FF4R_all(:,i,k,j) = FF4R
 
            END DO
       END DO
@@ -4865,12 +4865,12 @@ enddo
       DO k = kts,kte
          DO i = its,ite
 
-            FF1R = FF1R_all(i,k,j,:)
-            FF2R = FF2R_all(i,k,j,:,:)
-            FF3R = FF3R_all(i,k,j,:)
-            FF4R = FF4R_all(i,k,j,:)
-            FF5R = FF5R_all(i,k,j,:)
-            FCCN = FCCN_all(i,k,j,:)
+            FF1R = FF1R_all(:,i,k,j)
+            FF2R = FF2R_all(:,:,i,k,j)
+            FF3R = FF3R_all(:,i,k,j)
+            FF4R = FF4R_all(:,i,k,j)
+            FF5R = FF5R_all(:,i,k,j)
+            FCCN = FCCN_all(:,i,k,j)
  ! +-------------------------------- +
  ! Immediate Freezing
  ! +---------------------------------+

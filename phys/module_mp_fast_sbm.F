@@ -4944,6 +4944,10 @@ enddo
 ! +-----------------------------+
 ! Hydrometeor Sedimentation
 ! +-----------------------------+
+       !$omp target data map(tofrom: chem_new) &
+       !$omp             map(to: rhocgs,pcgs,zcgs,vr1_z3D,vr3_z3D,vr4_z3D,vr5_z3D)
+      !$omp target teams distribute parallel do collapse(2) &
+     !$omp firstprivate(rhocgs_z,pcgs_z,zcgs_z,vrx,ffx_z)
        do j = jts,jte
        	do i = its,ite
  ! ... Drops ...
@@ -5022,7 +5026,6 @@ enddo
     qnmax=0
     inmax=0
     knmax=0
-       !$omp target data map(tofrom: chem_new)
       !$omp target teams distribute parallel do collapse(3)
     DO j = jts,jte
       DO k = kts,kte
@@ -5404,7 +5407,7 @@ enddo
  ! an upstream method. Upstream in this case is above because the
  ! velocity is downwards.
  ! USE UPSTREAM METHOD (VFALL IS POSITIVE)
-
+!$omp declare target
        DO KR=1,NKR
         IFALL=0
         DO k = kts,kte

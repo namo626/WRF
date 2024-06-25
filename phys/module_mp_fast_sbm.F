@@ -4022,6 +4022,13 @@ enddo
                                          YWIS_300MB(:,:,:),YWIS_500MB(:,:,:),YWIS_750MB(:,:,:),              &
                                          YWSG_300MB(:,:),YWSG_500MB(:,:),YWSG_750MB(:,:),                    &
                                          YWSS_300MB(:,:),YWSS_500MB(:,:),YWSS_750MB(:,:)
+         !$omp declare target(ywll_1000mb, ywll_750mb, ywll_500mb)
+         !$omp declare target(ywlg_300mb, ywlg_750mb, ywlg_500mb)
+         !$omp declare target(ywlh_300mb, ywlh_750mb, ywlh_500mb)
+         !$omp declare target(ywls_300mb, ywls_750mb, ywls_500mb)
+         !$omp declare target(ywsg_300mb, ywsg_750mb, ywsg_500mb)
+         !$omp declare target(ywss_300mb, ywss_750mb, ywss_500mb)
+         !$omp declare target (ecoalmassm)
 
          REAL (KIND=R4SIZE), ALLOCATABLE ::                  &
                                          RO1BL(:), RO2BL(:,:), RO3BL(:), RO4BL(:), RO5BL(:),                 &
@@ -6319,6 +6326,7 @@ enddo
   real(kind=r4size),parameter :: p1=1.0e6,p2=0.75e6,p3=0.50e6,p4=0.3e6
   real(kind=r4size) :: dlnr, scal, dtimelnr, pdm, p_1, p_2, p_3, ckern_1, ckern_2, &
   					  ckern_3
+                      !$omp declare target
     scal = 1.0
  	dlnr = dlog(2.0d0)/(3.0d0*scal)
  	dtimelnr = dtime_coal*dlnr
@@ -6349,7 +6357,7 @@ enddo
   real(kind=r4size),parameter :: p1=1.0e6,p2=0.75e6,p3=0.50e6,p4=0.3e6
   real(kind=r4size) :: dlnr, scal, dtimelnr, pdm, p_1, p_2, p_3, ckern_1, ckern_2, &
   					  ckern_3
-
+!$omp declare target
     scal = 1.0
  	dlnr = dlog(2.0d0)/(3.0d0*scal)
  	dtimelnr = dtime_coal*dlnr
@@ -6381,6 +6389,7 @@ enddo
       implicit none
       integer, intent(in) :: nkr, i, j
       real(kind=r4size),intent(in) :: dtime_coal,p_z
+      !$omp declare target
       get_cwlg = get_cw(dtime_coal,nkr,p_z,i,j,ywlg_300mb, ywlg_500mb, ywlg_750mb)
   end function get_cwlg
 
@@ -6388,6 +6397,7 @@ enddo
       implicit none
       integer, intent(in) :: nkr, i, j
       real(kind=r4size),intent(in) :: dtime_coal,p_z
+      !$omp declare target
       get_cwlh = get_cw(dtime_coal,nkr,p_z,i,j,ywlh_300mb, ywlh_500mb, ywlh_750mb)
   end function get_cwlh
 
@@ -6395,6 +6405,7 @@ enddo
       implicit none
       integer, intent(in) :: nkr, i, j
       real(kind=r4size),intent(in) :: dtime_coal,p_z
+      !$omp declare target
       get_cwls = get_cw(dtime_coal,nkr,p_z,i,j,ywls_300mb, ywls_500mb, ywls_750mb)
   end function get_cwls
 
@@ -6403,6 +6414,7 @@ enddo
       implicit none
       integer, intent(in) :: nkr, i, j
       real(kind=r4size),intent(in) :: dtime_coal,p_z
+      !$omp declare target
       get_cwsg = get_cw(dtime_coal,nkr,p_z,i,j,ywsg_300mb, ywsg_500mb, ywsg_750mb)
   end function get_cwsg
 
@@ -6410,6 +6422,7 @@ enddo
       implicit none
       integer, intent(in) :: nkr, i, j
       real(kind=r4size),intent(in) :: dtime_coal,p_z
+      !$omp declare target
       get_cwss = get_cw(dtime_coal,nkr,p_z,i,j,ywss_300mb, ywss_500mb, ywss_750mb)
   end function get_cwss
 
@@ -6417,6 +6430,7 @@ enddo
       implicit none
       integer, intent(in) :: nkr, i, j
       real(kind=r4size),intent(in) :: dtime_coal,p_z
+      !$omp declare target
       get_cwgl = get_cwlg(dtime_coal,nkr,p_z,j,i)
   end function get_cwgl
 
@@ -6424,6 +6438,7 @@ enddo
       implicit none
       integer, intent(in) :: nkr, i, j
       real(kind=r4size),intent(in) :: dtime_coal,p_z
+      !$omp declare target
       get_cwhl = get_cwlh(dtime_coal,nkr,p_z,j,i)
   end function get_cwhl
 
@@ -6431,6 +6446,7 @@ enddo
       implicit none
       integer, intent(in) :: nkr, i, j
       real(kind=r4size),intent(in) :: dtime_coal,p_z
+      !$omp declare target
       get_cwsl = get_cwls(dtime_coal,nkr,p_z,j,i)
   end function get_cwsl
 

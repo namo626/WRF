@@ -4159,6 +4159,7 @@ enddo
       REAL (KIND=R4SIZE), DIMENSION (its:ite, kts:kte, jts:jte, nkr) :: &
                      FF1R_all, FF3R_all, FF4R_all,FF5R_all
       REAL (KIND=R4SIZE), DIMENSION (its:ite, kts:kte, jts:jte, nkr_aerosol) :: FCCN_all
+      REAL (KIND=R4SIZE), DIMENSION (its:ite, kts:kte, jts:jte, nkr, icemax) :: FF2R_all
 
 
       REAL (KIND=R4SIZE),DIMENSION (nkr) :: FL3R,FL4R,FL5R,FL3R_NEW,FL4R_NEW,FL5R_NEW
@@ -4848,6 +4849,28 @@ enddo
             ENDIF 
         ! in case T_OLD(I,K,J).GT.213.15
         END IF
+
+      FF1R_all(i,k,j,:) = FF1R
+      FF2R_all(i,k,j,:,:) = FF2R
+      FCCN_all(i,k,j,:) = FCCN
+      FF3R_all(i,k,j,:) = FF3R
+      FF5R_all(i,k,j,:) = FF5R
+      FF4R_all(i,k,j,:) = FF4R
+
+           END DO
+      END DO
+   END DO
+
+   DO j = jts,jte
+      DO k = kts,kte
+         DO i = its,ite
+
+            FF1R = FF1R_all(i,k,j,:)
+            FF2R = FF2R_all(i,k,j,:,:)
+            FF3R = FF3R_all(i,k,j,:)
+            FF4R = FF4R_all(i,k,j,:)
+            FF5R = FF5R_all(i,k,j,:)
+            FCCN = FCCN_all(i,k,j,:)
  ! +-------------------------------- +
  ! Immediate Freezing
  ! +---------------------------------+
@@ -4864,7 +4887,7 @@ enddo
 		    IF (JIWEN_FAN_MELT == 1 .and. T_NEW(i,k,j) > 273.15 .and. ICEPROCS == 1) THEN
 				   CALL J_W_MELT(FF1R,XL,FF2R,XI,FF3R,XS,FF4R,XG,FF5R,XH, &
 						             T_NEW(I,K,J),DT,rhocgs(I,K,J),COL,ICEMAX,NKR)
-        END IF
+            END IF
 
         DO KR=1,NKR
           DO ICE=1,ICEMAX
@@ -4907,50 +4930,38 @@ enddo
     ! Update temperature at the end of MP
   	th_phy(i,k,j) = t_new(i,k,j)/pi_phy(i,k,j)
 
-      FF1R_all(i,k,j,:) = FF1R
-      FCCN_all(i,k,j,:) = FCCN
-      FF3R_all(i,k,j,:) = FF3R
-      FF5R_all(i,k,j,:) = FF5R
-      FF4R_all(i,k,j,:) = FF4R
 
-          END DO
-        END DO
-      END DO
-
-   DO j = jts,jte
-      DO k = kts,kte
-         DO i = its,ite
     ! ... Drops
 	  KRR = 0
 	  DO kr = p_ff1i01,p_ff1i33
 		 KRR = KRR+1
-		 chem_new(I,K,J,KR) = FF1R_all(i,k,j,KRR)
+		 chem_new(I,K,J,KR) = FF1R(KRR)
 	  END DO
 	  ! ... CCN
 	  KRR = 0
 	  DO kr=p_ff8i01,p_ff8i43
 		  KRR=KRR+1
-		  chem_new(I,K,J,KR)=FCCN_all(i,k,j,KRR)
+		  chem_new(I,K,J,KR)=FCCN(KRR)
 	  END DO
 	  IF (ICEPROCS == 1)THEN
 	  ! ... Snow
 		  KRR = 0
 		  DO kr=p_ff5i01,p_ff5i33
 			  KRR=KRR+1
-			  chem_new(I,K,J,KR)=FF3R_all(i,k,j,KRR)
+			  chem_new(I,K,J,KR)=FF3R(KRR)
 		  END DO
      ! ... Hail/ Graupel
       if(hail_opt == 1)then
        KRR = 0
        DO KR=p_ff6i01,p_ff6i33
            KRR=KRR+1
-           chem_new(I,K,J,KR) = FF5R_all(i,k,j,KRR)
+           chem_new(I,K,J,KR) = FF5R(KRR)
        END DO
       else
        KRR = 0
        DO KR=p_ff6i01,p_ff6i33
            KRR=KRR+1
-           chem_new(I,K,J,KR) = FF4R_all(i,k,j,KRR)
+           chem_new(I,K,J,KR) = FF4R(KRR)
        END DO
       endif
       ! ICEPROCS == 1

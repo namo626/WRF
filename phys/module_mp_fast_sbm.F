@@ -437,6 +437,8 @@ end module module_mp_SBM_BreakUp
 ! +-----------------------------------------------------------------------------+
  module module_mp_SBM_Collision
 
+      use module_mp_fast_sbm, only : get_cw_generic
+
  private
  public coll_xyy_lwf, coll_xyx_lwf, coll_xxx_lwf, &
         coll_xyz_lwf, coll_xxy_lwf, &
@@ -656,7 +658,6 @@ enddo
 
 ! +-----------------------------------------------------+
   subroutine coll_xxx_lwf(g,fl,coll_name,dtime_coal, nkr, p_z,x,c,ima,prdkrn)
-      use module_mp_fast_sbm, only : get_cw_generic
 
     implicit none
 
@@ -6633,6 +6634,7 @@ enddo
  	real(kind=r4size),intent(in) :: p_z,p_1,p_2,p_3,ckern_1, &
  									ckern_2,ckern_3
 
+        !$omp declare target
  	if(p_z>=p_1) ckern_z = ckern_1
  	!if(p_z==p_2) ckern_z=ckern_2
  	if(p_z<=p_3) ckern_z = ckern_3

@@ -4255,6 +4255,10 @@ enddo
  ! ### (KS) ............................................................................................
  	INTEGER :: NZ,NZZ,II,JJ
 
+      ! For offloading coal_bott_new
+    real(kind=r8size), dimension(its:ite,kts:kte,jts:jte) :: tt_all, qq_all, pp_all, del1in_all, del2in_all
+    logical, dimension(its:ite,kts:kte,jts:jte) :: call_coal_bott_new
+
   XS_d = XS
 
   if (itimestep.eq.1)then
@@ -4640,6 +4644,8 @@ enddo
 ! +---------------------------------------------+
 ! Neucliation, Condensation, Collisions
 ! +---------------------------------------------+
+        call_coal_bott_new(i,k,j) = .false.
+
           IF (T_OLD(I,K,J).GT.193.15)THEN
              TT=T_OLD(I,K,J)
              QQ=QV_OLD(I,K,J)
@@ -4823,9 +4829,51 @@ enddo
                           END IF ! DIFF.NE.0
                       END IF ! DIFFU.NE.0
                   END DO ! NCOND - end of NCOND loop
+
+                  ! record if this grid point calls coal_bott_new and record the input
+                   call_coal_bott_new(i,k,j) = .true.
+                   TT_all(i,k,j) = TT
+                   QQ_all(i,k,j) = QQ
+                   PP_all(i,k,j) = PP
+                   del1in_all(i,k,j) = del1in
+                   del2in_all(i,k,j) = del2in
+
+                end if ! temp
+            end if
+
+            FF1R_all(:,i,k,j) = FF1R
+            FF2R_all(:,:,i,k,j) = FF2R
+            FCCN_all(:,i,k,j) = FCCN
+            FF3R_all(:,i,k,j) = FF3R
+            FF5R_all(:,i,k,j) = FF5R
+            FF4R_all(:,i,k,j) = FF4R
+
+            end do ! i j k
+        end do
+    end do
+
 ! +----------------------------------+
 ! Collision-Coallescnce
 ! +----------------------------------+
+   DO j = jts,jte
+      DO k = kts,kte
+         DO i = its,ite
+
+            FF1R = FF1R_all(:,i,k,j)
+            FF2R = FF2R_all(:,:,i,k,j)
+            FF3R = FF3R_all(:,i,k,j)
+            FF4R = FF4R_all(:,i,k,j)
+            FF5R = FF5R_all(:,i,k,j)
+            FCCN = FCCN_all(:,i,k,j)
+
+            if (call_coal_bott_new(i,k,j)) then
+
+               TT = TT_all(i,k,j)
+               QQ = QQ_all(i,k,j)
+               PP = PP_all(i,k,j)
+               del1in = del1in_all(i,k,j)
+               del2in = del2in_all(i,k,j)
+
                   DO IKL = 1,NCOLL
                     IF ( TT >= 233.15 ) THEN
                       FLIQFR_SD = 0.0
@@ -4845,32 +4893,9 @@ enddo
                   T_new(i,k,j) = tt
                   qv(i,k,j) = qq
                    
-            ! in case Sw,Si,mass  
-            ENDIF 
-        ! in case T_OLD(I,K,J).GT.213.15
-        END IF
+             endif
 
-      FF1R_all(:,i,k,j) = FF1R
-      FF2R_all(:,:,i,k,j) = FF2R
-      FCCN_all(:,i,k,j) = FCCN
-      FF3R_all(:,i,k,j) = FF3R
-      FF5R_all(:,i,k,j) = FF5R
-      FF4R_all(:,i,k,j) = FF4R
 
-           END DO
-      END DO
-   END DO
-
-   DO j = jts,jte
-      DO k = kts,kte
-         DO i = its,ite
-
-            FF1R = FF1R_all(:,i,k,j)
-            FF2R = FF2R_all(:,:,i,k,j)
-            FF3R = FF3R_all(:,i,k,j)
-            FF4R = FF4R_all(:,i,k,j)
-            FF5R = FF5R_all(:,i,k,j)
-            FCCN = FCCN_all(:,i,k,j)
  ! +-------------------------------- +
  ! Immediate Freezing
  ! +---------------------------------+

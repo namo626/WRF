@@ -7,6 +7,8 @@
       END SUBROUTINE SBM_fast
       END MODULE module_mp_fast_sbm
 #else
+
+#define OFFLOAD
 ! +-----------------------------------------------------------------------------+
 ! +-----------------------------------------------------------------------------+
 
@@ -653,24 +655,18 @@ enddo
   end subroutine coll_xyy_lwf
 
 ! +-----------------------------------------------------+
-  subroutine coll_xxx_lwf(g,fl,f_cw,dtime_coal, nkr, p_z,x,c,ima,prdkrn)
+  subroutine coll_xxx_lwf(g,fl,coll_name,dtime_coal, nkr, p_z,x,c,ima,prdkrn)
+      use module_mp_fast_sbm, only : get_cw_generic
 
     implicit none
+
 
     real(kind=r8size),intent(inout) :: g(:),fl(:)
     real(kind=r8size),intent(in) ::	x(:), c(:,:)
     integer,intent(in) :: ima(:,:)
     real(kind=r8size),intent(in) :: prdkrn
 
-      interface
-         pure real(kind=r8size) function f_cw(dtime_coal,nkr,p_z,i,j)
-         import :: r4size
-
-         implicit none
-         integer, intent(in) :: nkr, i, j
-         real(kind=r4size),intent(in) :: dtime_coal,p_z
-         end function f_cw
-      end interface
+      character(len=*),intent(in) :: coll_name
 
       integer, intent(in) :: nkr
       real(kind=r4size),intent(in) :: dtime_coal,p_z
@@ -681,7 +677,7 @@ enddo
    integer :: i,ix0,ix1,j,k,kp
    real(kind=r8size) :: ckxx
 ! ... Locals
-
+  !$omp declare target
   gmin=g_lim*1.0d3
 
 ! ix0 - lower limit of integration by i
@@ -708,7 +704,7 @@ enddo
             k=ima(i,j)
             kp=k+1
 
-            ckxx = f_cw(dtime_coal, nkr, p_z, i, j)
+            ckxx = get_cw_generic(dtime_coal, nkr, p_z, i, j, coll_name)
             x01=ckxx*g(i)*g(j)*prdkrn
 
             x02=dmin1(x01,g(i)*x(j))
@@ -771,6 +767,7 @@ enddo
             if(fl(kp).gt.1.0d0.and.fl(kp).le.1.0001d0) &
                 fl(kp)=1.0d0
 
+#ifndef OFFLOAD
             if(fl(k).gt.1.0001d0.or.fl(kp).gt.1.0001d0 &
                .or.fl(k).lt.0.0d0.or.fl(kp).lt.0.0d0) then
 
@@ -831,6 +828,7 @@ enddo
                  'stop 2022: in sub. coll_xxx_lwf, fl(kp) > 1.0001'
                     call wrf_error_fatal("in coal_bott sub. coll_xxx_lwf, model stop")
               endif
+#endif
 2021     continue
        enddo
 ! cycle by j
@@ -3931,7 +3929,7 @@ enddo
 
  PRIVATE
 
- PUBLIC FAST_SBM,FAST_HUCMINIT
+ PUBLIC  :: FAST_SBM,FAST_HUCMINIT, get_cw_generic
 
  ! Kind paramater
  INTEGER, PARAMETER, PRIVATE:: R8SIZE = 8
@@ -6384,6 +6382,36 @@ enddo
 
   end function get_cw
 
+ pure real(kind=r8size) function get_cw_generic(dtime_coal, nkr, p_z, i, j, name)
+      implicit none
+      integer, intent(in) :: nkr, i, j
+      real(kind=r4size),intent(in) :: dtime_coal,p_z
+      character(len=*), intent(in) :: name
+      !$omp declare target
+
+      select case (name)
+         case ("cwll")
+            get_cw_generic = get_cwll(dtime_coal,nkr,p_z,i,j)
+         case ("cwlg")
+            get_cw_generic = get_cwlg(dtime_coal,nkr,p_z,i,j)
+         case ("cwlh")
+            get_cw_generic = get_cwlh(dtime_coal,nkr,p_z,i,j)
+         case ("cwls")
+            get_cw_generic = get_cwls(dtime_coal,nkr,p_z,i,j)
+         case ("cwsg")
+            get_cw_generic = get_cwsg(dtime_coal,nkr,p_z,i,j)
+         case ("cwss")
+            get_cw_generic = get_cwss(dtime_coal,nkr,p_z,i,j)
+         case ("cwgl")
+            get_cw_generic = get_cwgl(dtime_coal,nkr,p_z,i,j)
+         case ("cwsl")
+            get_cw_generic = get_cwsl(dtime_coal,nkr,p_z,i,j)
+         case ("cwhl")
+            get_cw_generic = get_cwhl(dtime_coal,nkr,p_z,i,j)
+
+         end select
+
+ end function get_cw_generic
 
   pure real(kind=r8size) function get_cwlg(dtime_coal,nkr,p_z,i,j)
       implicit none
@@ -8430,7 +8458,7 @@ enddo
   if (icol_drop.eq.1)then
 ! ... Drop-Drop collisions
   fl1 = 1.0
-  call coll_xxx_lwf (G1,fl1,get_cwll,dt_coll,nkr,PP_r,XL_MG,CHUCM,IMA,1.d0)
+  call coll_xxx_lwf (G1,fl1,"cwll",dt_coll,nkr,PP_r,XL_MG,CHUCM,IMA,1.d0)
 ! ... Breakup
   if(icol_drop_brk == 1)then
     ndiv = 1
@@ -8626,7 +8654,7 @@ end if
 
  		if(icol_snow == 1) then
  		! ... interactions between snowflakes
-		   call coll_xxx_lwf(g3,rf3,get_cwss,dt_coll,nkr,PP_r,xs_mg,chucm,ima,prdkrn)
+		   call coll_xxx_lwf(g3,rf3,"cwss",dt_coll,nkr,PP_r,xs_mg,chucm,ima,prdkrn)
  		! in case icolxz_snow.ne.0
  		endif
 

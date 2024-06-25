@@ -204,6 +204,8 @@ ratio_new = q_m/xl_dp(ikr_spon_break)
   real(kind=r4size) :: start_time, end_time, dtime_spon_break
 ! ... Local
 
+      !$omp declare target
+
  dtime_spon_break = DTwrf
 
   DEG01 = 1.0/3.0
@@ -300,6 +302,7 @@ end select
 	INTEGER :: KR,K,KMAX,KMIN
 ! ... Locals
 
+      !$omp declare target
 	DO KR=1,NKR
 	   BREAK_SNOW(KR)=0.0D0
 	END DO
@@ -6612,6 +6615,7 @@ enddo
            ,XI(NKR,ICEMAX),FF3(NKR),XS(NKR),FF4(NKR) &
            ,XG(NKR),FF5(NKR),XH(NKR)
 
+           !$omp declare target
  	TTIN=TIN
  	DEL_T	=TTIN-273.15
  	ICE_TYPE=2
@@ -6679,9 +6683,8 @@ enddo
  	  IMPLICIT NONE
 
  	  integer,intent(in) :: NKR,ICEMAX
- 	  real(kind=R4size),intent(in)    :: DT,COL,RO
- 	  real(kind=R4size),intent(inout) :: FF1(:),XL(:),FF2(:,:),XI(:,:),FF3(:),XS(:),FF4(:),XG(:), &
- 	  									                 FF5(:),XH(:),Tin
+ 	  real(kind=R4size),intent(in)    :: DT,COL,RO, xs(:),xl(:),xg(:),xh(:),xi(:,:)
+ 	  real(kind=R4size),intent(inout) :: FF1(:),FF2(:,:),FF3(:),FF4(:), FF5(:),Tin
 
  	  !  ... Locals
       integer :: KR,ICE,ICE_TYPE
@@ -6690,6 +6693,7 @@ enddo
 		                       DEL_T,meltrate,gamma
  	  ! ... Locals
 
+        !$omp declare target
     	gamma=4.4
  	   	DEL_T = TIN-273.15
    		ICE_TYPE = 2

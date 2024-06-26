@@ -2969,7 +2969,7 @@ enddo
    integer :: i,ix0,ix1,j,k,kp
    real(kind=r8size) :: ckxx
 ! ... Locals
-  !!$omp declare target
+  !$omp declare target
   gmin=g_lim*1.0d3
 
 ! ix0 - lower limit of integration by i
@@ -3128,10 +3128,12 @@ enddo
    enddo
 ! cycle by i
 
+#ifndef OFFLOAD
 201    format(1x,d13.5)
 202    format(1x,2d13.5)
 203    format(1x,3d13.5)
 204    format(1x,4d13.5)
+#endif
 
  return
  end subroutine coll_xxx_lwf

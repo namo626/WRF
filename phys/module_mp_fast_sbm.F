@@ -6355,7 +6355,8 @@ enddo
 
  pure real(kind=r8size) function get_cw_generic(dtime_coal, nkr, p_z, i, j, name)
       implicit none
-      integer, intent(in) :: nkr, i, j
+      integer, intent(in) :: nkr
+      integer, value ::  i, j
       real(kind=r4size),intent(in) :: dtime_coal,p_z
       character(len=*), intent(in) :: name
       !$omp declare target

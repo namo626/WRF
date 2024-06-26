@@ -3865,6 +3865,7 @@ enddo
                      ,amweight(jbreak), gain, aloss
   ! ... Locals
 
+!$omp declare target
   ie=jbreak
   je=jbreak
   ke=jbreak
@@ -3918,6 +3919,7 @@ enddo
     amweight(k)=2.0/(xt(j+1)**2.0-xt(j)**2.0)
     dbreak(k)=amweight(k)*(gain-fa(k)*aloss)
 
+#ifndef OFFLOAD
     if(dbreak(k) .ne. dbreak(k)) then
       print*,dbreak(k),amweight(k),gain,fa(k),aloss
       print*,"-"
@@ -3934,6 +3936,7 @@ enddo
       print*,gt
       call wrf_error_fatal(" inside coll_breakup, NaN, model stop")
     endif
+#endif
   enddo
 
   !shift rate to coagulation grid

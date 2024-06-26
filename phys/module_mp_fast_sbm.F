@@ -2717,6 +2717,13 @@ enddo
          REAL(kind=r8size),ALLOCATABLE ::  FCCNR_MAR(:),FCCNR_CON(:)
          REAL(kind=r4size),ALLOCATABLE :: Scale_CCN_Factor,XCCN(:),RCCN(:),FCCN(:)
 
+ !$omp declare target (xl_mg,xs_mg,xg_mg,xh_mg)
+ !$omp declare target (xl,xs,xg,xh,xi)
+ !$omp declare target (pkij)
+ !$omp declare target (chucm)
+ !$omp declare target (qkj)
+ !$omp declare target (ima)
+
  ! ... WRFsbm_Init
  ! --------------------------------------------------------------------------------+
 
@@ -8343,6 +8350,7 @@ enddo
      real(kind=r8size),intent(inout) :: fliqfr_s(:),fliqfr_g(:),fliqfr_h(:), &
                                        frimfr_s(:),del1in,del2in,tt,qq
      real(kind=r8size),intent(in) :: pp
+! local vars
 
  	   integer :: KR,ICE,icol_drop,icol_snow,icol_graupel,icol_hail, &
       		      icol_column,icol_plate,icol_dendrite,icol_drop_brk
@@ -8368,6 +8376,7 @@ enddo
  	   real(kind=r8size),PARAMETER :: g_lim = 1.0D-19*1.0D3,AA1_MY = 2.53E12,  &
                                     BB1_MY = 5.42E3, AA2_MY = 3.41E13 ,BB2_MY = 6.13E3
 
+!$omp declare target
     icol_drop_brk=0
     icol_drop=0
     icol_snow=0
@@ -8471,11 +8480,13 @@ enddo
         endif
       endif
       if(FF1R(kr) .ne. FF1R(kr)) then
+#ifndef OFFLOAD
         print*,kr,GDUMB(kr),GDUMB_BF_BREAKUP(kr),XL(kr)
         print*,IT,NDIV, DTBREAKUP
         print*,GDUMB
         print*,GDUMB_BF_BREAKUP
         call wrf_error_fatal("in coal_bott af-coll_breakup - FF1R NaN, model stop")
+#endif
       endif
     enddo
 
@@ -8668,7 +8679,9 @@ end if
        else
   	     ! if deldrop < 0
          if(abs(deldrop).gt.cont_init_drop*0.05) then
+#ifndef OFFLOAD
            call wrf_error_fatal("fatal error in module_mp_fast_sbm (abs(deldrop).gt.cont_init_drop), model stop")
+#endif
          endif
        endif
       endif
@@ -8678,22 +8691,30 @@ end if
      DO KR=1,NKR
         FF1R(KR)=G1(KR)/(3.*XL(KR)*XL(KR)*1.E3)
         if((FF1R(kr) .ne. FF1R(kr)) .or. FF1R(kr) < 0.0)then
+#ifndef OFFLOAD
 	 	       print*,"G1",G1
  		 	     call wrf_error_fatal("stop at end coal_bott - FF1R NaN or FF1R < 0.0, model stop")
+#endif
 	      endif
         FF3R(KR)=G3(KR)/(3.*xs(kr)*xs(kr)*1.e3)
           if((FF3R(kr) .ne. FF3R(kr)) .or. FF3R(kr) < 0.0)then
+#ifndef OFFLOAD
            call wrf_error_fatal("stop at end coal_bott - FF3R NaN or FF3R < 0.0, model stop")
+#endif
           endif
  		   if(hail_opt == 0)then
  		 	   FF4R(KR)=G4(KR)/(3.*xg(kr)*xg(kr)*1.e3)
       	 if((FF4R(kr) .ne. FF4R(kr)) .or. FF4R(kr) < 0.0) then
+#ifndef OFFLOAD
           call wrf_error_fatal("stop at end coal_bott - FF4R NaN or FF4R < 0.0, model stop")
+#endif
          end if
       else
  		 	   FF5R(KR)=G5(KR)/(3.*xh(kr)*xh(kr)*1.e3)
 		     if((FF5R(kr) .ne. FF5R(kr)) .or. FF5R(kr) < 0.0) then
+#ifndef OFFLOAD
            call wrf_error_fatal("stop at end coal_bott - FF5R NaN or FF5R < 0.0, model stop")
+#endif
          endif
  		 endif
  		END DO
@@ -8705,7 +8726,9 @@ end if
  	FRIMFR_S(:) = rf3(:)
 
  	if (abs(tt-t_new).gt.5.0) then
+#ifndef OFFLOAD
  		call wrf_error_fatal("fatal error in module_mp_FAST_sbm Del_T 5 K, model stop")
+#endif
  	endif
 
   tt = t_new

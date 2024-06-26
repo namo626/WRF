@@ -3700,30 +3700,31 @@ enddo
  end subroutine coll_xxy_lwf
 
 ! +-------------------------------------------+
- SUBROUTINE INTERPOL_SE (NH, H_TAB, X_TAB, H, X)
+ pure real(kind=r8size) function INTERPOL_SE (NH, H_TAB, X_TAB, H)
 
   implicit none
 ! ### Interface
- integer :: NH
- real(kind=r4size) :: H_TAB(NH), X_TAB(NH)
- real(kind=r8size) :: H, X
+ integer, intent(in) :: NH
+ real(kind=r4size), intent(in) :: H_TAB(NH), X_TAB(NH)
+ real(kind=r8size), intent(in) :: H
 ! ### Interface
  integer :: I, J
 
+      !$omp declare target
  IF(H > H_TAB(1)) THEN
-    X = X_TAB(1)
+    interpol_se = X_TAB(1)
     RETURN
  ENDIF
 
  IF(H < H_TAB(NH)) THEN
-    X = X_TAB(NH)
+    interpol_se = X_TAB(NH)
     RETURN
  ENDIF
 
  DO I = 2,NH
     IF(H > H_TAB(I)) THEN
        J = I-1
-       X = X_TAB(J)+(X_TAB(I)-X_TAB(J))/ &
+       interpol_se = X_TAB(J)+(X_TAB(I)-X_TAB(J))/ &
            (H_TAB(I)-H_TAB(J))*(H-H_TAB(J))
 
        RETURN
@@ -3731,7 +3732,7 @@ enddo
  ENDDO
 
  RETURN
- END SUBROUTINE INTERPOL_SE
+ END function INTERPOL_SE
 ! +-------------------------------------------------------------------------------+
     subroutine modkrn_KS (tt,qq,pp,rho,factor_t,ttcoal,ICase,Icondition, &
                           Iin,Jin,Kin)
@@ -3750,6 +3751,7 @@ enddo
     real(kind=r8size) :: AA,BB,CC,DD,Es,Ew,AA1_MY,BB1_MY
     real(kind=r4size) :: tt_r, T_tab(7), SE_tab(7)
 
+      !$omp declare target
     satq2(t,p) = 3.80d3*(10**(9.76421d0-2667.1d0/t))/p
     temp(a,b,c,d,t) = d*t*t*t+c*t*t+b*t+a
 
@@ -3826,7 +3828,7 @@ enddo
     SE_tab = [10.0**(-0.693), 10.0**(-0.72), 10.0**(-0.877), 10.0**(-1.050),  10.0**(-1.212),  10.0**(-1.401),  10.0**(-2.082) ]
 
 
-    CALL INTERPOL_SE (size(SE_tab), T_TAB, SE_TAB, TC, factor_t)
+    factor_t = INTERPOL_SE (size(SE_tab), T_TAB, SE_TAB, TC)
 
       if(tc < -40.0d0) then
           factor_t = 0.0d0

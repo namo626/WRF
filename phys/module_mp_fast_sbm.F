@@ -3139,7 +3139,7 @@ enddo
  end subroutine coll_xxx_lwf
 
 ! +----------------------------------------------------+
- subroutine coll_xyx_lwf (gx,gy,flx,fly,f_cw,dtime_coal,nkr,p_z, &
+ subroutine coll_xyx_lwf (gx,gy,flx,fly,cw_name,dtime_coal,nkr,p_z, &
       x,y, c,ima,prdkrn,indc,dm_rime)
 	implicit none
 
@@ -3147,15 +3147,7 @@ enddo
 	real(kind=r8size),intent(in) :: x(:),y(:),c(:,:),prdkrn
 	integer,intent(in) :: ima(:,:)
 
-      interface
-         pure real(kind=r8size) function f_cw(dtime_coal,nkr,p_z,i,j)
-         import :: r4size
-
-         implicit none
-         integer, intent(in) :: nkr, i, j
-         real(kind=r4size),intent(in) :: dtime_coal,p_z
-         end function f_cw
-      end interface
+      character(len=*), intent(in) :: cw_name
 
       integer, intent(in) :: nkr
       real(kind=r4size),intent(in) :: dtime_coal,p_z
@@ -3167,7 +3159,7 @@ enddo
 	integer :: j, jx0, jx1, i, iy0, iy1, jmin, indc, k, kp
       real(kind=r8size) :: ckxy
 ! ... Locals
-
+!$omp declare target
 	gmin=g_lim*1.0d3
 
 ! jx0 - lower limit of integration by j
@@ -3212,7 +3204,7 @@ enddo
               k=ima(i,j)
               kp=k+1
               ! no lookup
-              ckxy = f_cw(dtime_coal,nkr,p_z,j,i)
+              ckxy = get_cw_generic(dtime_coal,nkr,p_z,j,i,cw_name)
               x01=ckxy*gy(i)*gx(j)*prdkrn
               !x01=ckxy(j,i)*gy(i)*gx(j)*prdkrn
 
@@ -3278,6 +3270,7 @@ enddo
               if(flx(kp).gt.1.0d0.and.flx(kp).le.1.0001d0) &
               	flx(kp)=1.0d0
 
+#ifndef OFFLOAD
               if(flx(k).gt.1.0001d0.or.flx(kp).gt.1.0001d0 &
               .or.flx(k).lt.0.0d0.or.flx(kp).lt.0.0d0) then
 
@@ -3346,6 +3339,7 @@ enddo
                   call wrf_error_fatal("fatal error in module_mp_fast_sbm in coll_xyx_lwf (stop 2022), model stop")
                   stop 2022
                endif
+#endif
  2021         continue
            enddo
 ! cycle by j
@@ -3353,10 +3347,12 @@ enddo
         enddo
 ! cycle by i
 
+#ifndef OFFLOAD
  201    format(1x,d13.5)
  202    format(1x,2d13.5)
  203    format(1x,3d13.5)
  204    format(1x,4d13.5)
+#endif
 
  return
  end subroutine coll_xyx_lwf
@@ -3584,7 +3580,7 @@ enddo
 
 ! -----------------------------------------------+
  subroutine coll_xxy_lwf(gx,gy,flx,fly,&
-      f_cw,dtime_coal,nkr,p_z, &
+      cw_name,dtime_coal,nkr,p_z, &
       x, c,ima,prdkrn)
 
   implicit none
@@ -3594,18 +3590,9 @@ enddo
   real(kind=r8size),intent(in) :: prdkrn
   integer,intent(in) :: ima(nkr,nkr)
 
-      interface
-         pure real(kind=r8size) function f_cw(dtime_coal,nkr,p_z,i,j)
-         import :: r4size
-
-         implicit none
-         integer, intent(in) :: nkr, i, j
-         real(kind=r4size),intent(in) :: dtime_coal,p_z
-         end function f_cw
-      end interface
-
+      character(len=*), intent(in) :: cw_name
       integer, intent(in) :: nkr
-      real(kind=r4size),intent(in) :: dtime_coal,p_z
+      real(kind=r4size), intent(in) :: dtime_coal, p_z
 
 ! ... Locals
   real(kind=r8size) :: gmin,ckxx_ij,x01,x02,x03,gsi,gsj,gsk,gsi_w,gsj_w,gsk_w, &
@@ -3613,7 +3600,7 @@ enddo
                        gy_kp_old
   integer::i,ix0,ix1,j,k,kp
 ! ... Locals
-
+!$omp declare target
 !gmin=g_lim*1.0d3
 gmin = 1.0d-60
 
@@ -3639,7 +3626,7 @@ enddo
             if(gx(j).le.gmin) goto 2021
             k=ima(i,j)
             kp=k+1
-            ckxx_ij = f_cw(dtime_coal, nkr, p_z, i, j)
+            ckxx_ij = get_cw_generic(dtime_coal, nkr, p_z, i, j, cw_name)
             x01=ckxx_ij*gx(i)*gx(j)*prdkrn
             x02=dmin1(x01,gx(i)*x(j))
             x03=dmin1(x02,gx(j)*x(i))
@@ -8540,7 +8527,7 @@ end if
         rf5 = 0.0
         rf4 = 0.0
 		    if(alwc < alcr) then
-    			call coll_xyx_lwf(g3,g1,rf3,rf1,get_cwsl,dt_coll,nkr,PP_r,&
+    			call coll_xyx_lwf(g3,g1,rf3,rf1,"cwsl",dt_coll,nkr,PP_r,&
                      xs_mg,xl_mg, chucm,ima,prdkrn1,1,dm_rime)
 		    else
  					if(hail_opt == 1)then
@@ -8576,7 +8563,7 @@ end if
        			end do
        			rf1 = 1.0
        			rf4 = 0.0
-   					call coll_xyx_lwf(g4,g1,rf4,rf1,get_cwgl,dt_coll,nkr,PP_r, &
+   					call coll_xyx_lwf(g4,g1,rf4,rf1,"cwgl",dt_coll,nkr,PP_r, &
                             xg_mg,xl_mg, chucm,ima,prdkrn1,1,dm_rime)
   			else
           rf1 = 1.0
@@ -8618,7 +8605,7 @@ end if
   	     enddo
    			rf1 = 1.0
    			rf5 = 0.0
-  			call coll_xyx_lwf(g5,g1,rf5,rf1,get_cwhl,dt_coll,nkr,PP_r, &
+  			call coll_xyx_lwf(g5,g1,rf5,rf1,"cwhl",dt_coll,nkr,PP_r, &
                   xh_mg,xl_mg, chucm,ima,prdkrn1,1,dm_rime)
    		! in case icol_hail == 1
   		endif

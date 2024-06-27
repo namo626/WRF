@@ -4121,6 +4121,7 @@ enddo
 
        REAL (KIND=R4SIZE),  DIMENSION(its-1:ite+1, kts:kte, jts-1:jte+1)::  &
                                                   t_new,t_old,zcgs,rhocgs,pcgs
+       real(kind=r4size) :: rhocgs_ikj
 
        INTEGER :: I,J,K,KFLIP
        INTEGER :: KRFREEZ
@@ -5339,38 +5340,37 @@ enddo
  		  DO j = jts,jte
  		     DO i = its,ite
  		        DO k = kts,kte
-         		  rhocgs(I,K,J)=rho_phy(I,K,J)*0.001
-         		  krr=0
          		  DO KR=p_ff1i01,p_ff1i33
-         			    krr=krr+1
-         		       chem_new(I,K,J,KR)=chem_new(I,K,J,KR)/RHOCGS(I,K,J)*COL*XL(KRR)*XL(KRR)*3.0
+                        krr = kr - p_ff1i01 + 1
+         		        rhocgs_ikj=rho_phy(I,K,J)*0.001
+         		       chem_new(I,K,J,KR)=chem_new(I,K,J,KR)/RHOCGS_ikj*COL*XL(KRR)*XL(KRR)*3.0
          		        if (qc(i,k,j)+qr(i,k,j).lt.1.e-13)chem_new(I,K,J,KR)=0.0
          		  END DO
-         		  KRR=0
          		  DO KR=p_ff5i01,p_ff5i33
-         		   KRR=KRR+1
-         		   chem_new(I,K,J,KR)=chem_new(I,K,J,KR)/RHOCGS(I,K,J)*COL*XS(KRR)*XS(KRR)*3.0
+                     krr = kr - p_ff5i01 + 1
+                     rhocgs_ikj=rho_phy(I,K,J)*0.001
+         		   chem_new(I,K,J,KR)=chem_new(I,K,J,KR)/RHOCGS_ikj*COL*XS(KRR)*XS(KRR)*3.0
          		   if (qs(i,k,j).lt.1.e-13)chem_new(I,K,J,KR)=0.0
          		  END DO
          		  ! ... CCN
-         		  KRR=0
          		  DO KR=p_ff8i01,p_ff8i43
-         		   KRR=KRR+1
-         		   chem_new(I,K,J,KR)=chem_new(I,K,J,KR)/RHOCGS(I,K,J)*1000.0
+                     krr = kr - p_ff8i01 + 1
+                     rhocgs_ikj=rho_phy(I,K,J)*0.001
+         		   chem_new(I,K,J,KR)=chem_new(I,K,J,KR)/RHOCGS_ikj*1000.0
          		  END DO
               ! ... Hail / Graupel
               if(hail_opt == 1)then
-                 KRR=0
                  DO KR=p_ff6i01,p_ff6i33
-                     KRR=KRR+1
-                     chem_new(I,K,J,KR)=chem_new(I,K,J,KR)/RHOCGS(I,K,J)*COL*XH(KRR)*XH(KRR)*3.0
+                     krr = kr - p_ff6i01 + 1
+                     rhocgs_ikj=rho_phy(I,K,J)*0.001
+                     chem_new(I,K,J,KR)=chem_new(I,K,J,KR)/RHOCGS_ikj*COL*XH(KRR)*XH(KRR)*3.0
                      if (qg(i,k,j) < 1.e-13) chem_new(I,K,J,KR) = 0.0
                  END DO
                else
-                 KRR=0
                  DO KR=p_ff6i01,p_ff6i33
-                     KRR=KRR+1
-                     chem_new(I,K,J,KR)=chem_new(I,K,J,KR)/RHOCGS(I,K,J)*COL*XG(KRR)*XG(KRR)*3.0
+                     krr = kr - p_ff6i01 + 1
+                     rhocgs_ikj=rho_phy(I,K,J)*0.001
+                     chem_new(I,K,J,KR)=chem_new(I,K,J,KR)/RHOCGS_ikj*COL*XG(KRR)*XG(KRR)*3.0
                      if (qg(i,k,j) < 1.e-13) chem_new(I,K,J,KR) = 0.0
                  END DO
                endif

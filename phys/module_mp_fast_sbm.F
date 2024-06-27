@@ -3858,7 +3858,8 @@ enddo
     implicit none
   ! ... Interface
     integer,intent(in) :: jmax, jbreak, NKRInput, NKR
-    real(kind=r8size),intent(in) :: xt_mg(:), dt
+    real(kind=r8size),intent(in) :: xt_mg(:)
+     real(kind=r8size), value :: dt
     real(kind=r4size),intent(in) :: pkij(:,:,:),qkj(:,:)
     real(kind=r8size),intent(inout) :: gt_mg(:)
   ! ... Interface
@@ -3962,6 +3963,7 @@ enddo
   enddo
 
   !time integration
+
 
   do j=1,jmax
     gt(j)=gt(j)+dg(j)*dt

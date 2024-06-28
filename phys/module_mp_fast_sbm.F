@@ -456,7 +456,7 @@ end module module_mp_SBM_BreakUp
 
  contains
 ! +----------------------------------------------------------+
- double precision FUNCTION POLYSVP (TT,ITYPE)
+ pure double precision FUNCTION POLYSVP (TT,ITYPE)
 
  implicit none
 
@@ -466,6 +466,7 @@ end module module_mp_SBM_BreakUp
  real(4),parameter :: C1 = -9.09718E0, C2 = -3.56654E0, C3 = 0.876793E0, C4 = 0.78583503E0, &
                       AA1_MY = 2.53E12, BB1_MY = 5.42E3, AA2_MY = 3.41E13, BB2_MY = 6.13E3
  real(4) :: ES1N, ES2N
+      !$omp declare target
 
  method_select: SELECT CASE(ITYPE)
 

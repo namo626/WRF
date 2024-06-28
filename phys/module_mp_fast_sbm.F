@@ -4849,6 +4849,9 @@ enddo
 ! +----------------------------------+
 ! Collision-Coallescnce
 ! +----------------------------------+
+      !$omp target teams distribute parallel do collapse(3) &
+      !$omp private(ff1r,ff2r,ff3r,ff4r,ff5r, &
+      !$omp fliqfr_sd,fliqfr_gd,fliqfr_hd,frimfr_sd)
    DO j = jts,jte
       DO k = kts,kte
          DO i = its,ite
@@ -4858,7 +4861,6 @@ enddo
             FF3R = FF3R_all(:,i,k,j)
             FF4R = FF4R_all(:,i,k,j)
             FF5R = FF5R_all(:,i,k,j)
-            FCCN = FCCN_all(:,i,k,j)
 
             if (call_coal_bott_new(i,k,j)) then
 

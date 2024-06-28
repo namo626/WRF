@@ -4895,6 +4895,27 @@ enddo
                    
              endif
 
+             FF1R_all(:,i,k,j) = FF1R
+             FF2R_all(:,:,i,k,j) = FF2R
+             FF3R_all(:,i,k,j) = FF3R
+             FF4R_all(:,i,k,j) = FF4R
+             FF5R_all(:,i,k,j) = FF5R
+
+          enddo
+       enddo
+      enddo
+
+
+      do j = jts,jte
+         do k = kts,kte
+            do i = its,ite
+
+               FF1R = FF1R_all(:,i,k,j)
+               FF2R = FF2R_all(:,:,i,k,j)
+               FF3R = FF3R_all(:,i,k,j)
+               FF4R = FF4R_all(:,i,k,j)
+               FF5R = FF5R_all(:,i,k,j)
+               FCCN = FCCN_all(:,i,k,j)
 
  ! +-------------------------------- +
  ! Immediate Freezing

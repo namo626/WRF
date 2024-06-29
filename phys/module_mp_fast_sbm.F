@@ -6292,20 +6292,20 @@ enddo
   WRITE(errmess, '(A,I2)') 'FAST_SBM_INIT : succesfull reading "Spontanous_Init" '
   CALL wrf_debug(000, errmess)
 
-         !$omp target enter data map(to: ywll_1000mb, ywll_750mb, ywll_500mb)
-         !$omp  target enter data map(to: ywlg_300mb, ywlg_750mb, ywlg_500mb)
-         !$omp  target enter data map(to: ywlh_300mb, ywlh_750mb, ywlh_500mb)
-         !$omp  target enter data map(to: ywls_300mb, ywls_750mb, ywls_500mb)
-         !$omp  target enter data map(to: ywsg_300mb, ywsg_750mb, ywsg_500mb)
-         !$omp  target enter data map(to: ywss_300mb, ywss_750mb, ywss_500mb)
-         !$omp  target enter data map(to: ecoalmassm)
+         !$omp  target update to( ywll_1000mb, ywll_750mb, ywll_500mb)
+         !$omp  target update to( ywlg_300mb, ywlg_750mb, ywlg_500mb)
+         !$omp  target update to( ywlh_300mb, ywlh_750mb, ywlh_500mb)
+         !$omp  target update to( ywls_300mb, ywls_750mb, ywls_500mb)
+         !$omp  target update to( ywsg_300mb, ywsg_750mb, ywsg_500mb)
+         !$omp  target update to( ywss_300mb, ywss_750mb, ywss_500mb)
+         !$omp  target update to( ecoalmassm)
 
- !$omp target enter data map(to: xl_mg,xs_mg,xg_mg,xh_mg)
- !$omp target enter data map(to: xl,xs,xg,xh,xi)
- !$omp target enter data map(to: pkij)
- !$omp target enter data map(to: chucm)
- !$omp target enter data map(to: qkj)
- !$omp target enter data map(to: ima)
+ !$omp target update to( xl_mg,xs_mg,xg_mg,xh_mg)
+ !$omp target update to( xl,xs,xg,xh,xi)
+ !$omp target update to( pkij)
+ !$omp target update to( chucm)
+ !$omp target update to( qkj)
+ !$omp target update to( ima)
 
   return
   2070  continue

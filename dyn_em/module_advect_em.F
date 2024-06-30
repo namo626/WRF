@@ -6604,11 +6604,11 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 !  compute fluxes, 5th order
 
       !$omp target data map(to: field_old, field) map(from: fqy, fqyl)
+      !$omp target teams distribute parallel do
       j_loop_y_flux_5 : DO j = j_start, j_end+1
 
       IF( (j >= j_start_f ) .and. (j <= j_end_f) ) THEN ! use full stencil
 
-         !$omp target teams distribute parallel do collapse(2)
         DO k=kts,ktf
         DO i = i_start, i_end
 
@@ -6629,7 +6629,6 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
       ELSE IF ( j == jds+1 ) THEN   ! 2nd order flux next to south boundary
 
-         !$omp target teams distribute parallel do collapse(2)
             DO k=kts,ktf
             DO i = i_start, i_end
 
@@ -6649,7 +6648,6 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
       ELSE IF  ( j == jds+2 ) THEN  ! third of 4th order flux 2 in from south boundary
 
-         !$omp target teams distribute parallel do collapse(2)
             DO k=kts,ktf
             DO i = i_start, i_end
 
@@ -6668,7 +6666,6 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
       ELSE IF ( j == jde-1 ) THEN  ! 2nd order flux next to north boundary
 
-         !$omp target teams distribute parallel do collapse(2)
             DO k=kts,ktf
             DO i = i_start, i_end
 
@@ -6687,7 +6684,6 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
       ELSE IF ( j == jde-2 ) THEN  ! 3rd or 4th order flux 2 in from north boundary
 
-         !$omp target teams distribute parallel do collapse(2)
             DO k=kts,ktf
             DO i = i_start, i_end
 

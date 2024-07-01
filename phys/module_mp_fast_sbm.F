@@ -4862,8 +4862,6 @@ enddo
  !$omp target update to( qkj)
  !$omp target update to( ima)
 
-      !!$omp target data map(always,to: tt_all,qq_all,pp_all,del1in_all,del2in_all, call_coal_bott_new) &
-      !!$omp map(always,tofrom: ff1r_all,ff2r_all,ff3r_all,ff4r_all,ff5r_all, t_new, qv, rhocgs)
       !$omp target teams distribute parallel do collapse(2)  &
       !$omp private(ff1r,ff2r,ff3r,ff4r,ff5r, &
       !$omp fliqfr_sd,fliqfr_gd,fliqfr_hd,frimfr_sd)
@@ -4915,22 +4913,7 @@ enddo
           enddo
        enddo
       enddo
-      !!$omp end target data
 
-         !$omp  target update from( ywll_1000mb, ywll_750mb, ywll_500mb)
-         !$omp  target update from( ywlg_300mb, ywlg_750mb, ywlg_500mb)
-         !$omp  target update from( ywlh_300mb, ywlh_750mb, ywlh_500mb)
-         !$omp  target update from( ywls_300mb, ywls_750mb, ywls_500mb)
-         !$omp  target update from( ywsg_300mb, ywsg_750mb, ywsg_500mb)
-         !$omp  target update from( ywss_300mb, ywss_750mb, ywss_500mb)
-         !$omp  target update from( ecoalmassm)
-
- !$omp target update from( xl_mg,xs_mg,xg_mg,xh_mg)
- !$omp target update from( xl,xs,xg,xh,xi)
- !$omp target update from( pkij)
- !$omp target update from( chucm)
- !$omp target update from( qkj)
- !$omp target update from( ima)
 
       do j = jts,jte
          do k = kts,kte

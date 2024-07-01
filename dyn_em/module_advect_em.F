@@ -6603,7 +6603,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
 !  compute fluxes, 5th order
 
-      !$omp target data map(to: field_old, field, mut, msftx, rv, ru) map(from: fqy, fqyl, fqx, fqxl)
+      !$omp target data map(to: field_old, field, mut, msftx, rv, c1, c2) map(from: fqy, fqyl)
       if (j_start_f >= j_start .and. j_end_f <= j_end+1) then
       !$omp target teams distribute parallel do collapse(3)
       DO j = j_start_f, j_end_f ! use full stencil

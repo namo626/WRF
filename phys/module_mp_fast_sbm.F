@@ -4847,6 +4847,23 @@ enddo
 ! +----------------------------------+
 ! Collision-Coallescnce
 ! +----------------------------------+
+         !$omp  target update to( ywll_1000mb, ywll_750mb, ywll_500mb)
+         !$omp  target update to( ywlg_300mb, ywlg_750mb, ywlg_500mb)
+         !$omp  target update to( ywlh_300mb, ywlh_750mb, ywlh_500mb)
+         !$omp  target update to( ywls_300mb, ywls_750mb, ywls_500mb)
+         !$omp  target update to( ywsg_300mb, ywsg_750mb, ywsg_500mb)
+         !$omp  target update to( ywss_300mb, ywss_750mb, ywss_500mb)
+         !$omp  target update to( ecoalmassm)
+
+ !$omp target update to( xl_mg,xs_mg,xg_mg,xh_mg)
+ !$omp target update to( xl,xs,xg,xh,xi)
+ !$omp target update to( pkij)
+ !$omp target update to( chucm)
+ !$omp target update to( qkj)
+ !$omp target update to( ima)
+
+      !$omp target data map(always,to: tt_all,qq_all,pp_all,del1in_all,del2in_all,rhocgs) &
+      !$omp map(always,tofrom: ff1r_all,ff2r_all,ff3r_all,ff4r_all,ff5r_all, t_new, qv)
       !$omp target teams distribute parallel do  &
       !$omp private(ff1r,ff2r,ff3r,ff4r,ff5r, &
       !$omp fliqfr_sd,fliqfr_gd,fliqfr_hd,frimfr_sd)
@@ -4898,6 +4915,7 @@ enddo
           enddo
        enddo
       enddo
+      !$omp end target data
 
 
       do j = jts,jte

@@ -6603,7 +6603,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
 !  compute fluxes, 5th order
 
-      !$omp target data map(to: field_old, field) map(from: fqy, fqyl)
+      !$omp target data map(to: field_old, field, mut, msftx, rv, ru) map(from: fqy, fqyl, fqx, fqxl)
       !$omp target teams distribute parallel do
       j_loop_y_flux_5 : DO j = j_start, j_end+1
 
@@ -6705,7 +6705,6 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
    ENDDO j_loop_y_flux_5
 
-      !$omp end target data
 !  next, x flux
 
 !--  these bounds are for periodic and sym conditions
@@ -6737,6 +6736,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
 !  compute fluxes
 
+      !$omp target teams distribute parallel do
       DO j = j_start, j_end
 
 !  5th order flux
@@ -6748,12 +6748,12 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
           mu = 0.5*((c1(k)*mut(i,j)+c2(k))+(c1(k)*mut(i-1,j)+c2(k)))
           vel = ru(i,k,j)
           cr = vel*dt/dx/mu
-          fqxl(i,k,j) = mu*(dx/dt)*flux_upwind(field_old(i-1,k,j), field_old(i,k,j  ), cr)
+          fqxl(i,k,j) = mu*(dx/dt)*flux_upwind_pd(field_old(i-1,k,j), field_old(i,k,j  ), cr)
 
-          fqx( i,k,j ) = vel*flux5( field(i-3,k,j), field(i-2,k,j),  &
+          fqx( i,k,j ) = vel*flux5_pd( field(i-3,k,j), field(i-2,k,j),  &
                                          field(i-1,k,j), field(i  ,k,j),  &
                                          field(i+1,k,j), field(i+2,k,j),  &
-                                         vel                             )
+                                         vel                             , time_step)
           fqx(i,k,j) = fqx(i,k,j) - fqxl(i,k,j)
 
         ENDDO
@@ -6771,7 +6771,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
                 mu = 0.5*((c1(k)*mut(i,j)+c2(k))+(c1(k)*mut(i-1,j)+c2(k)))
                 vel = ru(i,k,j)/mu
                 cr = vel*dt/dx
-                fqxl(i,k,j) = mu*(dx/dt)*flux_upwind(field_old(i-1,k,j), field_old(i,k,j  ), cr)
+                fqxl(i,k,j) = mu*(dx/dt)*flux_upwind_pd(field_old(i-1,k,j), field_old(i,k,j  ), cr)
                 fqx(i,k,j) = 0.5*(ru(i,k,j)) &
                        *(field(i,k,j)+field(i-1,k,j))
                 fqx(i,k,j) = fqx(i,k,j) - fqxl(i,k,j)
@@ -6784,10 +6784,10 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
                 mu = 0.5*((c1(k)*mut(i,j)+c2(k))+(c1(k)*mut(i-1,j)+c2(k)))
                 vel = ru(i,k,j)
                 cr = vel*dt/dx/mu
-                fqxl(i,k,j) = mu*(dx/dt)*flux_upwind(field_old(i-1,k,j), field_old(i,k,j  ), cr)
-                fqx( i,k,j ) = vel*flux3( field(i-2,k,j), field(i-1,k,j),  &
+                fqxl(i,k,j) = mu*(dx/dt)*flux_upwind_pd(field_old(i-1,k,j), field_old(i,k,j  ), cr)
+                fqx( i,k,j ) = vel*flux3_pd( field(i-2,k,j), field(i-1,k,j),  &
                                           field(i  ,k,j), field(i+1,k,j),  &
-                                          vel                             )
+                                          vel, time_step                             )
                 fqx(i,k,j) = fqx(i,k,j) - fqxl(i,k,j)
               ENDDO
             ENDIF
@@ -6806,7 +6806,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
                 mu = 0.5*((c1(k)*mut(i,j)+c2(k))+(c1(k)*mut(i-1,j)+c2(k)))
                 vel = ru(i,k,j)
                 cr = vel*dt/dx/mu
-                fqxl(i,k,j) = mu*(dx/dt)*flux_upwind(field_old(i-1,k,j), field_old(i,k,j  ), cr)
+                fqxl(i,k,j) = mu*(dx/dt)*flux_upwind_pd(field_old(i-1,k,j), field_old(i,k,j  ), cr)
                 fqx(i,k,j) = 0.5*(ru(i,k,j))      &
                        *(field(i,k,j)+field(i-1,k,j))
                 fqx(i,k,j) = fqx(i,k,j) - fqxl(i,k,j)
@@ -6820,10 +6820,10 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
                 mu = 0.5*((c1(k)*mut(i,j)+c2(k))+(c1(k)*mut(i-1,j)+c2(k)))
                 vel = ru(i,k,j)
                 cr = vel*dt/dx/mu
-                fqxl(i,k,j) = mu*(dx/dt)*flux_upwind(field_old(i-1,k,j), field_old(i,k,j  ), cr)
-                fqx( i,k,j ) = vel*flux3( field(i-2,k,j), field(i-1,k,j),  &
+                fqxl(i,k,j) = mu*(dx/dt)*flux_upwind_pd(field_old(i-1,k,j), field_old(i,k,j  ), cr)
+                fqx( i,k,j ) = vel*flux3_pd( field(i-2,k,j), field(i-1,k,j),  &
                                           field(i  ,k,j), field(i+1,k,j),  &
-                                          vel                             )
+                                          vel                             ,time_step)
                 fqx(i,k,j) = fqx(i,k,j) - fqxl(i,k,j)
               ENDDO
             ENDIF
@@ -6833,6 +6833,8 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
         ENDIF
 
       ENDDO  ! enddo for outer J loop
+
+      !$omp end target data
 
 !--- end of 5th order horizontal flux calculation
 

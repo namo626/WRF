@@ -206,7 +206,7 @@ ratio_new = q_m/xl_dp(ikr_spon_break)
   real(kind=r4size) :: start_time, end_time, dtime_spon_break
 ! ... Local
 
-      !$omp declare target
+      !!$omp declare target
 
  dtime_spon_break = DTwrf
 
@@ -304,7 +304,7 @@ end select
 	INTEGER :: KR,K,KMAX,KMIN
 ! ... Locals
 
-      !$omp declare target
+      !!$omp declare target
 	DO KR=1,NKR
 	   BREAK_SNOW(KR)=0.0D0
 	END DO
@@ -2742,8 +2742,6 @@ enddo
  REAL (KIND=R4SIZE) :: FR_LIM(NKR), FRH_LIM(NKR)
 
       ! from collision module
-  INTEGER, PARAMETER, PRIVATE:: R8SIZE = 8
-  INTEGER, PARAMETER, PRIVATE:: R4SIZE = 4
   integer,parameter :: kp_flux_max = 44
   real(kind=r8size), parameter :: G_LIM = 1.0D-16 ! [g/cm^3]
   integer,parameter :: kr_sgs_max = 20 ! rg(20)=218.88 mkm
@@ -4742,16 +4740,16 @@ enddo
                         FMAX5=0.
                         DO KR=1,NKR
                           FF1IN(KR)=FF1R(KR)
-                          FMAX1=AMAX1(FF1R(KR),FMAX1)
+                          FMAX1=MAX(FF1R(KR),FMAX1)
                           FF3IN(KR)=FF3R(KR)
-                          FMAX3=AMAX1(FF3R(KR),FMAX3)
+                          FMAX3=MAX(FF3R(KR),FMAX3)
                           FF4IN(KR)=FF4R(KR)
-                          FMAX4=AMAX1(FF4R(KR),FMAX4)
+                          FMAX4=MAX(FF4R(KR),FMAX4)
                           FF5IN(KR)=FF5R(KR)
-                          FMAX5=AMAX1(FF5R(KR),FMAX5)
+                          FMAX5=MAX(FF5R(KR),FMAX5)
                           DO ICE=1,ICEMAX
                             FF2IN(KR,ICE)=FF2R(KR,ICE)
-                            FMAX2(ICE)=AMAX1(FF2R(KR,ICE),FMAX2(ICE)) ! ### (KS) FMAX2(3)
+                            FMAX2(ICE)=MAX(FF2R(KR,ICE),FMAX2(ICE)) ! ### (KS) FMAX2(3)
                           END DO
                         END DO
                       ISYM1=0
@@ -4849,7 +4847,7 @@ enddo
 ! +----------------------------------+
 ! Collision-Coallescnce
 ! +----------------------------------+
-      !$omp target teams distribute parallel do num_teams(1)  &
+      !$omp target teams distribute parallel do  &
       !$omp private(ff1r,ff2r,ff3r,ff4r,ff5r, &
       !$omp fliqfr_sd,fliqfr_gd,fliqfr_hd,frimfr_sd)
    DO j = jts,jte
@@ -5481,7 +5479,7 @@ enddo
          DO K=kts,kte
           ! [KS] VFALL(K) = VR1(K,KR)*SQRT(1.E6/PCGS(K))
  		       VFALL(K) = VR1(K,KR) ! ... [KS] : The pressure effect is taken into account at the beggining of the calculations
-           TFALL=AMIN1(TFALL,ZCGS(K)/(VFALL(K)+1.E-20))
+           TFALL=MIN(TFALL,ZCGS(K)/(VFALL(K)+1.E-20))
          END DO
          IF(TFALL.GE.1.E10)STOP
          NSUB=(INT(2.0*DT/TFALL)+1)
@@ -6667,7 +6665,7 @@ enddo
            ,XI(NKR,ICEMAX),FF3(NKR),XS(NKR),FF4(NKR) &
            ,XG(NKR),FF5(NKR),XH(NKR)
 
-           !$omp declare target
+           !!$omp declare target
  	TTIN=TIN
  	DEL_T	=TTIN-273.15
  	ICE_TYPE=2
@@ -6677,14 +6675,14 @@ enddo
  	F4_MAX=0.
  	F5_MAX=0.
  	DO KR=1,NKR
-   	F1_MAX=AMAX1(F1_MAX,FF1(KR))
-   	F3_MAX=AMAX1(F3_MAX,FF3(KR))
-   	F4_MAX=AMAX1(F4_MAX,FF4(KR))
-   	F5_MAX=AMAX1(F5_MAX,FF5(KR))
+   	F1_MAX=MAX(F1_MAX,FF1(KR))
+   	F3_MAX=MAX(F3_MAX,FF3(KR))
+   	F4_MAX=MAX(F4_MAX,FF4(KR))
+   	F5_MAX=MAX(F5_MAX,FF5(KR))
    	DO ICE=1,ICEMAX
-        	F2_MAX=AMAX1(F2_MAX,FF2(KR,ICE))
+        	F2_MAX=MAX(F2_MAX,FF2(KR,ICE))
     ENDDO
- 	  FF_MAX=AMAX1(F2_MAX,F3_MAX,F4_MAX,F5_MAX)
+ 	  FF_MAX=MAX(F2_MAX,F3_MAX,F4_MAX,F5_MAX)
   ENDDO
  !
  !******************************* FREEZING ****************************
@@ -6745,7 +6743,7 @@ enddo
 		                       DEL_T,meltrate,gamma
  	  ! ... Locals
 
-        !$omp declare target
+        !!$omp declare target
     	gamma=4.4
  	   	DEL_T = TIN-273.15
    		ICE_TYPE = 2
@@ -6755,14 +6753,14 @@ enddo
    		F4_MAX=0.
    		F5_MAX=0.
    		DO KR=1,NKR
-   			F1_MAX=AMAX1(F1_MAX,FF1(KR))
-   			F3_MAX=AMAX1(F3_MAX,FF3(KR))
-   			F4_MAX=AMAX1(F4_MAX,FF4(KR))
-   			F5_MAX=AMAX1(F5_MAX,FF5(KR))
+   			F1_MAX=MAX(F1_MAX,FF1(KR))
+   			F3_MAX=MAX(F3_MAX,FF3(KR))
+   			F4_MAX=MAX(F4_MAX,FF4(KR))
+   			F5_MAX=MAX(F5_MAX,FF5(KR))
    			DO ICE=1,ICEMAX
-   				F2_MAX=AMAX1(F2_MAX,FF2(KR,ICE))
+   				F2_MAX=MAX(F2_MAX,FF2(KR,ICE))
    		  END DO
- 				FF_MAX=AMAX1(F2_MAX,F3_MAX,F4_MAX,F5_MAX)
+ 				FF_MAX=MAX(F2_MAX,F3_MAX,F4_MAX,F5_MAX)
        END DO
  				SUM_ICE=0.
  				IF(DEL_T.GE.0.AND.FF_MAX.NE.0) THEN
@@ -7041,7 +7039,7 @@ enddo
    IF(KCOND == 11) THEN
    	  DTNEWL = DT
       DTNEWL = DT
-      DTNEWL = AMIN1(DTNEWL,TIMEREV)
+      DTNEWL = MIN(DTNEWL,TIMEREV)
       TIMENEW = TIMENEW + DTNEWL
       DTT = DTNEWL
 
@@ -7085,7 +7083,7 @@ enddo
  	    ! IN CASE : KCOND.NE.11
     	DTIMEO = DT
       DTNEWL = DT
-      DTNEWL = AMIN1(DTNEWL,TIMEREV)
+      DTNEWL = MIN(DTNEWL,TIMEREV)
       TIMENEW = TIMENEW + DTNEWL
       DTT = DTNEWL
 
@@ -7539,7 +7537,7 @@ enddo
    	IF(KCOND == 21)  THEN
  			! ... ONLY_ICE: CONDENSATION
        DTNEWL = DT
-       DTNEWL = AMIN1(DTNEWL,TIMEREV)
+       DTNEWL = MIN(DTNEWL,TIMEREV)
        TIMENEW = TIMENEW + DTNEWL
        DTT = DTNEWL
 
@@ -7622,7 +7620,7 @@ enddo
  	  ! ... IN CASE KCOND.NE.21
  			! ONLY ICE: EVAPORATION
         DTNEWL = DT
-        DTNEWL = AMIN1(DTNEWL,TIMEREV)
+        DTNEWL = MIN(DTNEWL,TIMEREV)
         TIMENEW = TIMENEW + DTNEWL
         DTT = DTNEWL
 
@@ -8099,7 +8097,7 @@ enddo
 
  	IF(KCOND == 50) THEN
  		DTNEWL = DT
-    DTNEWL = AMIN1(DTNEWL,TIMEREV)
+    DTNEWL = MIN(DTNEWL,TIMEREV)
     TIMENEW = TIMENEW + DTNEWL
     DTT = DTNEWL
 
@@ -8113,7 +8111,7 @@ enddo
 		! ... DEL1 > 0 AND DEL2 > 0 (CONDENSATION MIXED PHASE - KCOND=31)
 		! ... CONDENSATION MIXED PHASE (BEGIN)
 	  DTNEWL = DT
-    DTNEWL = AMIN1(DTNEWL,TIMEREV)
+    DTNEWL = MIN(DTNEWL,TIMEREV)
     TIMENEW = TIMENEW + DTNEWL
     DTT = DTNEWL
 		! CONDENSATION MIXED PHASE (END)
@@ -8123,7 +8121,7 @@ enddo
  		! ... DEL1 < 0 AND DEL2 < 0 (EVAPORATION MIXED_PHASE - KCOND=30)
  		! ... EVAPORATION MIXED PHASE (BEGIN)
  		DTNEWL = DT
-    DTNEWL = AMIN1(DTNEWL,TIMEREV)
+    DTNEWL = MIN(DTNEWL,TIMEREV)
     TIMENEW = TIMENEW + DTNEWL
     DTT = DTNEWL
  	! EVAPORATION MIXED PHASE (END)
@@ -8133,7 +8131,7 @@ enddo
  		! ... IF(DEL1N < 0.0 .AND. DEL2N > 0.0) KCOND=32
  		! ... BERGERON MIXED PHASE (BEGIN)
  		DTNEWL = DT
-    DTNEWL = AMIN1(DTNEWL,TIMEREV)
+    DTNEWL = MIN(DTNEWL,TIMEREV)
     TIMENEW = TIMENEW + DTNEWL
     DTT = DTNEWL
  	! BERGERON MIXED PHASE (END)

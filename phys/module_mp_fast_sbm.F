@@ -138,24 +138,24 @@ CALL wrf_message ( TRIM ( wrf_err_message ) )
 
 if (i_break_method==1) then
  	DO KR=1,NKR
-		 prob(kr)=2.94d-7*dexp(34.0d0*DROPRADII(kr))
+		 prob(kr)=2.94d-7*exp(34.0d0*DROPRADII(kr))
 	ENDDO
 else if  (i_break_method==2) then
  	DO KR=1,NKR
-		 prob(kr)=0.155d-3*dexp(1.466d0*10.0d0*DROPRADII(kr))
+		 prob(kr)=0.155d-3*exp(1.466d0*10.0d0*DROPRADII(kr))
  	ENDDO
 endif
 
 !DO KR=1,NKR
-!  prob(kr)=2.94d-7*dexp(34.0d0*DROPRADII_dp(kr))*dtime_spon_break
+!  prob(kr)=2.94d-7*exp(34.0d0*DROPRADII_dp(kr))*dtime_spon_break
 !  IF (prob(kr)>=1.0d0) exit
 !END DO
 
 DO j=ikr_spon_break,nkr
 	DO i=1,j-1
-		gain_var(j,i)=(145.37d0/xl_dp(i))*(dropradii_dp(i)/dropradii_dp(j))*dexp(-7.0d0*dropradii_dp(i)/dropradii_dp(j))
+		gain_var(j,i)=(145.37d0/xl_dp(i))*(dropradii_dp(i)/dropradii_dp(j))*exp(-7.0d0*dropradii_dp(i)/dropradii_dp(j))
 		!gain_var_new(j,i)=gain_var(j,i)*xl(j)/(gain_var(j,i)*xl(i)**2.0d0)
-		nnd(j,i)=gamma*dexp(-gamma*diameter(i))/(1-dexp(-gamma*diameter(j)))
+		nnd(j,i)=gamma*exp(-gamma*diameter(i))/(1-exp(-gamma*diameter(j)))
 	END DO
 END DO
 ! Calculation the ratio that leads to mass conservation
@@ -242,10 +242,10 @@ ratio_new = q_m/xl_dp(ikr_spon_break)
   do kr=imax,ikr_spon_break,-1
     !dropconc_af(kr)=dropconc_bf(kr)/(1+prob(kr)*dtime_spon_break)
 		tmp_1 = prob(kr)*dtime_spon_break ! [KS, 18thJan18] >> the time was added here and not in the initialization
-		tmp_2 = dexp(-tmp_1)
+		tmp_2 = exp(-tmp_1)
 		tmp_3 = dropconc_bf(kr)
 		dropconc_af(kr) = tmp_2*tmp_3
-		!dropconc_af(kr) = dexp(-dtime_spon_break*prob(kr))*dropconc_bf(kr)
+		!dropconc_af(kr) = exp(-dtime_spon_break*prob(kr))*dropconc_bf(kr)
     drops_break(kr) = dropconc_bf(kr)-dropconc_af(kr)
     !if (dropconc_af(kr)<0.0d0) stop 'Spontaneous breakup'
   enddo
@@ -592,7 +592,7 @@ enddo
         B=A/COEFF_VISCOUS
 
 	RVT=RV_MY*TP
-  !	ESAT1(IN)=A1_MY(IN)*DEXP(-BB1_MY(IN)/TP)
+  !	ESAT1(IN)=A1_MY(IN)*EXP(-BB1_MY(IN)/TP)
   !	if (IN==1) then
   !            ESAT1(IN)=EW(TP)
   !	ELSE
@@ -621,7 +621,7 @@ enddo
 ! Reynolds numbers
           REINOLDS_NUMBER= &
               B*Vxl_KR_ICE*(xlS_KR_ICE/RO1BL_KR_ICE)**DEG03
-          RESHM=DSQRT(REINOLDS_NUMBER)*SHMIDT_NUMBER03
+          RESHM=SQRT(REINOLDS_NUMBER)*SHMIDT_NUMBER03
 
           IF(REINOLDS_NUMBER<2.5D0) THEN
             VENTPL=1.0D0+0.108D0*RESHM*RESHM
@@ -751,7 +751,7 @@ enddo
 
 	ELSE
 
-    IF(DMAX1(RW,PW)>RW_PW_MIN) THEN
+    IF(MAX(RW,PW)>RW_PW_MIN) THEN
 
 			! ... (KS) - A zero can pass through, assign a minimum value
 			IF(RW < RW_PW_MIN*RW_PW_MIN) THEN
@@ -763,7 +763,7 @@ enddo
         IPW = 0
       ENDIF
 
-      IF(DMAX1(PI/PW,RI/RW)<=RATIO_ICEW_MIN) THEN
+      IF(MAX(PI/PW,RI/RW)<=RATIO_ICEW_MIN) THEN
 			  ! ... only water
         RI = 0.0
         IRI = 0
@@ -772,7 +772,7 @@ enddo
         ISYMICE = 0
       ENDIF
 
-      IF(DMIN1(PI/PW,RI/RW)>1.0D0/RATIO_ICEW_MIN) THEN
+      IF(MIN(PI/PW,RI/RW)>1.0D0/RATIO_ICEW_MIN) THEN
 			  ! ... only ice
         RW = 0.0
         IRW = 0
@@ -832,10 +832,10 @@ enddo
                 DEL2*DT-PW*DEL1*DT/RW+PW*DYN1*DT/(RW*RW)+ &
                 PW*DEL1/(RW*RW)-PW*DYN1/(RW*RW*RW)
         GOTO 100
-! in case DABS(RW*DT)>1.0D-6
+! in case ABS(RW*DT)>1.0D-6
 	     ELSE
 
-! in case DABS(RW*DT)<=1.0D-6
+! in case ABS(RW*DT)<=1.0D-6
 
           EXPR=EXPM1(-RW*DT)
           DEL1N=DEL1+DEL1*EXPR+(DYN1/RW)*(0.0D0-EXPR)
@@ -871,10 +871,10 @@ enddo
                     DEL1*DT-RI*DEL2*DT/PI+RI*DYN2*DT/(PI*PI)+ &
                     RI*DEL2/(PI*PI)-RI*DYN2/(PI*PI*PI)
         GOTO 100
-! in case DABS(PI*DT)>1.0D-6
+! in case ABS(PI*DT)>1.0D-6
       ELSE
 
-! in case DABS(PI*DT)<=1.0D-6
+! in case ABS(PI*DT)<=1.0D-6
 
           EXPP=EXPM1(-PI*DT)
           DEL2N=DEL2+DEL2*EXPP-EXPP*DYN2/PI
@@ -910,7 +910,7 @@ enddo
 	          call wrf_error_fatal("fatal error: STOP 1905:A < 0, model stop")
        ENDIF
 ! ... water and ice                                               (start)
-       ALFA=DSQRT((RW-PI)*(RW-PI)+4.0D0*PW*RI)
+       ALFA=SQRT((RW-PI)*(RW-PI)+4.0D0*PW*RI)
 
 ! 5/8/04 Nir, Beta is negative to the simple solution so it will decay
 
@@ -920,10 +920,10 @@ enddo
         G32=-PW*DYN1+RW*DYN2
         G2=RW*PI-RI*PW
         IF (G2 < 1.0d-20) G2 = 1.0004d-11*1.0003d-11-1.0002d-11*1.0001e-11 ! ... (KS) - 24th,May,2016
-        EXPB=DEXP(-BETA*DT)
-        EXPG=DEXP(GAMA*DT)
+        EXPB=EXP(-BETA*DT)
+        EXPG=EXP(GAMA*DT)
 
-        IF(DABS(GAMA*DT)>1.0E-6) THEN
+        IF(ABS(GAMA*DT)>1.0E-6) THEN
           C11=(BETA*DEL1-RW*DEL1-RI*DEL2-BETA*G31/G2+DYN1)/ALFA
           C21=(GAMA*DEL1+RW*DEL1+RI*DEL2-GAMA*G31/G2-DYN1)/ALFA
           C12=(BETA*DEL2-PW*DEL1-PI*DEL2-BETA*G32/G2+DYN2)/ALFA
@@ -935,17 +935,17 @@ enddo
           DEL2INT=C12*EXPG/GAMA-C22*EXPB/BETA+(C22/BETA-C12/GAMA) &
                   +G32*DT/G2
             GOTO 100
-! in case DABS(GAMA*DT)>1.0D-6
+! in case ABS(GAMA*DT)>1.0D-6
 	       ELSE
-! in case DABS(GAMA*DT)<=1.0D-6
+! in case ABS(GAMA*DT)<=1.0D-6
             IF(ABS(RI/RW)>1.0E-12) THEN
               IF(ABS(RW/RI)>1.0E-12) THEN
-                ALFA=DSQRT((RW-PI)*(RW-PI)+4.0D0*PW*RI)
+                ALFA=SQRT((RW-PI)*(RW-PI)+4.0D0*PW*RI)
                 BETA=0.5D0*(ALFA+RW+PI)
                 GAMA=0.5D0*(ALFA-RW-PI)
 		            IF (GAMA < 0.5*2.0d-10) GAMA=0.5D0*(2.002d-10-2.001d-10) ! ... (KS) - 24th,May,2016
                 EXPG=EXPM1(GAMA*DT)
-                EXPB=DEXP(-BETA*DT)
+                EXPB=EXP(-BETA*DT)
 
 ! beta/alfa could be very close to 1 that why I transform it
 ! remember alfa-beta=gama
@@ -988,10 +988,10 @@ enddo
                 DEL2INT=A1DEL2INT+A2DEL2INT+A3DEL2INT+A4DEL2INT+ &
                         A5DEL2INT
 
-! in case DABS(RW/RI)>1D-12
+! in case ABS(RW/RI)>1D-12
               ELSE
 
-! in case DABS(RW/RI)<=1D-12
+! in case ABS(RW/RI)<=1D-12
 
                 X=-2.0D0*RW*PI+RW*RW+4.0D0*PW*RI
 
@@ -1000,7 +1000,7 @@ enddo
                 GAMA=(X/PI)/4.0D0-(X/PI)*(X/PI)/16.0D0-RW/2.0D0
 
                 EXPG=EXPM1(GAMA*DT)
-                EXPB=DEXP(-BETA*DT)
+                EXPB=EXP(-BETA*DT)
 
     	        	C11=(BETA*DEL1-RW*DEL1-RI*DEL2+DYN1)/ALFA
     	        	C21=(GAMA*DEL1+RW*DEL1+RI*DEL2-GAMA*G31/G2-DYN1)/ALFA
@@ -1018,14 +1018,14 @@ enddo
       		       (C22/BETA)+G32/G2*DT*(GAMA/ALFA)+ &
       		        G32/G2*(GAMA/ALFA-1.0D0)*(GAMA*DT*DT/2.0D0)
 
-! in case DABS(RW/RI)<=1D-12
+! in case ABS(RW/RI)<=1D-12
 	         ENDIF
 ! alfa/beta 2
-! in case DABS(RI/RW)>1D-12
+! in case ABS(RI/RW)>1D-12
 
             ELSE
 
-! in case DABS(RI/RW)<=1D-12
+! in case ABS(RI/RW)<=1D-12
 
               X=-2.0D0*RW*PI+PI*PI+4.0D0*PW*RI
 
@@ -1034,7 +1034,7 @@ enddo
               GAMA=(X/RW)/4.0D0-(X/RW)*(X/RW)/16.0D0-PI/2.0D0
 
               EXPG=EXPM1(GAMA*DT)
-              EXPB=DEXP(-BETA*DT)
+              EXPB=EXP(-BETA*DT)
 
               C11=(BETA*DEL1-RW*DEL1-RI*DEL2+DYN1)/ALFA
       	      C21=(GAMA*DEL1+RW*DEL1+RI*DEL2-GAMA*G31/G2-DYN1)/ALFA
@@ -1052,9 +1052,9 @@ enddo
       		      G32/G2*DT*(GAMA/ALFA)+ &
       		      G32/G2*(GAMA/ALFA-1.0D0)*(GAMA*DT*DT/2.0D0)
 ! alfa/beta
-! in case DABS(RI/RW)<=1D-12
+! in case ABS(RI/RW)<=1D-12
 	    ENDIF
-! in case DABS(GAMA*DT)<=1D-6
+! in case ABS(GAMA*DT)<=1D-6
 	  ENDIF
 
 ! water and ice                                                 (end)
@@ -1282,7 +1282,7 @@ enddo
 ! new change 26.10.09                                           (end)
 
 		 IF(FI(K) > 0.0) THEN
-		   IF(DABS(RN(K)-RR(K)) < 1.0D-16) THEN
+		   IF(ABS(RN(K)-RR(K)) < 1.0D-16) THEN
 	         PSINEW(K) = FI(K)*RR(K)
 	         CYCLE
        ENDIF
@@ -1333,7 +1333,7 @@ enddo
 	  IF(I3POINT_CONDEVAP == 1) THEN
 	    DO K=1,NRX1-1
 		   IF(FI(K) > 0.0) THEN
-		      IF(DABS(RN(K)-RR(K)).LT.1.0D-16) THEN
+		      IF(ABS(RN(K)-RR(K)).LT.1.0D-16) THEN
 	           PSI(K) = FI(K)*RR(K)
 	           GOTO 3001
 	         ENDIF
@@ -2030,13 +2030,13 @@ end module module_mp_SBM_Auxiliary
         ! each iteration we nucleate the last bin
         IF (NCRITI==IMAX-1) then
             if (NCRITI>1) then
-               DLN1=DLOG(RCRITI)-DLOG(RCCN(IMAX-1))
+               DLN1=LOG(RCRITI)-LOG(RCCN(IMAX-1))
                DLN2=COL-DLN1
 	           CCNCONC(IMAX)=DLN2*FCCNR(IMAX)
 	           FCCNR(IMAX)=FCCNR(IMAX)*DLN1/COL
             else ! NCRITI==1
-               DLN1=DLOG(RCRITI)-DLOG(RCCN_MINIMUM)
-               DLN2=DLOG(RCCN(1))-DLOG(RCRITI)
+               DLN1=LOG(RCRITI)-LOG(RCCN_MINIMUM)
+               DLN2=LOG(RCCN(1))-LOG(RCRITI)
 	           CCNCONC(IMAX)=DLN2*FCCNR(IMAX)
 	           FCCNR(IMAX)=FCCNR(IMAX)*DLN1/(DLN1+DLN2)
             endif
@@ -2149,7 +2149,7 @@ end module module_mp_SBM_Auxiliary
           DEL2N = 100.0D0*SUP2
           DEL2NN = DEL2N
           IF( DEL2N > DELSUPICE_MAX) DEL2NN = DELSUPICE_MAX
-          HELEK1 = C1*DEXP(A1+B1*DEL2NN)
+          HELEK1 = C1*EXP(A1+B1*DEL2NN)
 	      ELSE
           HELEK1 = 0.0D0
         ENDIF
@@ -2157,7 +2157,7 @@ end module module_mp_SBM_Auxiliary
         IF(TPC < TEMP2) THEN
           TPCC = TPC
           IF(TPCC < TEMP3) TPCC = TEMP3
-          HELEK2 = C2*DEXP(A2-B2*TPCC)
+          HELEK2 = C2*EXP(A2-B2*TPCC)
         ELSE
           HELEK2 = 0.0D0
         ENDIF
@@ -2193,7 +2193,7 @@ end module module_mp_SBM_Auxiliary
               CONCI_AFNUCL(ICE)=CONCI_AFNUCL(ICE)+ &
               3.0D0*COL*PSI2(KR,ICE)*xi(KR,ICE)
            END DO
-           DELCONCI_AFNUCL=DABS(CONCI_AFNUCL(ICE)-CONCI_BFNUCL(ICE))
+           DELCONCI_AFNUCL=ABS(CONCI_AFNUCL(ICE)-CONCI_BFNUCL(ICE))
            IF(DELCONCI_AFNUCL>10.0D0) THEN
              PRINT*,    'IN SUBROUTINE ICE_NUCL, AFTER NUCLEATION'
              PRINT*,    'BECAUSE DELCONCI_AFNUCL > 10/cm^3'
@@ -2257,7 +2257,7 @@ end module module_mp_SBM_Auxiliary
 	  PL = 0.0
     NN = -1
     DO NR=2,NKR
-	   supmax(NR)=DSQRT((4.0D0*AKOE**3.0D0)/(27.0D0*RCCN(NR)**3.0D0*BKOE))
+	   supmax(NR)=SQRT((4.0D0*AKOE**3.0D0)/(27.0D0*RCCN(NR)**3.0D0*BKOE))
 	! calculation CCNCONACT- the concentration of ccn that were activated
 	! following nucleation
 	! CCNCONACT=N from the paper
@@ -2278,7 +2278,7 @@ end module module_mp_SBM_Auxiliary
 	! calculate LHS of equation for S_MAX
 	! when PL<PR ccn will activate
 
-		PL(NR)=supmax(NR)*(DSQRT(CCNCONACT))
+		PL(NR)=supmax(NR)*(SQRT(CCNCONACT))
 		IF(PL(NR).LE.PR) THEN
 			NN = NR
 			EXIT
@@ -2297,8 +2297,8 @@ end module module_mp_SBM_Auxiliary
 	! 1) finding the difference between pl and pr in the left and right over the
 	! final bin.
 
-	DL1 = dabs(PL(NN-1)-PR) ! left side in the final bin
-	DL2 = dabs(PL(NN)-PR)   ! right side in the final bin
+	DL1 = abs(PL(NN-1)-PR) ! left side in the final bin
+	DL2 = abs(PL(NN)-PR)   ! right side in the final bin
 
 	! 2) fining the left part of bin that will not activate
 	!	DLN1=COL*DL1/(DL2+DL1)
@@ -2306,7 +2306,7 @@ end module module_mp_SBM_Auxiliary
 	!	DLN2=COL-DLN1
 	! 4)finding radius criti of aerosol- RCRITI
 
-	RCRITI = RCCN(NN-1)*dexp(COL*DL1/(DL1+DL2))
+	RCRITI = RCCN(NN-1)*exp(COL*DL1/(DL1+DL2))
 
 	! end linear interpolation
 
@@ -2469,9 +2469,9 @@ end module module_mp_SBM_Auxiliary
 	C2=1.904D0
 	DEG01=1.0D0/3.0D0
 	DEG02=1.0D0/6.0D0
-	C3=C1*(F*A1/3.0D0)**(0.75D0)*DSQRT(3.0D0*RO_A/(4.0D0*pi*RO_W*A2))
+	C3=C1*(F*A1/3.0D0)**(0.75D0)*SQRT(3.0D0*RO_A/(4.0D0*pi*RO_W*A2))
   !C4=(C2-C1)**(DEG01)*(F*A1/3.0D0)**(0.25D0)*RO_A**(DEG02)* &
-  !      DSQRT(3.0D0/(4.0D0*pi*RO_W*A2))
+  !      SQRT(3.0D0/(4.0D0*pi*RO_W*A2))
 
 	RETURN
 	END SUBROUTINE SupMax_COEFF
@@ -2494,7 +2494,7 @@ end module module_mp_SBM_Auxiliary
 		real(kind=r8size)  :: CONCCCNIN, FCCNR_tmp(NKR_local), DEG01, X0DROP, &
 						              XOCCN, X0, R0, RCCN_MICRON, S_KR, S(NKR_local), X0CCN, ROCCN(NKR_local), &
 	                        RO_SOLUTE_Ammon, RO_SOLUTE_NaCl,arg11,arg12,arg13,arg21,arg22,arg23, & 
-                          arg31,arg32,arg33,dNbydlogR_norm1,dNbydlogR_norm2,dNbydlogR_norm3
+                          arg31,arg32,arg33,dNbylogR_norm1,dNbylogR_norm2,dNbylogR_norm3
 
 
 		real(kind=r8size) ,PARAMETER :: RCCN_MAX = 0.4D-4         ! [cm]
@@ -2555,21 +2555,21 @@ end module module_mp_SBM_Auxiliary
   arg21 = ccncon2/(sqrt(2.0D0*pi)*log(sig2))
   arg31 = ccncon3/(sqrt(2.0D0*pi)*log(sig3))
   
-  dNbydlogR_norm1 = 0.0
-  dNbydlogR_norm2 = 0.0
-  dNbydlogR_norm3 = 0.0
+  dNbylogR_norm1 = 0.0
+  dNbylogR_norm2 = 0.0
+  dNbylogR_norm3 = 0.0
   do kr = NKR_local,1,-1
       if(RCCN(kr) > RCCN_MIN_3LN .and. RCCN(kr) < RCCN_MAX)then
           arg12 = (log(RCCN(kr)/radius_mean1))**2.0
           arg13 = 2.0D0*((log(sig1))**2.0);
-          dNbydlogR_norm1 = arg11*exp(-arg12/arg13)*(log(2.0)/3.0)
+          dNbylogR_norm1 = arg11*exp(-arg12/arg13)*(log(2.0)/3.0)
           arg22 = (log(RCCN(kr)/radius_mean2))**2.0
           arg23 = 2.0D0*((log(sig2))**2.0)
-          dNbydlogR_norm2 = dNbydlogR_norm1 + arg21*exp(-arg22/arg23)*(log(2.0)/3.0)
+          dNbylogR_norm2 = dNbylogR_norm1 + arg21*exp(-arg22/arg23)*(log(2.0)/3.0)
           arg32 = (log(RCCN(kr)/radius_mean3))**2.0
           arg33 = 2.0D0*((log(sig3))**2.0)
-          dNbydlogR_norm3 = dNbydlogR_norm2 + arg31*exp(-arg32/arg33)*(log(2.0)/3.0);
-          FCCNR_tmp(kr) = dNbydlogR_norm3/col
+          dNbylogR_norm3 = dNbylogR_norm2 + arg31*exp(-arg32/arg33)*(log(2.0)/3.0);
+          FCCNR_tmp(kr) = dNbylogR_norm3/col
       endif
 enddo
   
@@ -2818,8 +2818,8 @@ enddo
               !ckxy_ji=ckxy(j,i)
               ckxy_ji=get_cw_generic(dtime_coal,nkr,p_z,j,i,cw_name)
               x01=ckxy_ji*gy(i)*gx(j)*prdkrn
-              x02=dmin1(x01,gy(i)*x(j))
-              x03=dmin1(x02,gx(j)*y(i))
+              x02=min(x01,gy(i)*x(j))
+              x03=min(x02,gx(j)*y(i))
               gsi=x03/x(j)
               gsj=x03/y(i)
               gsk=gsi+gsj
@@ -2827,42 +2827,42 @@ enddo
               gsi_w=gsi*fly(i)
               gsj_w=gsj*flx(j)
               gsk_w=gsi_w+gsj_w
-              gsk_w=dmin1(gsk_w,gsk)
+              gsk_w=min(gsk_w,gsk)
               gy(i)=gy(i)-gsi
-              gy(i)=dmax1(gy(i),0.0d0)
+              gy(i)=max(gy(i),0.0d0)
               gx(j)=gx(j)-gsj
-              gx(j)=dmax1(gx(j),0.0d0)
+              gx(j)=max(gx(j),0.0d0)
               gk=gy(k)+gsk
               if(gk.le.gmin) goto 2021
               gk_w=gy(k)*fly(k)+gsk_w
-              gk_w=dmin1(gk_w,gk)
+              gk_w=min(gk_w,gk)
 
 	            fl_gk=gk_w/gk
 
               fl_gsk=gsk_w/gsk
 
               flux=0.d0
-              x1=dlog(gy(kp)/gk+1.d-15)
-              flux=gsk/x1*(dexp(0.5d0*x1)-dexp(x1*(0.5d0-c(i,j))))
-              flux=dmin1(flux,gsk)
-              flux=dmin1(flux,gk)
+              x1=log(gy(kp)/gk+1.d-15)
+              flux=gsk/x1*(exp(0.5d0*x1)-exp(x1*(0.5d0-c(i,j))))
+              flux=min(flux,gsk)
+              flux=min(flux,gk)
 
               if(kp.gt.kp_flux_max) flux=0.5d0*flux
               flux_w=flux*fl_gsk
-              flux_w=dmin1(flux_w,gsk_w)
-              flux_w=dmin1(flux_w,gk_w)
+              flux_w=min(flux_w,gsk_w)
+              flux_w=min(flux_w,gk_w)
 
                 gy(k)=gk-flux
-                gy(k)=dmax1(gy(k),gmin)
+                gy(k)=max(gy(k),gmin)
                 gy_k_w=gk*fl_gk-flux_w
-                gy_k_w=dmin1(gy_k_w,gy(k))
-                gy_k_w=dmax1(gy_k_w,0.0d0)
+                gy_k_w=min(gy_k_w,gy(k))
+                gy_k_w=max(gy_k_w,0.0d0)
                 fly(k)=gy_k_w/gy(k)
                 gy_kp_old=gy(kp)
                 gy(kp)=gy(kp)+flux
-                gy(kp)=dmax1(gy(kp),gmin)
+                gy(kp)=max(gy(kp),gmin)
                 gy_kp_w=gy_kp_old*fly(kp)+flux_w
-                gy_kp_w=dmin1(gy_kp_w,gy(kp))
+                gy_kp_w=min(gy_kp_w,gy(kp))
                 fly(kp)=gy_kp_w/gy(kp)
 
                 if(fly(k).gt.1.0d0.and.fly(k).le.1.0001d0) &
@@ -3003,8 +3003,8 @@ enddo
             ckxx = get_cw_generic(dtime_coal, nkr, p_z, i, j, coll_name)
             x01=ckxx*g(i)*g(j)*prdkrn
 
-            x02=dmin1(x01,g(i)*x(j))
-            if(j.ne.k) x03=dmin1(x02,g(j)*x(i))
+            x02=min(x01,g(i)*x(j))
+            if(j.ne.k) x03=min(x02,g(j)*x(i))
             if(j.eq.k) x03=x02
             gsi=x03/x(j)
             gsj=x03/x(i)
@@ -3013,12 +3013,12 @@ enddo
             gsi_w=gsi*fl(i)
             gsj_w=gsj*fl(j)
             gsk_w=gsi_w+gsj_w
-            gsk_w=dmin1(gsk_w,gsk)
+            gsk_w=min(gsk_w,gsk)
             g(i)=g(i)-gsi
-            g(i)=dmax1(g(i),0.0d0)
+            g(i)=max(g(i),0.0d0)
             g(j)=g(j)-gsj
   ! new change of 23.01.11                                      (start)
-            if(j.ne.k) g(j)=dmax1(g(j),0.0d0)
+            if(j.ne.k) g(j)=max(g(j),0.0d0)
   ! new change of 23.01.11                                        (end)
             gk=g(k)+gsk
 
@@ -3031,30 +3031,30 @@ enddo
             if(gk.le.gmin) goto 2021
 
             gk_w=g(k)*fl(k)+gsk_w
-            gk_w=dmin1(gk_w,gk)
+            gk_w=min(gk_w,gk)
 
             fl_gk=gk_w/gk
             fl_gsk=gsk_w/gsk
             flux=0.d0
-            x1=dlog(g(kp)/gk+1.d-15)
-            flux=gsk/x1*(dexp(0.5d0*x1)-dexp(x1*(0.5d0-c(i,j))))
-            flux=dmin1(flux,gsk)
-            flux=dmin1(flux,gk)
+            x1=log(g(kp)/gk+1.d-15)
+            flux=gsk/x1*(exp(0.5d0*x1)-exp(x1*(0.5d0-c(i,j))))
+            flux=min(flux,gsk)
+            flux=min(flux,gk)
             if(kp.gt.kp_flux_max) flux=0.5d0*flux
             flux_w=flux*fl_gsk
-            flux_w=dmin1(flux_w,gsk_w)
-            flux_w=dmin1(flux_w,gk_w)
+            flux_w=min(flux_w,gsk_w)
+            flux_w=min(flux_w,gk_w)
             g(k)=gk-flux
-            g(k)=dmax1(g(k),gmin)
+            g(k)=max(g(k),gmin)
             g_k_w=gk_w-flux_w
-            g_k_w=dmin1(g_k_w,g(k))
-            g_k_w=dmax1(g_k_w,0.0d0)
+            g_k_w=min(g_k_w,g(k))
+            g_k_w=max(g_k_w,0.0d0)
             fl(k)=g_k_w/g(k)
             g_kp_old=g(kp)
             g(kp)=g(kp)+flux
-            g(kp)=dmax1(g(kp),gmin)
+            g(kp)=max(g(kp),gmin)
             g_kp_w=g_kp_old*fl(kp)+flux_w
-            g_kp_w=dmin1(g_kp_w,g(kp))
+            g_kp_w=min(g_kp_w,g(kp))
             fl(kp)=g_kp_w/g(kp)
 
             if(fl(k).gt.1.0d0.and.fl(k).le.1.0001d0) &
@@ -3212,9 +3212,9 @@ enddo
               x01=ckxy*gy(i)*gx(j)*prdkrn
               !x01=ckxy(j,i)*gy(i)*gx(j)*prdkrn
 
-              x02=dmin1(x01,gy(i)*x(j))
+              x02=min(x01,gy(i)*x(j))
 			! new change of 20.01.11                                      (start)
-              if(j.ne.k) x03=dmin1(x02,gx(j)*y(i))
+              if(j.ne.k) x03=min(x02,gx(j)*y(i))
               if(j.eq.k) x03=x02
 			! new change of 20.01.11                                        (end)
               gsi=x03/x(j)
@@ -3224,47 +3224,47 @@ enddo
               gsi_w=gsi*fly(i)
               gsj_w=gsj*flx(j)
               gsk_w=gsi_w+gsj_w
-			        gsk_w=dmin1(gsk_w,gsk)
+			        gsk_w=min(gsk_w,gsk)
               gy(i)=gy(i)-gsi
-              gy(i)=dmax1(gy(i),0.0d0)
+              gy(i)=max(gy(i),0.0d0)
               gx(j)=gx(j)-gsj
 			! new change of 20.01.11                                      (start)
-              if(j.ne.k) gx(j)=dmax1(gx(j),0.0d0)
+              if(j.ne.k) gx(j)=max(gx(j),0.0d0)
 			! new change of 20.01.11                                        (end)
               gk=gx(k)+gsk
               if(gk.le.gmin) goto 2021
               gk_w=gx(k)*flx(k)+gsk_w
-			        gk_w=dmin1(gk_w,gk)
+			        gk_w=min(gk_w,gk)
 	            fl_gk=gk_w/gk
               fl_gsk=gsk_w/gsk
               flux=0.d0
-              x1=dlog(gx(kp)/gk+1.d-15)
-              flux=gsk/x1*(dexp(0.5d0*x1)-dexp(x1*(0.5d0-c(i,j))))
-              flux=dmin1(flux,gsk)
-              flux=dmin1(flux,gk)
+              x1=log(gx(kp)/gk+1.d-15)
+              flux=gsk/x1*(exp(0.5d0*x1)-exp(x1*(0.5d0-c(i,j))))
+              flux=min(flux,gsk)
+              flux=min(flux,gk)
 
               if(kp.gt.kp_flux_max) flux=0.5d0*flux
               flux_w=flux*fl_gsk
-              flux_w=dmin1(flux_w,gsk_w)
-              flux_w=dmin1(flux_w,gk_w)
+              flux_w=min(flux_w,gsk_w)
+              flux_w=min(flux_w,gk_w)
 			        frac_split = flux/gsk
               if(frac_split < 0.) frac_split = 0.
 	            if(frac_split > 1.) frac_split = 1.
               dm_rime(k)=dm_rime(k)+gsi*(1.-frac_split)
               dm_rime(kp)=dm_rime(kp)+gsi*frac_split
               gx(k)=gk-flux
-	            gx(k)=dmax1(gx(k),gmin)
+	            gx(k)=max(gx(k),gmin)
 
               gx_k_w=gk_w-flux_w
-              gx_k_w=dmin1(gx_k_w,gx(k))
-              gx_k_w=dmax1(gx_k_w,0.0d0)
+              gx_k_w=min(gx_k_w,gx(k))
+              gx_k_w=max(gx_k_w,0.0d0)
               flx(k)=gx_k_w/gx(k)
               gx_kp_old=gx(kp)
               gx(kp)=gx(kp)+flux
-              gx(kp)=dmax1(gx(kp),gmin)
+              gx(kp)=max(gx(kp),gmin)
 
               gx_kp_w=gx_kp_old*flx(kp)+flux_w
-              gx_kp_w=dmin1(gx_kp_w,gx(kp))
+              gx_kp_w=min(gx_kp_w,gx(kp))
 
               flx(kp)=gx_kp_w/gx(kp)
 
@@ -3430,8 +3430,8 @@ enddo
             !ckxy_ji=ckxy(j,i)
             ckxy_ji= get_cw_generic(dtime_coal,nkr,p_z,j,i,cw_name)
             x01=ckxy_ji*gy(i)*gx(j)*prdkrn
-            x02=dmin1(x01,gy(i)*x(j))
-            x03=dmin1(x02,gx(j)*y(i))
+            x02=min(x01,gy(i)*x(j))
+            x03=min(x02,gx(j)*y(i))
             gsi=x03/x(j)
             gsj=x03/y(i)
             gsk=gsi+gsj
@@ -3439,19 +3439,19 @@ enddo
             gsi_w=gsi*fly(i)
             gsj_w=gsj*flx(j)
             gsk_w=gsi_w+gsj_w
-            gsk_w=dmin1(gsk_w,gsk)
+            gsk_w=min(gsk_w,gsk)
             gy(i)=gy(i)-gsi
-            gy(i)=dmax1(gy(i),0.0d0)
+            gy(i)=max(gy(i),0.0d0)
 
             gx(j)=gx(j)-gsj
-            gx(j)=dmax1(gx(j),0.0d0)
+            gx(j)=max(gx(j),0.0d0)
 
             gk=gz(k)+gsk
 
             if(gk.le.gmin) goto 2021
 
             gk_w=gz(k)*flz(k)+gsk_w
-            gk_w=dmin1(gk_w,gk)
+            gk_w=min(gk_w,gk)
 
             fl_gk=gk_w/gk
 
@@ -3459,34 +3459,34 @@ enddo
 
             flux=0.d0
 
-            x1=dlog(gz(kp)/gk+1.d-15)
+            x1=log(gz(kp)/gk+1.d-15)
 
-            flux=gsk/x1*(dexp(0.5d0*x1)-dexp(x1*(0.5d0-c(i,j))))
-            flux=dmin1(flux,gsk)
-            flux=dmin1(flux,gk)
+            flux=gsk/x1*(exp(0.5d0*x1)-exp(x1*(0.5d0-c(i,j))))
+            flux=min(flux,gsk)
+            flux=min(flux,gk)
 
             if(kp.gt.kp_flux_max) flux=0.5d0*flux
 
             flux_w=flux*fl_gsk
-            flux_w=dmin1(flux_w,gsk_w)
-            flux_w=dmin1(flux_w,gk_w)
+            flux_w=min(flux_w,gsk_w)
+            flux_w=min(flux_w,gk_w)
 
             gz(k)=gk-flux
-            gz(k)=dmax1(gz(k),gmin)
+            gz(k)=max(gz(k),gmin)
 
             gz_k_w=gk*fl_gk-flux_w
-            gz_k_w=dmin1(gz_k_w,gz(k))
-            gz_k_w=dmax1(gz_k_w,0.0d0)
+            gz_k_w=min(gz_k_w,gz(k))
+            gz_k_w=max(gz_k_w,0.0d0)
 
             flz(k)=gz_k_w/gz(k)
 
             gz_kp_old=gz(kp)
 
             gz(kp)=gz(kp)+flux
-            gz(kp)=dmax1(gz(kp),gmin)
+            gz(kp)=max(gz(kp),gmin)
 
             gz_kp_w=gz_kp_old*flz(kp)+flux_w
-            gz_kp_w=dmin1(gz_kp_w,gz(kp))
+            gz_kp_w=min(gz_kp_w,gz(kp))
 
             flz(kp)=gz_kp_w/gz(kp)
 
@@ -3628,8 +3628,8 @@ enddo
             kp=k+1
             ckxx_ij = get_cw_generic(dtime_coal, nkr, p_z, i, j, cw_name)
             x01=ckxx_ij*gx(i)*gx(j)*prdkrn
-            x02=dmin1(x01,gx(i)*x(j))
-            x03=dmin1(x02,gx(j)*x(i))
+            x02=min(x01,gx(i)*x(j))
+            x03=min(x02,gx(j)*x(i))
             gsi=x03/x(j)
             gsj=x03/x(i)
             gsk=gsi+gsj
@@ -3639,42 +3639,42 @@ enddo
             gsi_w=gsi*flx(i)
             gsj_w=gsj*flx(j)
             gsk_w=gsi_w+gsj_w
-            gsk_w=dmin1(gsk_w,gsk)
+            gsk_w=min(gsk_w,gsk)
 
             gx(i)=gx(i)-gsi
-            gx(i)=dmax1(gx(i),0.0d0)
+            gx(i)=max(gx(i),0.0d0)
 
             gx(j)=gx(j)-gsj
-            gx(j)=dmax1(gx(j),0.0d0)
+            gx(j)=max(gx(j),0.0d0)
 
             gk=gy(k)+gsk
 
             if(gk.le.gmin) goto 2021
 
             gk_w=gy(k)*fly(k)+gsk_w
-            gk_w=dmin1(gk_w,gk)
+            gk_w=min(gk_w,gk)
             fl_gk=gk_w/gk
             fl_gsk=gsk_w/gsk
 
             flux=0.d0
 
-            x1=dlog(gy(kp)/gk+1.d-15)
+            x1=log(gy(kp)/gk+1.d-15)
             !		print *,'nir1',gy(kp),gk,kp,i,j
-            flux=gsk/x1*(dexp(0.5d0*x1)-dexp(x1*(0.5d0-c(i,j))))
-            flux=dmin1(flux,gsk)
-            flux=dmin1(flux,gk)
+            flux=gsk/x1*(exp(0.5d0*x1)-exp(x1*(0.5d0-c(i,j))))
+            flux=min(flux,gsk)
+            flux=min(flux,gk)
 
             if(kp.gt.kp_flux_max) flux=0.5d0*flux
 
             flux_w=flux*fl_gsk
-            flux_w=dmin1(flux_w,gk_w)
-            flux_w=dmin1(flux_w,gsk_w)
-            flux_w=dmax1(flux_w,0.0d0)
+            flux_w=min(flux_w,gk_w)
+            flux_w=min(flux_w,gsk_w)
+            flux_w=max(flux_w,0.0d0)
 
             gy(k)=gk-flux
             gy_k_w=gk*fl_gk-flux_w
-            gy_k_w=dmin1(gy_k_w,gy(k))
-            gy_k_w=dmax1(gy_k_w,0.0d0)
+            gy_k_w=min(gy_k_w,gy(k))
+            gy_k_w=max(gy_k_w,0.0d0)
             !		print *,'nirxxylwf4',k,gy(k),gy_k_w,x1,flux
             if (gy(k)/=0.0) then
               fly(k)=gy_k_w/gy(k)
@@ -3684,7 +3684,7 @@ enddo
             gy_kp_old=gy(kp)
             gy(kp)=gy(kp)+flux
             gy_kp_w=gy_kp_old*fly(kp)+flux_w
-            gy_kp_w=dmin1(gy_kp_w,gy(kp))
+            gy_kp_w=min(gy_kp_w,gy(kp))
             if (gy(kp)/=0.0) then
               fly(kp)=gy_kp_w/gy(kp)
             else
@@ -3974,7 +3974,7 @@ enddo
     !print*,  j
     !print*, 'dg(j),dt,gt(j)'
     !print*,  dg(j),dt,gt(j)
-    !hlp=dmin1(gt(j),hlp)
+    !hlp=min(gt(j),hlp)
   !	gt(j) = eps
   !	print*,'kr',j
   !	print*,'gt',gt
@@ -4011,7 +4011,7 @@ enddo
       !xl_mg(0)=xl_mg(1)/2
       xl_mg(1:nkr) = xl(1:nkr)*1.0D3
 
-      dlnr=dlog(2.0d0)/(3.0d0*scal)
+      dlnr=log(2.0d0)/(3.0d0*scal)
 
       do i = 1,nkr
          do j = i,nkr
@@ -4021,7 +4021,7 @@ enddo
                kk = k
                if(k == 1) goto 1000
                if(xl_mg(k) >= x0 .and. xl_mg(k-1) < x0) then
-                 chucm(i,j) = dlog(x0/xl_mg(k-1))/(3.d0*dlnr)
+                 chucm(i,j) = log(x0/xl_mg(k-1))/(3.d0*dlnr)
                  if(chucm(i,j) > 1.0d0-1.d-08) then
                    chucm(i,j) = 0.0d0
                    kk = kk + 1
@@ -4575,7 +4575,7 @@ enddo
              do i = its,ite
 
             ! ... correcting Look-up-table Terminal velocities
-            FACTOR_P = DSQRT(1.0D6/PCGS(I,K,J))
+            FACTOR_P = SQRT(1.0D6/PCGS(I,K,J))
             VR2_ZC(1:nkr,K) = VR2(1:nkr,1)*FACTOR_P
             VR2_ZP(1:nkr,K) = VR2(1:nkr,2)*FACTOR_P
             VR2_ZD(1:nkr,K) = VR2(1:nkr,3)*FACTOR_P
@@ -4652,15 +4652,15 @@ enddo
              IF (QQA.LE.0) print*,'I,J,K,Told,Tnew,QQA = ',I,J,K,TT,TTA,QQA
              IF (QQA.LE.0) QQA = 1.0D-10
 
-              ES1N = AA1_MY*DEXP(-BB1_MY/TT)
-              ES2N = AA2_MY*DEXP(-BB2_MY/TT)
+              ES1N = AA1_MY*EXP(-BB1_MY/TT)
+              ES2N = AA2_MY*EXP(-BB2_MY/TT)
               EW1N=QQ*PP/(0.622+0.378*QQ)
               DIV1=EW1N/ES1N
               DEL1IN=EW1N/ES1N-1.
               DIV2=EW1N/ES2N
               DEL2IN=EW1N/ES2N-1.
-              ES1N=AA1_MY*DEXP(-BB1_MY/TTA)
-              ES2N=AA2_MY*DEXP(-BB2_MY/TTA)
+              ES1N=AA1_MY*EXP(-BB1_MY/TTA)
+              ES2N=AA2_MY*EXP(-BB2_MY/TTA)
               EW1N=QQA*PP/(0.622+0.378*QQA)
               DIV3=EW1N/ES1N
               DEL1AD=EW1N/ES1N-1.
@@ -4685,8 +4685,8 @@ enddo
                       IF (DIFFU.NE.0)THEN
                         TT = TT + DEL_T
                         QQ = QQ + DEL_Q
-                        ES1N = AA1_MY*DEXP(-BB1_MY/TT)
-                        ES2N = AA2_MY*DEXP(-BB2_MY/TT)
+                        ES1N = AA1_MY*EXP(-BB1_MY/TT)
+                        ES2N = AA2_MY*EXP(-BB2_MY/TT)
                         EW1N = QQ*PP/(0.622+0.378*QQ)
                         DIV1 = EW1N/ES1N
                         DEL1IN = EW1N/ES1N-1.0
@@ -5541,7 +5541,7 @@ enddo
  	if (.NOT. ALLOCATED(tab_snow)) ALLOCATE(tab_snow(nkr))
  	if (.NOT. ALLOCATED(bin_log)) ALLOCATE(bin_log(nkr))
 
- 	dlnr=dlog(2.d0)/(3.d0)
+ 	dlnr=log(2.d0)/(3.d0)
 
  	hujisbm_unit1 = -1
  	IF ( wrf_dm_on_monitor() ) THEN
@@ -6330,7 +6330,7 @@ enddo
   					  ckern_3
                       !$omp declare target
     scal = 1.0
- 	dlnr = dlog(2.0d0)/(3.0d0*scal)
+ 	dlnr = log(2.0d0)/(3.0d0*scal)
  	dtimelnr = dtime_coal*dlnr
 
  	p_1=p1
@@ -6361,7 +6361,7 @@ enddo
   					  ckern_3
 !$omp declare target
     scal = 1.0
- 	dlnr = dlog(2.0d0)/(3.0d0*scal)
+ 	dlnr = log(2.0d0)/(3.0d0*scal)
  	dtimelnr = dtime_coal*dlnr
 
  	p_1=p2
@@ -6413,6 +6413,8 @@ enddo
             get_cw_generic = get_cwsl(dtime_coal,nkr,p_z,i,j)
          case ("cwhl")
             get_cw_generic = get_cwhl(dtime_coal,nkr,p_z,i,j)
+         case default
+            get_cw_generic = 0.
 
          end select
 
@@ -8929,8 +8931,8 @@ end if
      real(kind=r8size) :: Dgr, Dkl, Rgr, RKl, q, qmin, qmax, e, x, e1, e2, sin1, cos1
      real(kind=r8size),PARAMETER :: zero=0.0d0,one=1.0d0,eps=1.0d-30,PI=3.1415927d0
 
-     Dgr=dmax1(Deta,Dksi)
-     Dkl=dmin1(Deta,Dksi)
+     Dgr=max(Deta,Dksi)
+     Dkl=min(Deta,Dksi)
 
      Rgr=0.5d0*Dgr
      Rkl=0.5d0*Dkl
@@ -8952,8 +8954,8 @@ end if
 
          x=(q-qmin)/(qmax-qmin)
 
-         sin1=dsin(PI/2.0d0*x)
-         cos1=dcos(PI/2.0d0*x)
+         sin1=sin(PI/2.0d0*x)
+         cos1=cos(PI/2.0d0*x)
 
          e1=ecoalOchs(Dgr, Dkl, DROPRADII, VR1_BREAKUP, NKR)
          e2=ecoalLowList(Dgr, Dkl, DROPRADII, VR1_BREAKUP, NKR)
@@ -8970,7 +8972,7 @@ end if
 
      endif
 
-     ecoaldiam=dmax1(dmin1(one,e),eps)
+     ecoaldiam=max(min(one,e),eps)
 
  RETURN
  END FUNCTION ecoaldiam
@@ -9003,11 +9005,11 @@ end if
          qq0=1.0d0+(Dkl/Dgr)
          qq1=aka/qq0**2
          qq2=akb*sigma*(ET**2)/(Sc+epsi)
-         Ecl=qq1*dexp(-qq2)
+         Ecl=qq1*exp(-qq2)
 
      !if(i_breakup==24.and.j_breakup==25) then
      !print*, 'IF(ET<50.0d0) THEN'
-     !print*, 'Ecl=qq1*dexp(-qq2)'
+     !print*, 'Ecl=qq1*exp(-qq2)'
      !print*, 'qq1,qq2,Ecl'
      !print*,  qq1,qq2,Ecl
      !endif
@@ -9046,7 +9048,7 @@ end if
 
      vTs=vTBeard(D_s,DROPRADII, VR1_BREAKUP,NKR)
 
-     dv=dabs(vTl-vTs)
+     dv=abs(vTl-vTs)
 
      if(dv<FPMIN) dv=FPMIN
 
@@ -9087,8 +9089,8 @@ end if
                       ! [sigma]=g/s^2
      ak10=rho*PI/12.0d0
 
-     Dgr=dmax1(Dgr,epsf)
-     Dkl=dmax1(Dkl,epsf)
+     Dgr=max(Dgr,epsf)
+     Dkl=max(Dkl,epsf)
 
      Dgka2=(Dgr**2)+(Dkl**2)
 

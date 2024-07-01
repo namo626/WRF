@@ -4849,7 +4849,7 @@ enddo
 ! +----------------------------------+
 ! Collision-Coallescnce
 ! +----------------------------------+
-      !$omp target teams distribute parallel do collapse(3) &
+      !$omp target teams distribute parallel do num_teams(1)  &
       !$omp private(ff1r,ff2r,ff3r,ff4r,ff5r, &
       !$omp fliqfr_sd,fliqfr_gd,fliqfr_hd,frimfr_sd)
    DO j = jts,jte

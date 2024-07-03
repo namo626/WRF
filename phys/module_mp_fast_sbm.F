@@ -2611,6 +2611,17 @@ enddo
   real(kind=r8size), parameter :: G_LIM = 1.0D-16 ! [g/cm^3]
   integer,parameter :: kr_sgs_max = 20 ! rg(20)=218.88 mkm
 
+ ! Collision array names
+ integer, parameter :: cwll = 1
+ integer, parameter :: cwlg = 2
+ integer, parameter :: cwlh = 3
+ integer, parameter :: cwls = 4
+ integer, parameter :: cwsg = 5
+ integer, parameter :: cwss = 6
+ integer, parameter :: cwgl = 7
+ integer, parameter :: cwsl = 8
+ integer, parameter :: cwhl = 9
+
  ! JacobS: Hard coding the bin-wise indices for the NMM core
  INTEGER, PRIVATE,PARAMETER ::  p_ff1i01=2, p_ff1i33=34,p_ff5i01=35,p_ff5i33=67,p_ff6i01=68,&
                                 p_ff6i33=100,p_ff8i01=101,p_ff8i43=143
@@ -5049,11 +5060,43 @@ enddo
 
   end function get_cw
 
+ pure real(kind=r8size) function get_cw_generic(dtime_coal, nkr, p_z, i, j, name)
+      implicit none
+      integer, intent(in) :: nkr
+      integer, value ::  i, j
+      real(kind=r4size),intent(in) :: dtime_coal,p_z
+      integer, intent(in) :: name
+      !$omp declare target
+
+      select case (name)
+         case (CWLL)
+            get_cw_generic = get_cwll(dtime_coal,nkr,p_z,i,j)
+         case (CWLG)
+            get_cw_generic = get_cwlg(dtime_coal,nkr,p_z,i,j)
+         case (CWLH)
+            get_cw_generic = get_cwlh(dtime_coal,nkr,p_z,i,j)
+         case (CWLS)
+            get_cw_generic = get_cwls(dtime_coal,nkr,p_z,i,j)
+         case (CWSG)
+            get_cw_generic = get_cwsg(dtime_coal,nkr,p_z,i,j)
+         case (CWSS)
+            get_cw_generic = get_cwss(dtime_coal,nkr,p_z,i,j)
+         case (CWGL)
+            get_cw_generic = get_cwgl(dtime_coal,nkr,p_z,i,j)
+         case (CWSL)
+            get_cw_generic = get_cwsl(dtime_coal,nkr,p_z,i,j)
+         case (CWHL)
+            get_cw_generic = get_cwhl(dtime_coal,nkr,p_z,i,j)
+
+         end select
+
+ end function get_cw_generic
 
   pure real(kind=r8size) function get_cwlg(dtime_coal,nkr,p_z,i,j)
       implicit none
       integer, intent(in) :: nkr, i, j
       real(kind=r4size),intent(in) :: dtime_coal,p_z
+      !$omp declare target
       get_cwlg = get_cw(dtime_coal,nkr,p_z,i,j,ywlg_300mb, ywlg_500mb, ywlg_750mb)
   end function get_cwlg
 
@@ -5061,6 +5104,7 @@ enddo
       implicit none
       integer, intent(in) :: nkr, i, j
       real(kind=r4size),intent(in) :: dtime_coal,p_z
+      !$omp declare target
       get_cwlh = get_cw(dtime_coal,nkr,p_z,i,j,ywlh_300mb, ywlh_500mb, ywlh_750mb)
   end function get_cwlh
 
@@ -5068,6 +5112,7 @@ enddo
       implicit none
       integer, intent(in) :: nkr, i, j
       real(kind=r4size),intent(in) :: dtime_coal,p_z
+      !$omp declare target
       get_cwls = get_cw(dtime_coal,nkr,p_z,i,j,ywls_300mb, ywls_500mb, ywls_750mb)
   end function get_cwls
 
@@ -5076,6 +5121,7 @@ enddo
       implicit none
       integer, intent(in) :: nkr, i, j
       real(kind=r4size),intent(in) :: dtime_coal,p_z
+      !$omp declare target
       get_cwsg = get_cw(dtime_coal,nkr,p_z,i,j,ywsg_300mb, ywsg_500mb, ywsg_750mb)
   end function get_cwsg
 
@@ -5083,6 +5129,7 @@ enddo
       implicit none
       integer, intent(in) :: nkr, i, j
       real(kind=r4size),intent(in) :: dtime_coal,p_z
+      !$omp declare target
       get_cwss = get_cw(dtime_coal,nkr,p_z,i,j,ywss_300mb, ywss_500mb, ywss_750mb)
   end function get_cwss
 
@@ -5090,6 +5137,7 @@ enddo
       implicit none
       integer, intent(in) :: nkr, i, j
       real(kind=r4size),intent(in) :: dtime_coal,p_z
+      !$omp declare target
       get_cwgl = get_cwlg(dtime_coal,nkr,p_z,j,i)
   end function get_cwgl
 
@@ -5097,6 +5145,7 @@ enddo
       implicit none
       integer, intent(in) :: nkr, i, j
       real(kind=r4size),intent(in) :: dtime_coal,p_z
+      !$omp declare target
       get_cwhl = get_cwlh(dtime_coal,nkr,p_z,j,i)
   end function get_cwhl
 
@@ -5104,6 +5153,7 @@ enddo
       implicit none
       integer, intent(in) :: nkr, i, j
       real(kind=r4size),intent(in) :: dtime_coal,p_z
+      !$omp declare target
       get_cwsl = get_cwls(dtime_coal,nkr,p_z,j,i)
   end function get_cwsl
 

@@ -453,7 +453,7 @@ end module module_mp_SBM_BreakUp
 
  contains
 ! +----------------------------------------------------------+
- double precision FUNCTION POLYSVP (TT,ITYPE)
+ pure double precision FUNCTION POLYSVP (TT,ITYPE)
 
  implicit none
 
@@ -463,6 +463,7 @@ end module module_mp_SBM_BreakUp
  real(4),parameter :: C1 = -9.09718E0, C2 = -3.56654E0, C3 = 0.876793E0, C4 = 0.78583503E0, &
                       AA1_MY = 2.53E12, BB1_MY = 5.42E3, AA2_MY = 3.41E13, BB2_MY = 6.13E3
  real(4) :: ES1N, ES2N
+      !$omp declare target
 
  method_select: SELECT CASE(ITYPE)
 
@@ -471,7 +472,7 @@ end module module_mp_SBM_BreakUp
    ES1N = AA1_MY*EXP(-BB1_MY/TT)
    POLYSVP = ES1N ! [dyn/cm2] to [mb]
 
- ! ice  
+ ! ice
  Case(1)
    ES2N = AA2_MY*EXP(-BB2_MY/TT)
    POLYSVP = ES2N ! [dyn/cm2] to [mb]
@@ -3557,6 +3558,24 @@ enddo
 ! +----------------------------------+
 ! Collision-Coallescnce
 ! +----------------------------------+
+         !$omp target   update to( ywll_1000mb, ywll_750mb, ywll_500mb)
+         !$omp  target  update to( ywlg_300mb, ywlg_750mb, ywlg_500mb)
+         !$omp  target  update to( ywlh_300mb, ywlh_750mb, ywlh_500mb)
+         !$omp  target  update to( ywls_300mb, ywls_750mb, ywls_500mb)
+         !$omp  target  update to( ywsg_300mb, ywsg_750mb, ywsg_500mb)
+         !$omp  target  update to( ywss_300mb, ywss_750mb, ywss_500mb)
+         !$omp  target  update to( ecoalmassm)
+
+ !$omp target update to( xl_mg,xs_mg,xg_mg,xh_mg)
+ !$omp target update to( xl,xs,xg,xh,xi)
+ !$omp target update to( pkij)
+ !$omp target update to( chucm)
+ !$omp target update to( qkj)
+ !$omp target update to( ima)
+
+      !$omp target teams distribute parallel do collapse(2)  &
+      !$omp private(ff1r,ff2r,ff3r,ff4r,ff5r, &
+      !$omp fliqfr_sd,fliqfr_gd,fliqfr_hd,frimfr_sd)
    DO j = jts,jte
       DO k = kts,kte
          DO i = its,ite
@@ -4997,6 +5016,21 @@ enddo
   WRITE(errmess, '(A,I2)') 'FAST_SBM_INIT : succesfull reading "Spontanous_Init" '
   CALL wrf_debug(000, errmess)
 
+         !$omp target enter data map(to: ywll_1000mb, ywll_750mb, ywll_500mb)
+         !$omp  target enter data map(to: ywlg_300mb, ywlg_750mb, ywlg_500mb)
+         !$omp  target enter data map(to: ywlh_300mb, ywlh_750mb, ywlh_500mb)
+         !$omp  target enter data map(to: ywls_300mb, ywls_750mb, ywls_500mb)
+         !$omp  target enter data map(to: ywsg_300mb, ywsg_750mb, ywsg_500mb)
+         !$omp  target enter data map(to: ywss_300mb, ywss_750mb, ywss_500mb)
+         !$omp  target enter data map(to: ecoalmassm)
+
+ !$omp target enter data map(to: xl_mg,xs_mg,xg_mg,xh_mg)
+ !$omp target enter data map(to: xl,xs,xg,xh,xi)
+ !$omp target enter data map(to: pkij)
+ !$omp target enter data map(to: chucm)
+ !$omp target enter data map(to: qkj)
+ !$omp target enter data map(to: ima)
+
   return
   2070  continue
 
@@ -5018,6 +5052,7 @@ enddo
   real(kind=r4size),parameter :: p1=1.0e6,p2=0.75e6,p3=0.50e6,p4=0.3e6
   real(kind=r4size) :: dlnr, scal, dtimelnr, pdm, p_1, p_2, p_3, ckern_1, ckern_2, &
   					  ckern_3
+    !$omp declare target
     scal = 1.0
  	dlnr = dlog(2.0d0)/(3.0d0*scal)
  	dtimelnr = dtime_coal*dlnr
@@ -5048,7 +5083,7 @@ enddo
   real(kind=r4size),parameter :: p1=1.0e6,p2=0.75e6,p3=0.50e6,p4=0.3e6
   real(kind=r4size) :: dlnr, scal, dtimelnr, pdm, p_1, p_2, p_3, ckern_1, ckern_2, &
   					  ckern_3
-
+!$omp declare target
     scal = 1.0
  	dlnr = dlog(2.0d0)/(3.0d0*scal)
  	dtimelnr = dtime_coal*dlnr
@@ -5326,6 +5361,7 @@ enddo
 
  	real(kind=r4size),intent(in) :: p_z,p_1,p_2,p_3,ckern_1, &
  									ckern_2,ckern_3
+    !$omp declare target
 
  	if(p_z>=p_1) ckern_z = ckern_1
  	!if(p_z==p_2) ckern_z=ckern_2
@@ -7083,6 +7119,7 @@ enddo
  	   real(kind=r8size),PARAMETER :: g_lim = 1.0D-19*1.0D3,AA1_MY = 2.53E12,  &
                                     BB1_MY = 5.42E3, AA2_MY = 3.41E13 ,BB2_MY = 6.13E3
 
+    !$omp declare target
     icol_drop_brk=0
     icol_drop=0
     icol_snow=0
@@ -8842,6 +8879,7 @@ enddo
     real(kind=r8size) :: AA,BB,CC,DD,Es,Ew,AA1_MY,BB1_MY
     real(kind=r4size) :: tt_r, T_tab(7), SE_tab(7)
 
+      !$omp declare target
     satq2(t,p) = 3.80d3*(10**(9.76421d0-2667.1d0/t))/p
     temp(a,b,c,d,t) = d*t*t*t+c*t*t+b*t+a
 

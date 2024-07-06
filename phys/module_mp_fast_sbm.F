@@ -5458,8 +5458,8 @@ enddo
 
  	  integer,intent(in) :: NKR,ICEMAX
  	  real(kind=R4size),intent(in)    :: DT,COL,RO
- 	  real(kind=R4size),intent(inout) :: FF1(:),XL(:),FF2(:,:),XI(:,:),FF3(:),XS(:),FF4(:),XG(:), &
- 	  									                 FF5(:),XH(:),Tin
+ 	  real(kind=R4size),intent(in) :: XL(:),XI(:,:),XS(:),XG(:), XH(:)
+ 	  real(kind=R4size),intent(inout) :: FF1(:),FF2(:,:),FF3(:),FF4(:),FF5(:),TIN
 
  	  !  ... Locals
       integer :: KR,ICE,ICE_TYPE

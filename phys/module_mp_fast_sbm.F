@@ -4126,7 +4126,6 @@ enddo
  ! cycle by J
  END DO
 
-      !$omp end target data
    do j=jts,jte
    do k=kts,kte
    do i=its,ite
@@ -4137,6 +4136,7 @@ enddo
    end do
 
    if (conserv)then
+      !$omp target teams distribute parallel do collapse(3)
  		  DO j = jts,jte
  		     DO i = its,ite
  		        DO k = kts,kte
@@ -4180,6 +4180,7 @@ enddo
  		         END DO
  		        END DO
        END IF
+      !$omp end target data
 
    RETURN
    END SUBROUTINE FAST_SBM

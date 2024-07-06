@@ -204,7 +204,7 @@ ratio_new = q_m/xl_dp(ikr_spon_break)
   integer :: kr,i,imax,j
   real(kind=r4size) :: start_time, end_time, dtime_spon_break
 ! ... Local
-
+!$omp declare target
  dtime_spon_break = DTwrf
 
   DEG01 = 1.0/3.0
@@ -300,7 +300,7 @@ end select
 						           A,GLW_MAX, FLW_MAX, GRM_MAX, FRM_MAX, GMAX
 	INTEGER :: KR,K,KMAX,KMIN
 ! ... Locals
-
+!$omp declare target
 	DO KR=1,NKR
 	   BREAK_SNOW(KR)=0.0D0
 	END DO
@@ -5389,6 +5389,7 @@ enddo
            ,XI(NKR,ICEMAX),FF3(NKR),XS(NKR),FF4(NKR) &
            ,XG(NKR),FF5(NKR),XH(NKR)
 
+           !$omp declare target
  	TTIN=TIN
  	DEL_T	=TTIN-273.15
  	ICE_TYPE=2
@@ -5466,7 +5467,7 @@ enddo
        						         A,B,DTFREEZ,SUM_ICE,FF_MAX,F1_MAX,F2_MAX,F3_MAX,F4_MAX,F5_MAX, &
 		                       DEL_T,meltrate,gamma
  	  ! ... Locals
-
+    !$omp declare target
     	gamma=4.4
  	   	DEL_T = TIN-273.15
    		ICE_TYPE = 2

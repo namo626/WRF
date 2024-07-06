@@ -3818,7 +3818,6 @@ enddo
    end do
 
 
-      !$omp end target data
     gmax=0
     qmax=0
     imax=0
@@ -3826,6 +3825,8 @@ enddo
     qnmax=0
     inmax=0
     knmax=0
+
+      !$omp target teams distribute parallel do collapse(3)
     DO j = jts,jte
       DO k = kts,kte
         DO i = its,ite
@@ -3908,6 +3909,7 @@ enddo
  		END DO
    END DO
   END DO
+      !$omp end target data
 
  998   format(' ',10(f10.1,1x))
 

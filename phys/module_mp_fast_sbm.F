@@ -3573,9 +3573,14 @@ enddo
  !$omp target update to( qkj)
  !$omp target update to( ima)
 
+      !$omp target data map(tofrom: chem_new) &
+!$omp             map(to: rhocgs,pcgs,zcgs,vr1_z3D,vr3_z3D,vr4_z3D,vr5_z3D)
+
+
       !$omp target teams distribute parallel do collapse(2)  &
       !$omp private(ff1r,ff2r,ff3r,ff4r,ff5r, &
-      !$omp fliqfr_sd,fliqfr_gd,fliqfr_hd,frimfr_sd)
+      !$omp fliqfr_sd,fliqfr_gd,fliqfr_hd,frimfr_sd, &
+      !$omp fccn,ff1r_d,xl_d,ff3r_d)
    DO j = jts,jte
       DO k = kts,kte
          DO i = its,ite
@@ -3585,7 +3590,6 @@ enddo
             FF3R = FF3R_all(:,i,k,j)
             FF4R = FF4R_all(:,i,k,j)
             FF5R = FF5R_all(:,i,k,j)
-            FCCN = FCCN_all(:,i,k,j)
 
             if (call_coal_bott_new(i,k,j)) then
 
@@ -3616,31 +3620,6 @@ enddo
                    
              endif
 
-             FF1R_all(:,i,k,j) = FF1R
-             FF2R_all(:,:,i,k,j) = FF2R
-             FF3R_all(:,i,k,j) = FF3R
-             FF4R_all(:,i,k,j) = FF4R
-             FF5R_all(:,i,k,j) = FF5R
-
-          enddo
-       enddo
-      enddo
-
-
-      !$omp target data map(tofrom: chem_new) &
-      !$omp             map(to: rhocgs,pcgs,zcgs,vr1_z3D,vr3_z3D,vr4_z3D,vr5_z3D)
-
-!$omp target teams distribute parallel do collapse(2) &
-      !$omp private(ff1r,ff2r,ff3r,ff4r,ff5r,fccn,ff1r_d,xl_d,ff3r_d)
-      do j = jts,jte
-         do k = kts,kte
-            do i = its,ite
-
-               FF1R = FF1R_all(:,i,k,j)
-               FF2R = FF2R_all(:,:,i,k,j)
-               FF3R = FF3R_all(:,i,k,j)
-               FF4R = FF4R_all(:,i,k,j)
-               FF5R = FF5R_all(:,i,k,j)
                FCCN = FCCN_all(:,i,k,j)
 
  ! +-------------------------------- +

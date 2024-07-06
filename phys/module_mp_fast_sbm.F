@@ -3627,6 +3627,9 @@ enddo
       enddo
 
 
+      !$omp target data map(from: chem_new)
+!$omp target teams distribute parallel do collapse(3) &
+      !$omp private(ff1r,ff2r,ff3r,ff4r,ff5r,fccn,ff1r_d,xl_d,ff3r_d)
       do j = jts,jte
          do k = kts,kte
             do i = its,ite
@@ -3738,6 +3741,7 @@ enddo
       END DO
      END DO
 
+      !$omp end target data
 ! +-----------------------------+
 ! Hydrometeor Sedimentation
 ! +-----------------------------+

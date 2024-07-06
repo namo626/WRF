@@ -3909,10 +3909,10 @@ enddo
  		END DO
    END DO
   END DO
-      !$omp end target data
 
  998   format(' ',10(f10.1,1x))
 
+       !$omp target teams distribute parallel do collapse(2)
   DO j = jts,jte
     DO i = its,ite
       RAINNCV(I,J) = 0.0
@@ -4126,6 +4126,7 @@ enddo
  ! cycle by J
  END DO
 
+      !$omp end target data
    do j=jts,jte
    do k=kts,kte
    do i=its,ite

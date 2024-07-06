@@ -3628,7 +3628,7 @@ enddo
 
 
       !$omp target data map(tofrom: chem_new)
-!$omp target teams distribute parallel do collapse(3) &
+!$omp target teams distribute parallel do collapse(2) &
       !$omp private(ff1r,ff2r,ff3r,ff4r,ff5r,fccn,ff1r_d,xl_d,ff3r_d)
       do j = jts,jte
          do k = kts,kte

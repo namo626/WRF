@@ -3982,6 +3982,8 @@ enddo
 ! ..........................................
 ! ... Polarimetric Forward Radar Operator
 ! ..........................................
+#ifndef OFFLOAD
+
   if ( PRESENT (diagflag) ) then
     if( diagflag .and. IPolar_HUCM .and. (sbm_diagnostics==1) ) then
 
@@ -4118,7 +4120,7 @@ enddo
  		endif
  	! PRESENT(diagflag)
  	endif
-
+#endif
    ! cycle by I
    END DO
  ! cycle by J

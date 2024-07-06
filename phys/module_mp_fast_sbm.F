@@ -3627,7 +3627,7 @@ enddo
       enddo
 
 
-      !$omp target data map(from: chem_new)
+      !$omp target data map(tofrom: chem_new)
 !$omp target teams distribute parallel do collapse(3) &
       !$omp private(ff1r,ff2r,ff3r,ff4r,ff5r,fccn,ff1r_d,xl_d,ff3r_d)
       do j = jts,jte
@@ -3741,10 +3741,11 @@ enddo
       END DO
      END DO
 
-      !$omp end target data
 ! +-----------------------------+
 ! Hydrometeor Sedimentation
 ! +-----------------------------+
+!$omp target teams distribute parallel do collapse(2) &
+      !$omp private(rhocgs_z,pcgs_z,zcgs_z,vrx,ffx_z)
        do j = jts,jte
        	do i = its,ite
  ! ... Drops ...
@@ -3816,6 +3817,8 @@ enddo
    	end do
    end do
 
+
+      !$omp end target data
     gmax=0
     qmax=0
     imax=0
@@ -4200,6 +4203,7 @@ enddo
  ! velocity is downwards.
  ! USE UPSTREAM METHOD (VFALL IS POSITIVE)
 
+      !$omp declare target
        DO KR=1,NKR
         IFALL=0
         DO k = kts,kte

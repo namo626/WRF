@@ -3275,6 +3275,8 @@ enddo
                 DSUPICE_XYZ(I,K,J)=0.0
               END IF
               END DO
+
+
             END DO
           END DO
         ENDIF
@@ -3282,21 +3284,6 @@ enddo
        do j = jts,jte
           do k = kts,kte
              do i = its,ite
-
-            ! ... correcting Look-up-table Terminal velocities
-            FACTOR_P = DSQRT(1.0D6/PCGS(I,K,J))
-            VR2_ZC(1:nkr,K) = VR2(1:nkr,1)*FACTOR_P
-            VR2_ZP(1:nkr,K) = VR2(1:nkr,2)*FACTOR_P
-            VR2_ZD(1:nkr,K) = VR2(1:nkr,3)*FACTOR_P
-            VR1_Z(1:nkr,K) =  VR1(1:nkr)*FACTOR_P
-            VR3_Z(1:nkr,K) = VR3(1:nkr)*FACTOR_P
-            VR4_Z(1:nkr,K) = VR4(1:nkr)*FACTOR_P
-            VR5_Z(1:nkr,k) = VR5(1:nkr)*FACTOR_P
-            VR1_Z3D(1:nkr,I,K,J) = VR1(1:nkr)*FACTOR_P
-            VR3_Z3D(1:nkr,I,K,J) = VR3(1:nkr)*FACTOR_P
-            VR4_Z3D(1:nkr,I,K,J) = VR4(1:nkr)*FACTOR_P
-            VR5_Z3D(1:nkr,I,K,J) = VR5(1:nkr)*FACTOR_P
-
      			! ... Liquid
      			  KRR = 0
      			  DO kr = p_ff1i01,p_ff1i33
@@ -3325,6 +3312,7 @@ enddo
    					if (ff3r(krr) < 0.0)ff3r(krr) = 0.0
    				END DO
 
+
           ! ... Hail or Graupel
           if(hail_opt == 1)then
            KRR=0
@@ -3343,6 +3331,43 @@ enddo
                FF5R(KRR) = 0.0
            ENDDO
           endif
+
+            FF1R_all(:,i,k,j) = FF1R
+            FF2R_all(:,:,i,k,j) = FF2R
+            FCCN_all(:,i,k,j) = FCCN
+            FF3R_all(:,i,k,j) = FF3R
+            FF5R_all(:,i,k,j) = FF5R
+            FF4R_all(:,i,k,j) = FF4R
+         end do
+      end do
+      end do
+
+
+       do j = jts,jte
+          do k = kts,kte
+             do i = its,ite
+
+            FF1R = FF1R_all(:,i,k,j)
+            FF2R = FF2R_all(:,:,i,k,j)
+            FF3R = FF3R_all(:,i,k,j)
+            FF4R = FF4R_all(:,i,k,j)
+            FF5R = FF5R_all(:,i,k,j)
+            FCCN = FCCN_all(:,i,k,j)
+
+            ! ... correcting Look-up-table Terminal velocities
+            FACTOR_P = DSQRT(1.0D6/PCGS(I,K,J))
+            VR2_ZC(1:nkr,K) = VR2(1:nkr,1)*FACTOR_P
+            VR2_ZP(1:nkr,K) = VR2(1:nkr,2)*FACTOR_P
+            VR2_ZD(1:nkr,K) = VR2(1:nkr,3)*FACTOR_P
+            VR1_Z(1:nkr,K) =  VR1(1:nkr)*FACTOR_P
+            VR3_Z(1:nkr,K) = VR3(1:nkr)*FACTOR_P
+            VR4_Z(1:nkr,K) = VR4(1:nkr)*FACTOR_P
+            VR5_Z(1:nkr,k) = VR5(1:nkr)*FACTOR_P
+            VR1_Z3D(1:nkr,I,K,J) = VR1(1:nkr)*FACTOR_P
+            VR3_Z3D(1:nkr,I,K,J) = VR3(1:nkr)*FACTOR_P
+            VR4_Z3D(1:nkr,I,K,J) = VR4(1:nkr)*FACTOR_P
+            VR5_Z3D(1:nkr,I,K,J) = VR5(1:nkr)*FACTOR_P
+
 
 ! +---------------------------------------------+
 ! Neucliation, Condensation, Collisions

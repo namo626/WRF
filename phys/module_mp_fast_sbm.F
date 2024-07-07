@@ -3310,6 +3310,13 @@ enddo
           END DO
         ENDIF
 
+
+!$omp target teams distribute parallel do  &
+!$omp private(vr2_zc,vr2_zp,vr2_zd,vr1_z,vr3_z,vr4_z,vr5_z, &
+!$omp   ff1r,ff2r,ff3r,ff4r,ff5r,fccn, &
+!$omp ff1in, ff2in,ff3in,ff4in,ff5in, &
+!$omp fmax1,fmax2,fmax3,fmax4,fmax5,&
+        !$omp isym1,isym2,isym3,isym4,isym5)
        do j = jts,jte
           do k = kts,kte
              do i = its,ite
@@ -3388,8 +3395,10 @@ enddo
              TTA=T_NEW(I,K,J)
              QQA=QV(I,K,J)
 
+#ifndef OFFLOAD
              IF (QQA.LE.0) call wrf_message("WARNING: FAST SBM, QQA < 0")
              IF (QQA.LE.0) print*,'I,J,K,Told,Tnew,QQA = ',I,J,K,TT,TTA,QQA
+#endif
              IF (QQA.LE.0) QQA = 1.0D-10
 
               ES1N = AA1_MY*DEXP(-BB1_MY/TT)

@@ -2782,7 +2782,7 @@ enddo
  !real(KIND=R4SIZE),parameter :: RO_SOLUTE = 2.16   	! sea salt
  real(kind=r4size),parameter ::  RO_SOLUTE = 1.79  	! ammonium-sulfate
  ! ----------------------------------------------------------------------
- REAL (KIND=R4SIZE) :: FR_LIM(NKR), FRH_LIM(NKR)
+ !REAL (KIND=R4SIZE) :: FR_LIM(NKR), FRH_LIM(NKR)
 
    CONTAINS
  !-----------------------------------------------------------------------
@@ -5693,6 +5693,7 @@ enddo
  	DOUBLE PRECISION :: DEL1_d , DEL2_d, RW_d , PW_d, RI_d, PI_d, D1N_d, D2N_d, &
  						VR1_d(NKR)
 
+    real(kind=r4size) :: fr_lim(nkr), frh_lim(nkr)
     !$omp declare target
  sfndummy = 0.0
  B12_MY = 0.0
@@ -6139,6 +6140,7 @@ enddo
 
  	DOUBLE PRECISION :: DEL1_d, DEL2_d, RW_d, PW_d, RI_d, PI_d, D1N_d, D2N_d
 
+      real(kind=r4size) :: fr_lim(nkr), frh_lim(nkr)
  	B22_MY = 0.0
  	B32_MY = 0.0
  	B42_MY = 0.0
@@ -6696,6 +6698,7 @@ enddo
         OPER2(AR1)=0.622/(0.622+0.378*AR1)/AR1
         OPER3(AR1,AR2)=AR1*AR2/(0.622+0.378*AR1)
 
+        real(kind=r4size) :: fr_lim(nkr), frh_lim(nkr)
 
 
  TTinput = TT

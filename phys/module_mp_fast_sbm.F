@@ -1962,6 +1962,7 @@ end module module_mp_SBM_Auxiliary
 	 real(kind=r4size) :: TTreal
   ! ... Locals
 
+      !$omp declare target
 	 OPER3(AR1,AR2)=AR1*AR2/(0.622D0+0.378D0*AR1)
 
    DROPCONCN(:) = 0.0D0
@@ -2099,7 +2100,7 @@ end module module_mp_SBM_Auxiliary
 	real(kind=r8size) :: C1,C2,TPC,DEL2N,DEL2NN,HELEK1,HELEK2,FF1BN,FACT,DSUP2N,DELTACD,DELTAF, &
 			                 ADDF,DELCONCI_AFNUCL,TPCC,DX
 	! ... Locals
-
+!$omp declare target
 	C1=C1_MEY
 	C2=C2_MEY
 
@@ -2191,6 +2192,7 @@ end module module_mp_SBM_Auxiliary
               3.0D0*COL*PSI2(KR,ICE)*xi(KR,ICE)
            END DO
            DELCONCI_AFNUCL=DABS(CONCI_AFNUCL(ICE)-CONCI_BFNUCL(ICE))
+#ifndef OFFLOAD
            IF(DELCONCI_AFNUCL>10.0D0) THEN
              PRINT*,    'IN SUBROUTINE ICE_NUCL, AFTER NUCLEATION'
              PRINT*,    'BECAUSE DELCONCI_AFNUCL > 10/cm^3'
@@ -2203,14 +2205,17 @@ end module module_mp_SBM_Auxiliary
              PRINT*, 'STOP 099 : DELCONCI_AFNUCL(ICE) > 10/cm^3'
              STOP 099
            ENDIF
+#endif
         END DO
 
 ! new crystal size distribution function                       (end)
 
 
+#ifndef OFFLOAD
   202	FORMAT(1X,2D13.5)
   206	FORMAT(1X,6D13.5)
   302   FORMAT(1X,I2,2X,2D13.5)
+#endif
 
         RETURN
         END SUBROUTINE ICE_NUCL
@@ -2237,7 +2242,7 @@ end module module_mp_SBM_Auxiliary
 	  real(kind=r8size) :: PL(NKR), supmax(NKR), AKOE, BKOE, C3, PR, CCNCONACT, DL1, DL2, &
 	  					            TPC
 	! ... Locals
-
+  !$omp declare target
 	CALL supmax_COEFF(AKOE,BKOE,C3,PP,TT,RO_SOLUTE,IONS,MWAERO)
 
 ! supmax calculation
@@ -2282,12 +2287,13 @@ end module module_mp_SBM_Auxiliary
 		ENDIF
 
 	 END DO ! NR
-
+#ifndef OFFLOAD
    if (nn == -1) then
     print*,"PR, Wbase [cm/s], C3",PR,wbase,C3
     print*,"PL",PL
     CALL wrf_error_fatal ( 'NN is not defined in cloud base routine, model stop' )
    endif
+#endif
 
 	! linear interpolation- finding radius criti of aerosol between
 	! bin number (nn-1) to (nn)
@@ -2332,7 +2338,7 @@ end module module_mp_SBM_Auxiliary
     real(kind=r8size) :: PZERO,TZERO,ALW1,SW,RO_W,HC,EW,RO_V,DV,RO_A,FL,FR,F,TPC,QV,A1,A2, &
 							           C1,C2,DEG01,DEG02
 	! ... Local
-
+!$omp declare target
      TPC = TT-273.15d0
 
 ! CGS :

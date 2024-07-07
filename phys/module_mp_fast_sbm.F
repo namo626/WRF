@@ -704,6 +704,16 @@ enddo
 
 	RETURN
 	END SUBROUTINE JERTIMESC_KS
+
+pure real(kind=r8size) function expm1(x)
+      real(kind=r8size), intent(in) :: x
+
+      !$omp declare target
+		EXPM1=x+x*x/2.0D0+x*x*x/6.0D0+x*x*x*x/24.0D0+ x*x*x*x*x/120.0D0
+end function expm1
+
+
+
 ! +--------------------------------------------------------+
 	SUBROUTINE JERSUPSAT_KS (DEL1,DEL2,DEL1N,DEL2N, &
 			                     RW,PW,RI,PI, &
@@ -719,15 +729,13 @@ enddo
 ! ... Interface
 ! ... Locals
 	   INTEGER :: I, ISYMICE, IRW, IPW, IRI, IPI
-	   REAL(KIND=r8size) :: X, EXPM1, DETER, EXPR, EXPP, A, ALFA, BETA, GAMA, G31, G32, G2, EXPB, EXPG, &
+	   REAL(KIND=r8size) :: X,  DETER, EXPR, EXPP, A, ALFA, BETA, GAMA, G31, G32, G2, EXPB, EXPG, &
 	   				  C11, C21, C12, C22, A1DEL1N, A2DEL1N, A3DEL1N, A4DEL1N, A1DEL1INT, A2DEL1INT, &
 							A3DEL1INT, A4DEL1INT, A1DEL2N, A2DEL2N, A3DEL2N , A4DEL2N, A1DEL2INT, A2DEL2INT, &
 							A3DEL2INT, A4DEL2INT, A5DEL2INT
 ! ... Locals
 
-		EXPM1(x)=x+x*x/2.0D0+x*x*x/6.0D0+x*x*x*x/24.0D0+ &
-                 x*x*x*x*x/120.0D0
-
+!$omp declare target
   ISYMICE = sum(ISYM2) + ISYM3 + ISYM4 + ISYM5
   IRW = 1
   IPW = 1
@@ -895,6 +903,7 @@ enddo
       A=(RW-PI)*(RW-PI)+4.0E0*PW*RI
 
 	     IF(A < 0.0) THEN
+#ifndef OFFLOAD
 	          PRINT*,   'IN SUBROUTINE JERSUPSAT: A < 0'
             PRINT*,   'DETER'
             PRINT 201, DETER
@@ -906,6 +915,7 @@ enddo
             PRINT 202, DEL1,DEL2
 	          PRINT*,   'STOP 1905:A < 0'
 	          call wrf_error_fatal("fatal error: STOP 1905:A < 0, model stop")
+#endif
        ENDIF
 ! ... water and ice                                               (start)
        ALFA=DSQRT((RW-PI)*(RW-PI)+4.0D0*PW*RI)
@@ -1063,10 +1073,12 @@ enddo
 
  100    CONTINUE
 
+#ifndef OFFLOAD
   201	FORMAT(1X,D13.5)
   202	FORMAT(1X,2D13.5)
   203	FORMAT(1X,3D13.5)
   204	FORMAT(1X,4D13.5)
+#endif
 
         RETURN
         END SUBROUTINE JERSUPSAT_KS

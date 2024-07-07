@@ -507,7 +507,7 @@ end module module_mp_SBM_BreakUp
 
 ! A1L_MY - CONSTANTS FOR "MAXWELL": MKS
 		REAL(KIND=r8size),parameter:: RV_MY=461.5D4, CF_MY=2.4D3, D_MYIN=0.211D0
-
+!$omp declare target
 ! CGS :
 
 ! RV_MY, CM*CM/SEC/SEC/KELVIN - INDIVIDUAL GAS CONSTANT
@@ -680,6 +680,7 @@ enddo
 	REAL(KIND=r4size) :: SFN11S, FK, DELM, FUN, B11
 ! ... Locals
 
+      !$omp declare target
 	DO ICE=1,ID
      SFN11S=0.0D0
  	   SFN11(ICE)=CF*SFN11S
@@ -5668,6 +5669,7 @@ enddo
  	DOUBLE PRECISION :: DEL1_d , DEL2_d, RW_d , PW_d, RI_d, PI_d, D1N_d, D2N_d, &
  						VR1_d(NKR)
 
+    !$omp declare target
  sfndummy = 0.0
  B12_MY = 0.0
  B11_MY = 0.0
@@ -5757,10 +5759,12 @@ enddo
  PI=(OPER2(QPS)+B5I*AL2)*DOPI*SFNI
  QI=B7I*DOPI
 
+#ifndef OFFLOAD
  IF(RW.NE.RW .or. PW.NE.PW)THEN
     print*, 'NaN In ONECOND1'
     call wrf_error_fatal("fatal error in ONECOND1 (RW or PW are NaN), model stop")
  ENDIF
+#endif
 
  KCOND=10
  IF(DEL1N >= 0.0D0) KCOND=11
@@ -5772,7 +5776,10 @@ enddo
       TIMENEW = TIMENEW + DTNEWL
       DTT = DTNEWL
 
+#ifndef OFFLOAD
    	  IF (DTT < 0.0) call wrf_error_fatal("fatal error in ONECOND1-DEL1N>0:(DTT<0), model stop")
+#endif
+
 
      	DEL1_d = DEL1
      	DEL2_d = DEL2
@@ -5802,7 +5809,9 @@ enddo
 
      	IF((DEL1.GT.0.AND.DEL1N.LT.0) &
        		&.AND.ABS(DEL1N).GT.EPSDEL) THEN
+#ifndef OFFLOAD
              		call wrf_error_fatal("fatal error in ONECOND1-1 (DEL1.GT.0.AND.DEL1N.LT.0), model stop")
+#endif
      	ENDIF
 
     ! IN CASE : KCOND.EQ.11
@@ -5816,7 +5825,9 @@ enddo
       TIMENEW = TIMENEW + DTNEWL
       DTT = DTNEWL
 
+#ifndef OFFLOAD
  	    IF (DTT < 0.0) call wrf_error_fatal("fatal error in ONECOND1-DEL1N<0:(DTT<0), model stop")
+#endif
 
  	    DEL1_d = DEL1
  	    DEL2_d = DEL2
@@ -5846,7 +5857,9 @@ enddo
 
       IF((DEL1.LT.0.AND.DEL1N.GT.0) &
         .AND.ABS(DEL1N).GT.EPSDEL) THEN
+#ifndef OFFLOAD
          call wrf_error_fatal("fatal error in ONECOND1-2 (DEL1.LT.0.AND.DEL1N.GT.0), model stop")
+#endif
       ENDIF
 
     ENDIF
@@ -5880,6 +5893,7 @@ enddo
  TPN = TPS + DAL1*DELMASSL1
 
  IF(ABS(DAL1*DELMASSL1) > 3.0 )THEN
+#ifndef OFFLOAD
  	print*,"ONECOND1-in(start)"
 	print*,"I=",Iin,"J=",Jin,"Kin",Kin,"W",w_in,"DX",dx_in
  	print*,"DELMASSL1",DELMASSL1,"DT",DTT
@@ -5889,6 +5903,7 @@ enddo
 	print*,'FI1 before',FI1,'PSI1 after',PSI1
  	print*,"ONECOND1-in(end)"
  	call wrf_error_fatal("fatal error in ONECOND1-in (ABS(DAL1*DELMASSL1) > 3.0), model stop")
+#endif
  ENDIF
 
  IF(ISYM1 == 1) THEN
@@ -5938,6 +5953,7 @@ enddo
  TPN = TOLD + DAL1*DELMASSL1
 
  IF(ABS(DAL1*DELMASSL1) > 5.0 )THEN
+#ifndef OFFLOAD
  	print*,"ONECOND1-out (start)"
  	print*,"I=",Iin,"J=",Jin,"Kin",Kin,"W",w_in,"DX",dx_in
  	print*,"DEL1N,DEL2N,D1N,D2N,RW,PW,RI,PI,DT"
@@ -5952,6 +5968,7 @@ enddo
  	IF(ABS(DAL1*DELMASSL1) > 5.0 )THEN
  		call wrf_error_fatal("fatal error in ONECOND1-out (ABS(DAL1*DELMASSL1) > 5.0), model stop")
  	ENDIF
+#endif
  ENDIF
 
  TT=TPN

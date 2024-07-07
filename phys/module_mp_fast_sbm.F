@@ -1508,8 +1508,8 @@ end function expm1
 					PRINT 304, (K,RR(K),RN(K),FI(K),PSI(K),K=1,NRX)
 					PRINT*,		IDROP,Ihydro,Iin,Jin,Kin,Itimestep
           call wrf_error_fatal("fatal error in SUBROUTINE JERNEWF PSI(KR)<0, < min, model stop")
-			ENDIF
 #endif
+			ENDIF
 		ENDDO
 
 #ifndef OFFLOAD
@@ -1541,6 +1541,7 @@ end function expm1
 						           xiR(NKR),FI2R(NKR),PSI2R(NKR),xiNR(NKR)
 ! ... Locals
 
+!$omp declare target
 	C=2.0D0/3.0D0
 
 	DEGREE1=C/2.0D0
@@ -1591,7 +1592,9 @@ end function expm1
 ! recalculation of drop size distribution functions                  (end)
 ! new drop size distribution functions                          (end)
 
+#ifndef OFFLOAD
   201	FORMAT(1X,D13.5)
+#endif
 
 	RETURN
 	END SUBROUTINE JERDFUN_NEW_KS

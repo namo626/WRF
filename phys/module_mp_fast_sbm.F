@@ -1108,6 +1108,7 @@ end function expm1
 ! ... Locals
 
 
+!$omp declare target
 	C = 2.0D0/3.0D0
 
 	DEGREE1 = 1.0D0/3.0D0
@@ -1178,8 +1179,10 @@ end function expm1
 		      			FR_LIM_KR=FR_LIM(KR)
 					ENDIF
 		  		IF(PSI2R(KR)<0.0D0) THEN
+#ifndef OFFLOAD
 					  PRINT*,    'STOP 1506 : PSI2R(KR)<0.0D0, in JERDFUN_KS'
 						call wrf_error_fatal("fatal error in PSI2R(KR)<0.0D0, in JERDFUN_KS, model stop")
+#endif
 			  	ENDIF
     	  	PSI2(KR) = PSI2R(KR)
    	 ENDDO
@@ -1189,8 +1192,10 @@ end function expm1
 	ENDIF
 ! new size distribution functions                               (end)
 
+#ifndef OFFLOAD
   201	FORMAT(1X,D13.5)
   304   FORMAT(1X,I2,2X,4D13.5)
+#endif
 
 	RETURN
 	END SUBROUTINE JERDFUN_KS
@@ -1218,7 +1223,7 @@ end function expm1
 
 		INTEGER,PARAMETER :: KRDROP_REMAPING_MIN = 6, KRDROP_REMAPING_MAX = 12
 ! ... Locals
-
+!$omp declare target
 ! >> [KS] 22ndMay19	IF(TPN .LT. 273.15-5.0D0) IDROP=0
 
 ! INITIAL VALUES FOR SOME VARIABLES
@@ -1487,6 +1492,7 @@ end function expm1
 
 		DO KR=1,NRX
 	   		IF(PSI(KR) < 0.0) THEN ! ... (KS)
+#ifndef OFFLOAD
 					IDSD_Negative = 1
 					print*, "IDSD_Negative=",IDSD_Negative,"kr",kr
 					PRINT*,    'IN SUBROUTINE JERNEWF'
@@ -1503,9 +1509,12 @@ end function expm1
 					PRINT*,		IDROP,Ihydro,Iin,Jin,Kin,Itimestep
           call wrf_error_fatal("fatal error in SUBROUTINE JERNEWF PSI(KR)<0, < min, model stop")
 			ENDIF
+#endif
 		ENDDO
 
+#ifndef OFFLOAD
   304   FORMAT(1X,I2,2X,4D13.5)
+#endif
 
         RETURN
         END SUBROUTINE JERNEWF_KS

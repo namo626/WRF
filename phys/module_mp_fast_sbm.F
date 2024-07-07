@@ -3574,7 +3574,9 @@ enddo
  !$omp target update to( ima)
 
       !$omp target data map(tofrom: chem_new) &
-!$omp             map(to: rhocgs,pcgs,zcgs,vr1_z3D,vr3_z3D,vr4_z3D,vr5_z3D)
+!$omp             map(to: rhocgs,pcgs,zcgs,vr1_z3D,vr3_z3D,vr4_z3D,vr5_z3D, &
+!$omp         ff1r_all,ff2r_all,ff3r_all,ff4r_all,ff5r_all,fccn_all,&
+      !$omp   tt_all,qq_all,pp_all,del1in_all,del2in_all)
 
 
       !$omp target teams distribute parallel do collapse(2)  &

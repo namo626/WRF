@@ -6714,6 +6714,7 @@ enddo
 
         real(kind=r4size) :: fr_lim(nkr), frh_lim(nkr)
 
+        !$omp declare target
 
  TTinput = TT
  QQinput = QQ
@@ -6868,8 +6869,10 @@ enddo
  	QI=B7I*DOPI
 
  	IF(RW.NE.RW .or. PW.NE.PW)THEN
+#ifndef OFFLOAD
  	  print*, 'NaN In ONECOND3'
  	  call wrf_error_fatal("fatal error in ONECOND3 (RW or PW are NaN), model stop")
+#endif
  	ENDIF
 
  	! DEL1 > 0, DEL2 < 0    (ANTIBERGERON MIXED PHASE - KCOND=50)
@@ -6889,8 +6892,10 @@ enddo
     DTT = DTNEWL
 
  		! ... Incase the Anti-Bregeron regime we do not call diffusional-growth
+#ifndef OFFLOAD
  		PRINT*, "Anti-Bregeron Regime, No DIFFU"
  		PRINT*,  DEL1, DEL2, TT, QQ, Kin
+#endif
  		GO TO 17
  	  ! IN CASE : KCOND = 50
   ENDIF
@@ -6925,7 +6930,9 @@ enddo
  	! IN CASE : KCOND = 32
  	ENDIF
 
+#ifndef OFFLOAD
    IF (DTT < 0.0) call wrf_error_fatal("fatal error in ONECOND3:(DTT<0), model stop")
+#endif
 
  	DEL1_d = DEL1
  	DEL2_d = DEL2
@@ -7080,6 +7087,7 @@ enddo
  	TPN = TPS + DAL1*DELMASSL1+DAL2*DELMASSI1
 
  	IF(ABS(DAL1*DELMASSL1+DAL2*DELMASSI1) > 5.0 )THEN
+#ifndef OFFLOAD
  		print*,"ONECOND3-input-start"
  		print*,"TTinput",TTinput,"QQinput",QQinput,"PP",PP
  		print*,'DEL1Ninput',DEL1Ninput,'DEL2Ninput',DEL2Ninput
@@ -7117,6 +7125,7 @@ enddo
  		IF(ABS(DAL1*DELMASSL1+DAL2*DELMASSI1) > 5.0 )THEN
  			call wrf_error_fatal("fatal error in ONECOND3-out (ABS(DAL1*DELMASSL1+DAL2*DELMASSI1) > 5.0), model stop")
  		ENDIF
+#endif
  	ENDIF
   
  	! END OF TIME SPLITTING

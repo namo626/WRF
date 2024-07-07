@@ -6141,6 +6141,8 @@ enddo
  	DOUBLE PRECISION :: DEL1_d, DEL2_d, RW_d, PW_d, RI_d, PI_d, D1N_d, D2N_d
 
       real(kind=r4size) :: fr_lim(nkr), frh_lim(nkr)
+
+      !$omp declare target
  	B22_MY = 0.0
  	B32_MY = 0.0
  	B42_MY = 0.0
@@ -6301,8 +6303,10 @@ enddo
      IF(DEL2N > 0.0) KCOND=21
 
    	IF(RW.NE.RW .or. PW.NE.PW)THEN
+#ifndef OFFLOAD
  	    print*, 'NaN In ONECOND2'
  	    call wrf_error_fatal("fatal error in ONECOND2 (RW or PW are NaN), model stop")
+#endif
    	ENDIF
 
  ! ... (ONLY ICE)
@@ -6313,7 +6317,9 @@ enddo
        TIMENEW = TIMENEW + DTNEWL
        DTT = DTNEWL
 
+#ifndef OFFLOAD
  			IF (DTT < 0.0) call wrf_error_fatal("fatal error in ONECOND2-DEL2N>0:(DTT<0), model stop")
+#endif
 
  			DEL1_d = DEL1
  			DEL2_d = DEL2
@@ -6385,7 +6391,9 @@ enddo
 
  			IF((DEL2.GT.0.AND.DEL2N.LT.0) &
           		.AND.ABS(DEL2N).GT.EPSDEL) THEN
+#ifndef OFFLOAD
                  call wrf_error_fatal("fatal error in module_mp_fast_sbm (DEL2.GT.0.AND.DEL2N.LT.0), model stop")
+#endif
  			ENDIF
 
  	  ELSE
@@ -6396,7 +6404,9 @@ enddo
         TIMENEW = TIMENEW + DTNEWL
         DTT = DTNEWL
 
+#ifndef OFFLOAD
  			  IF (DTT < 0.0) call wrf_error_fatal("fatal error in ONECOND2-DEL2N<0:(DTT<0), model stop")
+#endif
 
    			DEL1_d = DEL1
    			DEL2_d = DEL2
@@ -6471,7 +6481,9 @@ enddo
 
        IF((DEL2.LT.0.AND.DEL2N.GT.0) &
             .AND.ABS(DEL2N).GT.EPSDEL) THEN
+#ifndef OFFLOAD
              call wrf_error_fatal("fatal error in module_mp_fast_sbm (DEL2.LT.0.AND.DEL2N.GT.0), model stop")
+#endif
        ENDIF
 
  		 ! IN CASE : KCOND.NE.21
@@ -6534,6 +6546,7 @@ enddo
  		TPN = TPS+DAL2*DELMASSI1
 
  	  IF(ABS(DAL2*DELMASSI1) > 5.0 )THEN
+#ifndef OFFLOAD
       print*,"ONECOND2-out (start)"
       print*,"I=",Iin,"J=",Jin,"Kin",Kin,"W",w_in,"DX",dx_in
       print*,"DEL1N,DEL2N,D1N,D2N,RW,PW,RI,PI,DT"
@@ -6557,6 +6570,7 @@ enddo
       IF(ABS(DAL2*DELMASSI1) > 5.0 )THEN
       call wrf_error_fatal("fatal error in ONECOND2-out (ABS(DAL2*DELMASSI1) > 5.0), model stop")
  		ENDIF
+#endif
  	  ENDIF
 
  !  END OF TIME SPLITTING

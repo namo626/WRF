@@ -1805,7 +1805,7 @@ end module module_mp_SBM_Auxiliary
 						           SUP2_OLD,DSUPICE_XYZ,Win, RCCN(NKR_aerosol),DROPRADII(NKR)
 	real(kind=r4size) :: TPNreal
  ! ... Locals
-
+ !$omp declare target
  	OPER3(AR1,AR2) = AR1*AR2/(0.622D0+0.378D0*AR1)
 
 	! ... Adjust the Imput
@@ -1857,8 +1857,8 @@ end module module_mp_SBM_Auxiliary
 
 	IF(TPC < 0.0D0 .AND. TPC >= T_NUCL_ICE_MIN .AND. DEL2N > 0.0D0) THEN
 
+       DO ICE=1,ICEMAX
 		DO KR=1,NKR
-			DO ICE=1,ICEMAX
 				FI2(KR,ICE)=PSI2(KR,ICE)
 			ENDDO
 		ENDDO

@@ -3342,7 +3342,7 @@ enddo
       end do
       end do
 
-      !$omp target enter data map(always,to: chem_new) nowait
+      !$omp target enter data map(always,to: chem_new,rhocgs,pcgs,zcgs) nowait
 
        do j = jts,jte
           do k = kts,kte
@@ -3599,7 +3599,7 @@ enddo
  !$omp target update to( qkj)
  !$omp target update to( ima)
 
-!$omp target data  map(to: rhocgs,pcgs,zcgs,vr1_z3D,vr3_z3D,vr4_z3D,vr5_z3D, &
+!$omp target data  map(to: vr1_z3D,vr3_z3D,vr4_z3D,vr5_z3D, &
 !$omp         ff1r_all,ff2r_all,ff3r_all,ff4r_all,ff5r_all,fccn_all,&
       !$omp   tt_all,qq_all,pp_all,del1in_all,del2in_all)
 
@@ -4189,7 +4189,7 @@ enddo
  		        END DO
        END IF
       !$omp end target data
-!$omp target exit data map(from: chem_new)
+!$omp target exit data map(from: chem_new, rhocgs,pcgs, zcgs)
    RETURN
    END SUBROUTINE FAST_SBM
  ! +-------------------------------------------------------------+

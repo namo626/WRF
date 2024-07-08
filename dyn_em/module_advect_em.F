@@ -6785,38 +6785,39 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
         IF( degrade_xs ) THEN
 
-           DO j = j_start,j_end
-              DO i=i_start,i_start_f-1
+           i = ids + 1
+           IF (i >= i_start .and. i <= i_start_f - 1) THEN
+              DO j = j_start,j_end
+!DO i=i_start,i_start_f-1
+                 DO k=kts,ktf
+                    dx = 2./(msfty(i,j)+msfty(i-1,j))/rdx ! ADT eqn 48 d/dx
+                    mu = 0.5*((c1(k)*mut(i,j)+c2(k))+(c1(k)*mut(i-1,j)+c2(k)))
+                    vel = ru(i,k,j)/mu
+                    cr = vel*dt/dx
+                    fqxl(i,k,j) = mu*(dx/dt)*flux_upwind_pd(field_old(i-1,k,j), field_old(i,k,j  ), cr)
+                    fqx(i,k,j) = 0.5*(ru(i,k,j)) &
+                    *(field(i,k,j)+field(i-1,k,j))
+                    fqx(i,k,j) = fqx(i,k,j) - fqxl(i,k,j)
+                 ENDDO
+              ENDDO
+           ENDIF
 
-            IF(i == ids+1) THEN ! second order
-              DO k=kts,ktf
-                dx = 2./(msfty(i,j)+msfty(i-1,j))/rdx  ! ADT eqn 48 d/dx
-                mu = 0.5*((c1(k)*mut(i,j)+c2(k))+(c1(k)*mut(i-1,j)+c2(k)))
-                vel = ru(i,k,j)/mu
-                cr = vel*dt/dx
-                fqxl(i,k,j) = mu*(dx/dt)*flux_upwind_pd(field_old(i-1,k,j), field_old(i,k,j  ), cr)
-                fqx(i,k,j) = 0.5*(ru(i,k,j)) &
-                       *(field(i,k,j)+field(i-1,k,j))
-                fqx(i,k,j) = fqx(i,k,j) - fqxl(i,k,j)
+           i = ids+2
+           IF (i >= i_start .and. i <= i_start_f - 1) THEN
+              DO j = j_start,j_end
+                 DO k=kts,ktf
+                    dx = 2./(msfty(i,j)+msfty(i-1,j))/rdx ! ADT eqn 48 d/dx
+                    mu = 0.5*((c1(k)*mut(i,j)+c2(k))+(c1(k)*mut(i-1,j)+c2(k)))
+                    vel = ru(i,k,j)
+                    cr = vel*dt/dx/mu
+                    fqxl(i,k,j) = mu*(dx/dt)*flux_upwind_pd(field_old(i-1,k,j), field_old(i,k,j  ), cr)
+                    fqx( i,k,j ) = vel*flux3_pd( field(i-2,k,j), field(i-1,k,j),  &
+                    field(i  ,k,j), field(i+1,k,j),  &
+                    vel, time_step                             )
+                    fqx(i,k,j) = fqx(i,k,j) - fqxl(i,k,j)
+                 ENDDO
               ENDDO
             ENDIF
-
-            IF(i == ids+2) THEN  ! third order
-              DO k=kts,ktf
-                dx = 2./(msfty(i,j)+msfty(i-1,j))/rdx  ! ADT eqn 48 d/dx
-                mu = 0.5*((c1(k)*mut(i,j)+c2(k))+(c1(k)*mut(i-1,j)+c2(k)))
-                vel = ru(i,k,j)
-                cr = vel*dt/dx/mu
-                fqxl(i,k,j) = mu*(dx/dt)*flux_upwind_pd(field_old(i-1,k,j), field_old(i,k,j  ), cr)
-                fqx( i,k,j ) = vel*flux3_pd( field(i-2,k,j), field(i-1,k,j),  &
-                                          field(i  ,k,j), field(i+1,k,j),  &
-                                          vel, time_step                             )
-                fqx(i,k,j) = fqx(i,k,j) - fqxl(i,k,j)
-              ENDDO
-            ENDIF
-
-         ENDDO
-         ENDDO
 
         ENDIF
 

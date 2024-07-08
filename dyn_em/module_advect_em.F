@@ -7872,6 +7872,12 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
   j_start = jts
   j_end   = MIN(jte,jde-1)
 
+  ! Codee: Loop modified by Codee (2024-07-08 15:19:48)
+  ! Codee: Technique applied: offloading with 'omp-teams' pragmas
+  ! Codee: Offloaded loop: begin
+  ! TODO (Codee): Consider optimizing data transfers of arrays by adding the proper array ranges in data mapping clauses
+  !$omp target teams distribute parallel do shared(fqz, fqzl, i_end, i_start, j_end, j_start, ktf, kts, rdzw) map(to: j_end, j_star&
+!$omp t, ktf, kts, i_end, i_start, rdzw, fqz, fqzl) private(i, k) map(tofrom: tendency) schedule(static)
   DO j = j_start, j_end
   DO k = kts, ktf
 !DEC$ vector always
@@ -7886,6 +7892,12 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
   ENDDO
 
   IF(tenddec) THEN
+  ! Codee: Loop modified by Codee (2024-07-08 15:17:52)
+  ! Codee: Technique applied: offloading with 'omp-teams' pragmas
+  ! Codee: Offloaded loop: begin
+  ! TODO (Codee): Consider optimizing data transfers of arrays by adding the proper array ranges in data mapping clauses
+  !$omp target teams distribute parallel do shared(fqz, fqzl, i_end, i_start, j_end, j_start, ktf, kts, rdzw) map(to: j_end, j_star&
+!$omp t, ktf, kts, i_end, i_start, rdzw, fqz, fqzl) private(i, k) map(from: z_tendency) schedule(static)
   DO j = j_start, j_end
   DO k = kts, ktf
   DO i = i_start, i_end
@@ -7903,6 +7915,12 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
   IF(degrade_xs) i_start = MAX(its,ids+1)
   IF(degrade_xe) i_end   = MIN(ite,ide-2)
 
+  ! Codee: Loop modified by Codee (2024-07-08 15:15:15)
+  ! Codee: Technique applied: offloading with 'omp-teams' pragmas
+  ! Codee: Offloaded loop: begin
+  ! TODO (Codee): Consider optimizing data transfers of arrays by adding the proper array ranges in data mapping clauses
+  !$omp target teams distribute parallel do shared(fqx, fqxl, i_end, i_start, j_end, j_start, ktf, kts, msftx, rdx) map(to: j_end, &
+!$omp j_start, ktf, kts, i_end, i_start, msftx, rdx, fqx, fqxl) private(i, k) map(tofrom: tendency) schedule(static)
   DO j = j_start, j_end
   DO k = kts, ktf
 !DEC$ vector always  
@@ -7918,6 +7936,12 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
   ENDDO
 
   IF(tenddec) THEN
+  ! Codee: Loop modified by Codee (2024-07-08 15:13:24)
+  ! Codee: Technique applied: offloading with 'omp-teams' pragmas
+  ! Codee: Offloaded loop: begin
+  ! TODO (Codee): Consider optimizing data transfers of arrays by adding the proper array ranges in data mapping clauses
+  !$omp target teams distribute parallel do shared(fqx, fqxl, i_end, i_start, j_end, j_start, ktf, kts, msftx, rdx) map(to: j_end, &
+!$omp j_start, ktf, kts, i_end, i_start, msftx, rdx, fqx, fqxl) private(i, k) map(from: h_tendency) schedule(static)
   DO j = j_start, j_end
   DO k = kts, ktf
   DO i = i_start, i_end
@@ -7938,6 +7962,12 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
   IF(degrade_ys) j_start = MAX(jts,jds+1)
   IF(degrade_ye) j_end   = MIN(jte,jde-2)
 
+  ! Codee: Loop modified by Codee (2024-07-08 15:10:40)
+  ! Codee: Technique applied: offloading with 'omp-teams' pragmas
+  ! Codee: Offloaded loop: begin
+  ! TODO (Codee): Consider optimizing data transfers of arrays by adding the proper array ranges in data mapping clauses
+  !$omp target teams distribute parallel do shared(fqy, fqyl, i_end, i_start, j_end, j_start, ktf, kts, msftx, rdy) map(to: j_end, &
+!$omp j_start, ktf, kts, i_end, i_start, msftx, rdy, fqy, fqyl) private(i, k) map(tofrom: tendency) schedule(static)
   DO j = j_start, j_end
   DO k = kts, ktf
 !DEC$ vector always
@@ -7954,6 +7984,12 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
   ENDDO
 
   IF(tenddec) THEN
+  ! Codee: Loop modified by Codee (2024-07-08 15:08:32)
+  ! Codee: Technique applied: offloading with 'omp-teams' pragmas
+  ! Codee: Offloaded loop: begin
+  ! TODO (Codee): Consider optimizing data transfers of arrays by adding the proper array ranges in data mapping clauses
+  !$omp target teams distribute parallel do shared(fqy, fqyl, i_end, i_start, j_end, j_start, ktf, kts, msftx, rdy) map(to: j_end, &
+!$omp j_start, ktf, kts, i_end, i_start, msftx, rdy, fqy, fqyl) private(i, k) map(tofrom: h_tendency) schedule(static)
   DO j = j_start, j_end
   DO k = kts, ktf
   DO i = i_start, i_end

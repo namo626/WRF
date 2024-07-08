@@ -7808,6 +7808,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
    ! edge
 
 !-- here is the limiter...
+      !$omp target teams distribute parallel do collapse(3)
    DO j=j_start, j_end
    DO k=kts, ktf
 #ifdef XEON_SIMD
@@ -7827,6 +7828,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
    ENDDO
    ENDDO
 
+      !$omp target teams distribute parallel do collapse(3)
    DO j=j_start, j_end
    DO k=kts, ktf
 !DIR$ vector always
@@ -7844,6 +7846,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
    ENDDO
    ENDDO
 
+      !$omp target teams distribute parallel do collapse(3)
    DO j=j_start, j_end
    DO k=kts, ktf
 !DIR$ vector always

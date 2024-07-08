@@ -6241,7 +6241,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
     LOGICAL, PARAMETER :: pd_limit = .true.
 
 
-      !$omp target enter data map(to: field_old, field, mut, msftx, msfty, rv, ru, c1, c2)
+      !$omp target enter data map(to: field_old, field, mut, msftx, msfty, rv, ru, c1, c2, tendency)
 ! set order for the advection schemes
 
 !  write(6,*) ' in pd advection routine '
@@ -7359,6 +7359,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
    IF( (config_flags%open_xs) .and. (its == ids) ) THEN
 
+      !$omp target teams distribute parallel do collapse(2)
        DO j = j_start, j_end
        DO k = kts, ktf
          ub = MIN( 0.5*(ru(its,k,j)+ru(its+1,k,j)), 0. )
@@ -7375,6 +7376,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
    IF( (config_flags%open_xe) .and. (ite == ide) ) THEN
 
+      !$omp target teams distribute parallel do collapse(2)
        DO j = j_start, j_end
        DO k = kts, ktf
          ub = MAX( 0.5*(ru(ite-1,k,j)+ru(ite,k,j)), 0. )
@@ -7391,6 +7393,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
    IF( (config_flags%open_ys) .and. (jts == jds) ) THEN
 
+      !$omp target teams distribute parallel do collapse(2)
        DO i = i_start, i_end
        DO k = kts, ktf
          vb = MIN( 0.5*(rv(i,k,jts)+rv(i,k,jts+1)), 0. )
@@ -7407,6 +7410,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
    IF( (config_flags%open_ye) .and. (jte == jde)) THEN
 
+      !$omp target teams distribute parallel do collapse(2)
        DO i = i_start, i_end
        DO k = kts, ktf
          vb = MAX( 0.5*(rv(i,k,jte-1)+rv(i,k,jte)), 0. )
@@ -7423,6 +7427,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
    IF( (config_flags%polar) .and. (jts == jds) ) THEN
 
+      !$omp target teams distribute parallel do collapse(2)
        ! Assuming rv(i,k,jds) = 0.
        DO i = i_start, i_end
        DO k = kts, ktf
@@ -7440,6 +7445,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
    IF( (config_flags%polar) .and. (jte == jde)) THEN
 
+      !$omp target teams distribute parallel do collapse(2)
        ! Assuming rv(i,k,jde) = 0.
        DO i = i_start, i_end
        DO k = kts, ktf
@@ -7764,8 +7770,8 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
    ENDIF vert_order_test
 
 !$omp target data map(to: fqx,fqxl,fqy,fqyl,fqz,fqzl) &
-!$omp   map(from: h_tendency, z_tendency) &
-!$omp   map(tofrom: tendency)
+!$omp   map(from: h_tendency, z_tendency)
+
    IF (pd_limit) THEN
 
 ! positive definite filter
@@ -8004,6 +8010,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
       !$omp end target data
       !$omp target exit data map(delete: field_old, field, mut, msftx, msfty, rv, ru, c1, c2)
+      !$omp target exit data map(from: tendency)
 END SUBROUTINE advect_scalar_pd
 
 !----------------------------------------------------------------

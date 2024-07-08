@@ -6823,10 +6823,9 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
         IF( degrade_xe ) THEN
 
+           i = ide-1
+         if(i >= i_end_f+1 .and. i <= i_end+1) then
            DO j = j_start, j_end
-              DO i = i_end_f+1, i_end+1
-
-            IF( i == ide-1 ) THEN ! second order flux next to the boundary
               DO k=kts,ktf
                 dx = 2./(msfty(i,j)+msfty(i-1,j))/rdx  ! ADT eqn 48 d/dx
                 mu = 0.5*((c1(k)*mut(i,j)+c2(k))+(c1(k)*mut(i-1,j)+c2(k)))
@@ -6837,10 +6836,13 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
                        *(field(i,k,j)+field(i-1,k,j))
                 fqx(i,k,j) = fqx(i,k,j) - fqxl(i,k,j)
               ENDDO
-            ENDIF
+           ENDDO
+        ENDIF
 
 
-            IF( i == ide-2 ) THEN ! third order flux one in from the boundary
+        i = ide-2
+         if(i >= i_end_f+1 .and. i <= i_end+1) then
+            DO j = j_start, j_end
               DO k=kts,ktf
                 dx = 2./(msfty(i,j)+msfty(i-1,j))/rdx  ! ADT eqn 48 d/dx
                 mu = 0.5*((c1(k)*mut(i,j)+c2(k))+(c1(k)*mut(i-1,j)+c2(k)))
@@ -6852,10 +6854,9 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
                                           vel                             ,time_step)
                 fqx(i,k,j) = fqx(i,k,j) - fqxl(i,k,j)
               ENDDO
-            ENDIF
+           ENDDO
+        ENDIF
 
-          ENDDO
-          ENDDO
 
         ENDIF
 

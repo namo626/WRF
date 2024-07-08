@@ -6723,7 +6723,6 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
       ENDIF
 
-      !$omp end target data
    !ENDDO j_loop_y_flux_5
 
 !  next, x flux
@@ -6757,6 +6756,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
 !  compute fluxes
 
+      !$omp target teams distribute parallel do collapse(3)
       DO j = j_start, j_end
 
 !  5th order flux
@@ -6787,6 +6787,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
            i = ids + 1
            IF (i >= i_start .and. i <= i_start_f - 1) THEN
+      !$omp target teams distribute parallel do collapse(2)
               DO j = j_start,j_end
 !DO i=i_start,i_start_f-1
                  DO k=kts,ktf
@@ -6804,6 +6805,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
            i = ids+2
            IF (i >= i_start .and. i <= i_start_f - 1) THEN
+      !$omp target teams distribute parallel do collapse(2)
               DO j = j_start,j_end
                  DO k=kts,ktf
                     dx = 2./(msfty(i,j)+msfty(i-1,j))/rdx ! ADT eqn 48 d/dx
@@ -6825,6 +6827,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
            i = ide-1
          if(i >= i_end_f+1 .and. i <= i_end+1) then
+      !$omp target teams distribute parallel do collapse(2)
            DO j = j_start, j_end
               DO k=kts,ktf
                 dx = 2./(msfty(i,j)+msfty(i-1,j))/rdx  ! ADT eqn 48 d/dx
@@ -6842,6 +6845,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
         i = ide-2
          if(i >= i_end_f+1 .and. i <= i_end+1) then
+      !$omp target teams distribute parallel do collapse(2)
             DO j = j_start, j_end
               DO k=kts,ktf
                 dx = 2./(msfty(i,j)+msfty(i-1,j))/rdx  ! ADT eqn 48 d/dx
@@ -6862,6 +6866,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
       !ENDDO  ! enddo for outer J loop
 
+      !$omp end target data
 
 !--- end of 5th order horizontal flux calculation
 

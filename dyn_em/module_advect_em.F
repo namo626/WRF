@@ -6241,7 +6241,8 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
     LOGICAL, PARAMETER :: pd_limit = .true.
 
 
-      !$omp target enter data map(to: field_old, field, mut, msftx, msfty, rv, ru, c1, c2, tendency)
+      !$omp target enter data map(to: field_old, field, mut,rom, msftx, msfty, rv, ru, c1, c2, tendency)
+     !$omp target enter data map(alloc: fqx,fqxl,fqy,fqyl,fqz,fqzl,flux_out,ph_low)
 ! set order for the advection schemes
 
 !  write(6,*) ' in pd advection routine '
@@ -6322,7 +6323,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
 !  compute fluxes, 6th order
 
-      !$omp target data map(to: field_old, field) map(from: fqy, fqyl)
+      !!$omp target data map(to: field_old, field) map(from: fqy, fqyl)
       j_loop_y_flux_6 : DO j = j_start, j_end+1
 
       IF( (j >= j_start_f ) .and. (j <= j_end_f) ) THEN ! use full stencil
@@ -6427,7 +6428,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
       ENDIF
 
    ENDDO j_loop_y_flux_6
-      !$omp end target data
+      !!$omp end target data
 
 !  next, x flux
 
@@ -6605,7 +6606,6 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
 !  compute fluxes, 5th order
 
-     !$omp target data map(from: fqy, fqyl, fqx, fqxl)
       if (j_start_f >= j_start .and. j_end_f <= j_end+1) then
       !$omp target teams distribute parallel do collapse(3)
       DO j = j_start_f, j_end_f ! use full stencil
@@ -6868,7 +6868,6 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
       !ENDDO  ! enddo for outer J loop
 
-      !$omp end target data
 
 !--- end of 5th order horizontal flux calculation
 
@@ -7676,8 +7675,6 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
     ELSE IF (vert_order == 3) THEN    
 
-       !$omp target data map(to: mut, rom) &
-     !$omp    map(from: fqzl, fqz)
        !$omp target teams distribute parallel do collapse(2)
       DO j = j_start, j_end
          DO i = i_start, i_end
@@ -7734,8 +7731,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
          ENDDO
       ENDDO
 
-      !$omp end target data
-   ELSE IF (vert_order == 2) THEN    
+   ELSE IF (vert_order == 2) THEN
 
       DO j = j_start, j_end
 
@@ -7769,8 +7765,8 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
    ENDIF vert_order_test
 
-!$omp target data map(to: fqx,fqxl,fqy,fqyl,fqz,fqzl) &
-!$omp   map(from: h_tendency, z_tendency)
+!!$omp target data map(to: fqx,fqxl,fqy,fqyl,fqz,fqzl) &
+!$omp  target data map(from: h_tendency, z_tendency)
 
    IF (pd_limit) THEN
 
@@ -8011,6 +8007,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
       !$omp end target data
       !$omp target exit data map(delete: field_old, field, mut, msftx, msfty, rv, ru, c1, c2)
       !$omp target exit data map(from: tendency)
+     !$omp target exit data map(delete: fqx,fqxl,fqy,fqyl,fqz,fqzl,flux_out,ph_low)
 END SUBROUTINE advect_scalar_pd
 
 !----------------------------------------------------------------

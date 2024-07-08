@@ -7763,6 +7763,9 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
    ENDIF vert_order_test
 
+!$omp target data map(to: fqx,fqxl,fqy,fqyl,fqz,fqzl) &
+!$omp   map(from: h_tendency, z_tendency) &
+!$omp   map(tofrom: tendency)
    IF (pd_limit) THEN
 
 ! positive definite filter
@@ -7805,7 +7808,6 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
    ! edge
 
 !-- here is the limiter...
-
    DO j=j_start, j_end
    DO k=kts, ktf
 #ifdef XEON_SIMD
@@ -8003,6 +8005,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
   ENDDO
   END IF
 
+      !$omp end target data
       !$omp target exit data map(delete: field_old, field, mut, msftx, msfty, rv, ru, c1, c2)
 END SUBROUTINE advect_scalar_pd
 

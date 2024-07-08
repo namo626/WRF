@@ -7669,6 +7669,8 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
     ELSE IF (vert_order == 3) THEN    
 
+       !$omp target data map(to: field, field_old, mut, rom) &
+     !$omp    map(from: fqzl, fqz)
        !$omp target teams distribute parallel do collapse(2)
       DO j = j_start, j_end
          DO i = i_start, i_end
@@ -7725,6 +7727,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
          ENDDO
       ENDDO
 
+      !$omp end target data
    ELSE IF (vert_order == 2) THEN    
 
       DO j = j_start, j_end

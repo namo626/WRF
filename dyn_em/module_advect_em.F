@@ -6779,11 +6779,14 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
         ENDDO
         ENDDO
 
+      ENDDO
+
 !  lower order fluxes close to boundaries (if not periodic or symmetric)
 
         IF( degrade_xs ) THEN
 
-          DO i=i_start,i_start_f-1
+           DO j = j_start,j_end
+              DO i=i_start,i_start_f-1
 
             IF(i == ids+1) THEN ! second order
               DO k=kts,ktf
@@ -6812,13 +6815,15 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
               ENDDO
             ENDIF
 
-          ENDDO
+         ENDDO
+         ENDDO
 
         ENDIF
 
         IF( degrade_xe ) THEN
 
-          DO i = i_end_f+1, i_end+1
+           DO j = j_start, j_end
+              DO i = i_end_f+1, i_end+1
 
             IF( i == ide-1 ) THEN ! second order flux next to the boundary
               DO k=kts,ktf
@@ -6849,10 +6854,11 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
             ENDIF
 
           ENDDO
+          ENDDO
 
         ENDIF
 
-      ENDDO  ! enddo for outer J loop
+      !ENDDO  ! enddo for outer J loop
 
 
 !--- end of 5th order horizontal flux calculation

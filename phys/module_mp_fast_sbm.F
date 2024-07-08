@@ -2924,13 +2924,13 @@ enddo
  	REAL (KIND=R4SIZE) :: z_full
  	REAL (KIND=R4SIZE) :: VRX(kts:kte,NKR)
 
- 	REAL (KIND=R4SIZE) :: VR1_Z(NKR,KTS:KTE), FACTOR_P, VR1_Z3D(NKR,ITS:ITE,KTS:KTE,JTS:JTE)
- 	REAL (KIND=R4SIZE) :: VR2_ZC(NKR,KTS:KTE), VR2_Z(NKR,ICEMAX)
- 	REAL (KIND=R4SIZE) :: VR2_ZP(NKR,KTS:KTE)
- 	REAL (KIND=R4SIZE) :: VR2_ZD(NKR,KTS:KTE)
- 	REAL (KIND=R4SIZE) :: VR3_Z(NKR,KTS:KTE), VR3_Z3D(NKR,ITS:ITE,KTS:KTE,JTS:JTE)
- 	REAL (KIND=R4SIZE) :: VR4_Z(NKR,KTS:KTE), VR4_Z3D(NKR,ITS:ITE,KTS:KTE,JTS:JTE)
- 	REAL (KIND=R4SIZE) :: VR5_Z(NKR,KTS:KTE), VR5_Z3D(NKR,ITS:ITE,KTS:KTE,JTS:JTE)
+ 	REAL (KIND=R4SIZE) :: VR1_Z(NKR), FACTOR_P, VR1_Z3D(NKR,ITS:ITE,KTS:KTE,JTS:JTE)
+ 	REAL (KIND=R4SIZE) :: VR2_ZC(NKR), VR2_Z(NKR,ICEMAX)
+ 	REAL (KIND=R4SIZE) :: VR2_ZP(NKR)
+ 	REAL (KIND=R4SIZE) :: VR2_ZD(NKR)
+ 	REAL (KIND=R4SIZE) :: VR3_Z(NKR), VR3_Z3D(NKR,ITS:ITE,KTS:KTE,JTS:JTE)
+ 	REAL (KIND=R4SIZE) :: VR4_Z(NKR), VR4_Z3D(NKR,ITS:ITE,KTS:KTE,JTS:JTE)
+ 	REAL (KIND=R4SIZE) :: VR5_Z(NKR), VR5_Z3D(NKR,ITS:ITE,KTS:KTE,JTS:JTE)
  	REAL (KIND=R4SIZE) :: BulkDen_Snow(NKR,ITS:ITE,KTS:KTE,JTS:JTE) ! Local array for snow density
 
  	REAL (KIND=R4SIZE), PARAMETER :: RON=8.E6, GON=5.E7,PI=3.14159265359
@@ -3311,25 +3311,25 @@ enddo
         ENDIF
 
 
-!$omp target teams distribute parallel do  &
-!$omp private(vr2_zc,vr2_zp,vr2_zd,vr1_z,vr3_z,vr4_z,vr5_z, &
+!$omp target teams distribute parallel do collapse(2) num_teams(1)  &
+     !$omp private(vr2_zc,vr2_zp,vr2_zd,vr1_z,vr3_z,vr4_z,vr5_z,vr2_z, &
 !$omp   ff1r,ff2r,ff3r,ff4r,ff5r,fccn, &
 !$omp ff1in, ff2in,ff3in,ff4in,ff5in, &
 !$omp fmax1,fmax2,fmax3,fmax4,fmax5,&
         !$omp isym1,isym2,isym3,isym4,isym5)
        do j = jts,jte
-          do k = kts,kte
-             do i = its,ite
+          do i = its,ite
+             do k = kts,kte
 
             ! ... correcting Look-up-table Terminal velocities
             FACTOR_P = DSQRT(1.0D6/PCGS(I,K,J))
-            VR2_ZC(1:nkr,K) = VR2(1:nkr,1)*FACTOR_P
-            VR2_ZP(1:nkr,K) = VR2(1:nkr,2)*FACTOR_P
-            VR2_ZD(1:nkr,K) = VR2(1:nkr,3)*FACTOR_P
-            VR1_Z(1:nkr,K) =  VR1(1:nkr)*FACTOR_P
-            VR3_Z(1:nkr,K) = VR3(1:nkr)*FACTOR_P
-            VR4_Z(1:nkr,K) = VR4(1:nkr)*FACTOR_P
-            VR5_Z(1:nkr,k) = VR5(1:nkr)*FACTOR_P
+            VR2_ZC = VR2(1:nkr,1)*FACTOR_P
+            VR2_ZP = VR2(1:nkr,2)*FACTOR_P
+            VR2_ZD = VR2(1:nkr,3)*FACTOR_P
+            VR1_Z =  VR1(1:nkr)*FACTOR_P
+            VR3_Z = VR3(1:nkr)*FACTOR_P
+            VR4_Z = VR4(1:nkr)*FACTOR_P
+            VR5_Z = VR5(1:nkr)*FACTOR_P
             VR1_Z3D(1:nkr,I,K,J) = VR1(1:nkr)*FACTOR_P
             VR3_Z3D(1:nkr,I,K,J) = VR3(1:nkr)*FACTOR_P
             VR4_Z3D(1:nkr,I,K,J) = VR4(1:nkr)*FACTOR_P
@@ -3523,7 +3523,7 @@ enddo
 
                           ! ... only warm phase
                           CALL ONECOND1(TT,QQ,PP,rhocgs(I,K,J) &
-                                        ,VR1_Z(:,K),pcgs(I,K,J) &
+                                        ,VR1_Z,pcgs(I,K,J) &
                                         ,DEL1IN,DEL2IN,DIV1,DIV2 &
                                         ,FF1R,FF1IN,XL,RLEC,RO1BL &
                                         ,AA1_MY,BB1_MY,AA2_MY,BB2_MY &
@@ -3534,11 +3534,11 @@ enddo
                         ELSE IF(ISYM1==0 .AND. (TT-273.15)<-0.187 .AND. &
                                 (sum(ISYM2)>1 .OR. ISYM3==1 .OR. ISYM4==1 .OR. ISYM5==1))THEN
                                   !IF (TT.GT.213.15)THEN
-                                    VR2_Z(:,1) = VR2_ZC(:,K)
-                                    VR2_Z(:,2) = VR2_ZP(:,K)
-                                    VR2_Z(:,3) = VR2_ZD(:,K)
+                                    VR2_Z(:,1) = VR2_ZC
+                                    VR2_Z(:,2) = VR2_ZP
+                                    VR2_Z(:,3) = VR2_ZD
                                     CALL ONECOND2(TT,QQ,PP,rhocgs(I,K,J) &
-                                    ,VR2_Z,VR3_Z(:,K),VR4_Z(:,K),VR5_Z(:,K),pcgs(I,K,J) &
+                                    ,VR2_Z,VR3_Z,VR4_Z,VR5_Z,pcgs(I,K,J) &
                                     ,DEL1IN,DEL2IN,DIV1,DIV2 &
                                     ,FF2R,FF2IN,XI,RIEC,RO2BL &
                                     ,FF3R,FF3IN,XS,RSEC,RO3BL &
@@ -3552,11 +3552,11 @@ enddo
                           ELSE IF(ISYM1==1 .AND. (TT-273.15)<-0.187 .AND. &
                               (sum(ISYM2)>1 .OR. ISYM3==1 .OR. ISYM4==1 .OR. ISYM5==1))THEN
                               IF (TT > 233.15)THEN
-                                VR2_Z(:,1) = VR2_ZC(:,K)
-                                VR2_Z(:,2) = VR2_ZP(:,K)
-                                VR2_Z(:,3) = VR2_ZD(:,K)
+                                VR2_Z(:,1) = VR2_ZC
+                                VR2_Z(:,2) = VR2_ZP
+                                VR2_Z(:,3) = VR2_ZD
                                 CALL ONECOND3(TT,QQ,PP,rhocgs(I,K,J) &
-                                ,VR1_Z(:,K),VR2_Z,VR3_Z(:,K),VR4_Z(:,K),VR5_Z(:,K),pcgs(I,K,J) &
+                                ,VR1_Z,VR2_Z,VR3_Z,VR4_Z,VR5_Z,pcgs(I,K,J) &
                                 ,DEL1IN,DEL2IN,DIV1,DIV2 &
                                 ,FF1R,FF1IN,XL,RLEC,RO1BL &
                                 ,FF2R,FF2IN,XI,RIEC,RO2BL &
@@ -3952,7 +3952,8 @@ enddo
       krr=0
       DO KR=p_ff1i01,p_ff1i33
         krr=krr+1
-        DELTAW = VR1_Z(KRR,1)
+        !DELTAW = VR1_Z(KRR,1)
+        DELTAW = VR1_Z(KRR)
         RAINNC(I,J) = RAINNC(I,J) &
           +10.0*(3./RO1BL(KRR))*COL*DT*DELTAW* &
           chem_new(I,1,J,KR)*XL(KRR)*XL(KRR)
@@ -3963,7 +3964,7 @@ enddo
       KRR=0
       DO KR=p_ff5i01,p_ff5i33
         KRR=KRR+1
-        DELTAW = VR3_Z(KRR,1)
+        DELTAW = VR3_Z(KRR)
         RAINNC(I,J)=RAINNC(I,J) &
           +10.0*(3./RO1BL(KRR))*COL*DT*DELTAW* &
           chem_new(I,1,J,KR)*XS(KRR)*XS(KRR)
@@ -3981,7 +3982,7 @@ enddo
      DO KR=p_ff6i01,p_ff6i33
        KRR=KRR+1
        if(hail_opt == 1)then
-         DELTAW = VR5_Z(KRR,1)
+         DELTAW = VR5_Z(KRR)
          RAINNC(I,J) = RAINNC(I,J) &
          +10.0*(3./RO1BL(KRR))*COL*DT*DELTAW* &
          chem_new(I,1,J,KR)*XH(KRR)*XH(KRR)
@@ -3995,7 +3996,7 @@ enddo
      + 10*(3./RO1BL(KRR))*COL*DT*DELTAW* &
      chem_new(I,1,J,KR)*XH(KRR)*XH(KRR)
    else
-     DELTAW = VR4_Z(KRR,1)
+     DELTAW = VR4_Z(KRR)
      RAINNC(I,J) = RAINNC(I,J) &
       +10.0*(3./RO1BL(KRR))*COL*DT*DELTAW* &
       chem_new(I,1,J,KR)*XG(KRR)*XG(KRR)

@@ -7812,9 +7812,9 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
    DO j=j_start, j_end
    DO k=kts, ktf
 #ifdef XEON_SIMD
-!DIR$ simd
+!!DIR$ simd
 #else
-!DIR$ vector always
+!!DIR$ vector always
 #endif
    DO i=i_start, i_end
 
@@ -7831,7 +7831,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
       !$omp target teams distribute parallel do collapse(3)
    DO j=j_start, j_end
    DO k=kts, ktf
-!DIR$ vector always
+!!DIR$ vector always
    DO i=i_start, i_end
 
      flux_out(i,k,j) = dt*( (msftx(i,j)*msfty(i,j))*( &
@@ -7849,7 +7849,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
       !$omp target teams distribute parallel do collapse(3)
    DO j=j_start, j_end
    DO k=kts, ktf
-!DIR$ vector always
+!!DIR$ vector always
    DO i=i_start, i_end
      IF( flux_out(i,k,j) .gt. ph_low(i,k,j) ) THEN
        scale = max(0.,ph_low(i,k,j)/(flux_out(i,k,j)+eps))
@@ -7881,11 +7881,10 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
   ! Codee: Technique applied: offloading with 'omp-teams' pragmas
   ! Codee: Offloaded loop: begin
   ! TODO (Codee): Consider optimizing data transfers of arrays by adding the proper array ranges in data mapping clauses
-  !$omp target teams distribute parallel do shared(fqz, fqzl, i_end, i_start, j_end, j_start, ktf, kts, rdzw) map(to: j_end, j_star&
-!$omp t, ktf, kts, i_end, i_start, rdzw, fqz, fqzl) private(i, k) map(tofrom: tendency) schedule(static)
+  !$omp target teams distribute parallel do collapse(3)
   DO j = j_start, j_end
   DO k = kts, ktf
-!DEC$ vector always
+!!DEC$ vector always
   DO i = i_start, i_end
 
      tendency (i,k,j) = tendency(i,k,j)                           &
@@ -7901,8 +7900,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
   ! Codee: Technique applied: offloading with 'omp-teams' pragmas
   ! Codee: Offloaded loop: begin
   ! TODO (Codee): Consider optimizing data transfers of arrays by adding the proper array ranges in data mapping clauses
-  !$omp target teams distribute parallel do shared(fqz, fqzl, i_end, i_start, j_end, j_start, ktf, kts, rdzw) map(to: j_end, j_star&
-!$omp t, ktf, kts, i_end, i_start, rdzw, fqz, fqzl) private(i, k) map(from: z_tendency) schedule(static)
+  !$omp target teams distribute parallel do collapse(3)
   DO j = j_start, j_end
   DO k = kts, ktf
   DO i = i_start, i_end
@@ -7924,11 +7922,10 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
   ! Codee: Technique applied: offloading with 'omp-teams' pragmas
   ! Codee: Offloaded loop: begin
   ! TODO (Codee): Consider optimizing data transfers of arrays by adding the proper array ranges in data mapping clauses
-  !$omp target teams distribute parallel do shared(fqx, fqxl, i_end, i_start, j_end, j_start, ktf, kts, msftx, rdx) map(to: j_end, &
-!$omp j_start, ktf, kts, i_end, i_start, msftx, rdx, fqx, fqxl) private(i, k) map(tofrom: tendency) schedule(static)
+  !$omp target teams distribute parallel do collapse(3)
   DO j = j_start, j_end
   DO k = kts, ktf
-!DEC$ vector always  
+!!DEC$ vector always
   DO i = i_start, i_end
 
      ! Un-"canceled" map scale factor, ADT Eq. 48
@@ -7945,8 +7942,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
   ! Codee: Technique applied: offloading with 'omp-teams' pragmas
   ! Codee: Offloaded loop: begin
   ! TODO (Codee): Consider optimizing data transfers of arrays by adding the proper array ranges in data mapping clauses
-  !$omp target teams distribute parallel do shared(fqx, fqxl, i_end, i_start, j_end, j_start, ktf, kts, msftx, rdx) map(to: j_end, &
-!$omp j_start, ktf, kts, i_end, i_start, msftx, rdx, fqx, fqxl) private(i, k) map(from: h_tendency) schedule(static)
+  !$omp target teams distribute parallel do collapse(3)
   DO j = j_start, j_end
   DO k = kts, ktf
   DO i = i_start, i_end
@@ -7971,11 +7967,10 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
   ! Codee: Technique applied: offloading with 'omp-teams' pragmas
   ! Codee: Offloaded loop: begin
   ! TODO (Codee): Consider optimizing data transfers of arrays by adding the proper array ranges in data mapping clauses
-  !$omp target teams distribute parallel do shared(fqy, fqyl, i_end, i_start, j_end, j_start, ktf, kts, msftx, rdy) map(to: j_end, &
-!$omp j_start, ktf, kts, i_end, i_start, msftx, rdy, fqy, fqyl) private(i, k) map(tofrom: tendency) schedule(static)
+  !$omp target teams distribute parallel do collapse(3)
   DO j = j_start, j_end
   DO k = kts, ktf
-!DEC$ vector always
+!!DEC$ vector always
   DO i = i_start, i_end
 
      ! Un-"canceled" map scale factor, ADT Eq. 48
@@ -7993,8 +7988,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
   ! Codee: Technique applied: offloading with 'omp-teams' pragmas
   ! Codee: Offloaded loop: begin
   ! TODO (Codee): Consider optimizing data transfers of arrays by adding the proper array ranges in data mapping clauses
-  !$omp target teams distribute parallel do shared(fqy, fqyl, i_end, i_start, j_end, j_start, ktf, kts, msftx, rdy) map(to: j_end, &
-!$omp j_start, ktf, kts, i_end, i_start, msftx, rdy, fqy, fqyl) private(i, k) map(tofrom: h_tendency) schedule(static)
+  !$omp target teams distribute parallel do collapse(3)
   DO j = j_start, j_end
   DO k = kts, ktf
   DO i = i_start, i_end

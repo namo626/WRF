@@ -7669,8 +7669,8 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
     ELSE IF (vert_order == 3) THEN    
 
+       !$omp target teams distribute parallel do collapse(2)
       DO j = j_start, j_end
-
          DO i = i_start, i_end
            fqz(i,1,j)  = 0.
            fqzl(i,1,j) = 0.
@@ -7680,9 +7680,10 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
       ENDDO
 
 
+       !$omp target teams distribute parallel do collapse(3)
       DO j = j_start, j_end
          DO k=kts+2,ktf-1
-!DEC$ vector always
+! !DEC$ vector always
          DO i = i_start, i_end
 
            dz = 2./(rdzw(k)+rdzw(k-1))
@@ -7693,12 +7694,13 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
            fqz(i,k,j) = vel*flux3_pd(                      &
                    field(i,k-2,j), field(i,k-1,j),      &
-                   field(i,k  ,j), field(i,k+1,j),  -vel )
+                   field(i,k  ,j), field(i,k+1,j),  -vel, time_step )
            fqz(i,k,j) = fqz(i,k,j) - fqzl(i,k,j)
          ENDDO
          ENDDO
       ENDDO
 
+       !$omp target teams distribute parallel do collapse(2)
       DO j = j_start, j_end
          DO i = i_start, i_end
 

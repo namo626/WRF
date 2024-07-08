@@ -7677,7 +7677,10 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
            fqz(i,kde,j)  = 0.
            fqzl(i,kde,j) = 0.
          ENDDO
+      ENDDO
 
+
+      DO j = j_start, j_end
          DO k=kts+2,ktf-1
 !DEC$ vector always
          DO i = i_start, i_end
@@ -7686,15 +7689,17 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
            mu = 0.5*((c1(k)*mut(i,j)+c2(k))+(c1(k)*mut(i,j)+c2(k)))
            vel = rom(i,k,j)
            cr = vel*dt/dz/mu
-           fqzl(i,k,j) = mu*(dz/dt)*flux_upwind(field_old(i,k-1,j), field_old(i,k,j  ), cr)
+           fqzl(i,k,j) = mu*(dz/dt)*flux_upwind_pd(field_old(i,k-1,j), field_old(i,k,j  ), cr)
 
-           fqz(i,k,j) = vel*flux3(                      &
+           fqz(i,k,j) = vel*flux3_pd(                      &
                    field(i,k-2,j), field(i,k-1,j),      &
                    field(i,k  ,j), field(i,k+1,j),  -vel )
            fqz(i,k,j) = fqz(i,k,j) - fqzl(i,k,j)
          ENDDO
          ENDDO
+      ENDDO
 
+      DO j = j_start, j_end
          DO i = i_start, i_end
 
            k=kts+1
@@ -7702,7 +7707,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
            mu = 0.5*((c1(k)*mut(i,j)+c2(k))+(c1(k)*mut(i,j)+c2(k)))
            vel = rom(i,k,j)
            cr = vel*dt/dz/mu
-           fqzl(i,k,j) = mu*(dz/dt)*flux_upwind(field_old(i,k-1,j), field_old(i,k,j  ), cr)
+           fqzl(i,k,j) = mu*(dz/dt)*flux_upwind_pd(field_old(i,k-1,j), field_old(i,k,j  ), cr)
            fqz(i,k,j)=rom(i,k,j)*(fzm(k)*field(i,k,j)+fzp(k)*field(i,k-1,j))
            fqz(i,k,j) = fqz(i,k,j) - fqzl(i,k,j)
 
@@ -7711,12 +7716,11 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
            mu = 0.5*((c1(k)*mut(i,j)+c2(k))+(c1(k)*mut(i,j)+c2(k)))
            vel = rom(i,k,j)
            cr = vel*dt/dz/mu
-           fqzl(i,k,j) = mu*(dz/dt)*flux_upwind(field_old(i,k-1,j), field_old(i,k,j  ), cr)
+           fqzl(i,k,j) = mu*(dz/dt)*flux_upwind_pd(field_old(i,k-1,j), field_old(i,k,j  ), cr)
            fqz(i,k,j)=rom(i,k,j)*(fzm(k)*field(i,k,j)+fzp(k)*field(i,k-1,j))
            fqz(i,k,j) = fqz(i,k,j) - fqzl(i,k,j)
 
          ENDDO
-
       ENDDO
 
    ELSE IF (vert_order == 2) THEN    

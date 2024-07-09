@@ -8007,7 +8007,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
       !$omp end target data
       !$omp target exit data map(delete: field_old, field, mut, msftx, msfty, rv, ru, c1, c2)
       !$omp target exit data map(from: tendency)
-     !$omp target exit data map(delete: fqx,fqxl,fqy,fqyl,fqz,fqzl,flux_out,ph_low)
+     !$omp target exit data map(delete: fqx,fqxl,fqy,fqyl,fqz,fqzl,flux_out,ph_low,rom)
 END SUBROUTINE advect_scalar_pd
 
 !----------------------------------------------------------------

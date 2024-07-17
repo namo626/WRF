@@ -2981,7 +2981,15 @@ enddo
 
  if (conserv)then
 
-      rhocgs = rho_phy * 0.001
+         DO j = jts,jte
+            DO k = kts,kte
+                  !$omp simd
+               DO i = its,ite
+                  rhocgs(i,k,j) = rho_phy(i,k,j) * 0.001
+               enddo
+            enddo
+         enddo
+
 
       DO KR=p_ff1i01,p_ff1i33
          KRR = KR - p_ff1i01 + 1

@@ -4160,9 +4160,9 @@ enddo
    end do
 
    if (conserv)then
- 		  DO j = jts,jte
- 		     DO i = its,ite
- 		        DO k = kts,kte
+      DO j = jts,jte
+         DO k = kts,kte
+            DO i = its,ite
          		  rhocgs(I,K,J)=rho_phy(I,K,J)*0.001
                enddo
             enddo

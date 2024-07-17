@@ -4164,38 +4164,73 @@ enddo
  		     DO i = its,ite
  		        DO k = kts,kte
          		  rhocgs(I,K,J)=rho_phy(I,K,J)*0.001
-         		  DO KR=p_ff1i01,p_ff1i33
-                        krr = kr - p_ff1i01 + 1
+               enddo
+            enddo
+         enddo
+
+         DO KR=p_ff1i01,p_ff1i33
+            krr = kr - p_ff1i01 + 1
+            DO j = jts,jte
+               DO k = kts,kte
+                  DO i = its,ite
          		       chem_new(I,K,J,KR)=chem_new(I,K,J,KR)/RHOCGS(I,K,J)*COL*XL(KRR)*XL(KRR)*3.0
          		        if (qc(i,k,j)+qr(i,k,j).lt.1.e-13)chem_new(I,K,J,KR)=0.0
          		  END DO
-         		  DO KR=p_ff5i01,p_ff5i33
-                     krr = kr - p_ff5i01 + 1
-         		   chem_new(I,K,J,KR)=chem_new(I,K,J,KR)/RHOCGS(I,K,J)*COL*XS(KRR)*XS(KRR)*3.0
-         		   if (qs(i,k,j).lt.1.e-13)chem_new(I,K,J,KR)=0.0
-         		  END DO
-         		  ! ... CCN
-         		  DO KR=p_ff8i01,p_ff8i43
-         		   chem_new(I,K,J,KR)=chem_new(I,K,J,KR)/RHOCGS(I,K,J)*1000.0
-         		  END DO
-              ! ... Hail / Graupel
-              if(hail_opt == 1)then
-                 DO KR=p_ff6i01,p_ff6i33
-                    krr = kr - p_ff6i01 + 1
-                     chem_new(I,K,J,KR)=chem_new(I,K,J,KR)/RHOCGS(I,K,J)*COL*XH(KRR)*XH(KRR)*3.0
-                     if (qg(i,k,j) < 1.e-13) chem_new(I,K,J,KR) = 0.0
-                 END DO
-               else
-                 DO KR=p_ff6i01,p_ff6i33
-                    krr = kr - p_ff6i01 + 1
-                     chem_new(I,K,J,KR)=chem_new(I,K,J,KR)/RHOCGS(I,K,J)*COL*XG(KRR)*XG(KRR)*3.0
-                     if (qg(i,k,j) < 1.e-13) chem_new(I,K,J,KR) = 0.0
-                 END DO
-               endif
+               ENDDO
+            ENDDO
+         ENDDO
 
- 		          END DO
- 		         END DO
- 		        END DO
+         DO KR=p_ff5i01,p_ff5i33
+            krr = kr - p_ff5i01 + 1
+            DO j = jts,jte
+               DO k = kts,kte
+                  DO i = its,ite
+                     chem_new(I,K,J,KR)=chem_new(I,K,J,KR)/RHOCGS(I,K,J)*COL*XS(KRR)*XS(KRR)*3.0
+                     if (qs(i,k,j).lt.1.e-13)chem_new(I,K,J,KR)=0.0
+                  END DO
+               ENDDO
+            ENDDO
+         ENDDO
+
+         		  ! ... CCN
+         DO KR=p_ff8i01,p_ff8i43
+            DO j = jts,jte
+               DO k = kts,kte
+                  DO i = its,ite
+                     chem_new(I,K,J,KR)=chem_new(I,K,J,KR)/RHOCGS(I,K,J)*1000.0
+                  END DO
+               ENDDO
+            ENDDO
+         ENDDO
+
+              ! ... Hail / Graupel
+         if(hail_opt == 1)then
+            DO KR=p_ff6i01,p_ff6i33
+               krr = kr - p_ff6i01 + 1
+               DO j = jts,jte
+                  DO k = kts,kte
+                     DO i = its,ite
+                        chem_new(I,K,J,KR)=chem_new(I,K,J,KR)/RHOCGS(I,K,J)*COL*XH(KRR)*XH(KRR)*3.0
+                        if (qg(i,k,j) < 1.e-13) chem_new(I,K,J,KR) = 0.0
+                     END DO
+                  ENDDO
+               ENDDO
+            ENDDO
+
+         else
+            DO KR=p_ff6i01,p_ff6i33
+               krr = kr - p_ff6i01 + 1
+               DO j = jts,jte
+                  DO k = kts,kte
+                     DO i = its,ite
+                        chem_new(I,K,J,KR)=chem_new(I,K,J,KR)/RHOCGS(I,K,J)*COL*XG(KRR)*XG(KRR)*3.0
+                        if (qg(i,k,j) < 1.e-13) chem_new(I,K,J,KR) = 0.0
+                     END DO
+                  ENDDO
+               ENDDO
+            ENDDO
+
+         endif
        END IF
 
    RETURN

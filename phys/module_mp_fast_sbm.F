@@ -2980,42 +2980,71 @@ enddo
   DEL_BBR=BB1_MYN/DEL_BBN
 
  if (conserv)then
-    DO j = jts,jte
-       DO i = its,ite
-          DO k = kts,kte
 
-            rhocgs(I,K,J)=rho_phy(I,K,J)*0.001
+      rhocgs = rho_phy * 0.001
+
+      DO KR=p_ff1i01,p_ff1i33
+         KRR = KR - p_ff1i01 + 1
+         DO j = jts,jte
+            DO k = kts,kte
+               DO i = its,ite
  				! ... Drops
-   				  DO KR=p_ff1i01,p_ff1i33
-                         KRR = KR - p_ff1i01 + 1
-                         chem_new(I,K,J,KR)=chem_new(I,K,J,KR)*RHOCGS(I,K,J)/COL/XL(KRR)/XL(KRR)/3.0
-   				  END DO
+                chem_new(I,K,J,KR)=chem_new(I,K,J,KR)*RHOCGS(I,K,J)/COL/XL(KRR)/XL(KRR)/3.0
+             END DO
+          END DO
+       ENDDO
+      ENDDO
  				! ... Snow
-   				  DO KR=p_ff5i01,p_ff5i33
-                         KRR = KR - p_ff5i01 + 1
-                         chem_new(I,K,J,KR)=chem_new(I,K,J,KR)*RHOCGS(I,K,J)/COL/XS(KRR)/XS(KRR)/3.0
-   				  END DO
+      DO KR=p_ff5i01,p_ff5i33
+         KRR = KR - p_ff5i01 + 1
+         DO j = jts,jte
+            DO k = kts,kte
+               DO i = its,ite
+                  chem_new(I,K,J,KR)=chem_new(I,K,J,KR)*RHOCGS(I,K,J)/COL/XS(KRR)/XS(KRR)/3.0
+               END DO
+            ENDDO
+         ENDDO
+      ENDDO
+
  				! ... Aerosols
-   				  DO KR=p_ff8i01,p_ff8i43
-                         chem_new(I,K,J,KR) = chem_new(I,K,J,KR)*RHOCGS(I,K,J)/1000.0
-   				  END DO
+      DO KR=p_ff8i01,p_ff8i43
+         DO j = jts,jte
+            DO k = kts,kte
+               DO i = its,ite
+                  chem_new(I,K,J,KR) = chem_new(I,K,J,KR)*RHOCGS(I,K,J)/1000.0
+               END DO
+            ENDDO
+         ENDDO
+      ENDDO
+
  				!  ... Hail or Graupel [same registry adresses]
-           if(hail_opt == 1) then
-             DO KR=p_ff6i01,p_ff6i33
-                 KRR = KR - p_ff6i01 + 1
-                 chem_new(I,K,J,KR)=chem_new(I,K,J,KR)*RHOCGS(I,K,J)/COL/XH(KRR)/XH(KRR)/3.0
-             END DO
+      if(hail_opt == 1) then
+         DO KR=p_ff6i01,p_ff6i33
+            KRR = KR - p_ff6i01 + 1
+            DO j = jts,jte
+               DO k = kts,kte
+                  DO i = its,ite
+                     chem_new(I,K,J,KR)=chem_new(I,K,J,KR)*RHOCGS(I,K,J)/COL/XH(KRR)/XH(KRR)/3.0
+                  END DO
+               ENDDO
+            ENDDO
+         ENDDO
 
-           else
-             DO KR=p_ff6i01,p_ff6i33
-                 KRR = KR - p_ff6i01 + 1
-                 chem_new(I,K,J,KR)=chem_new(I,K,J,KR)*RHOCGS(I,K,J)/COL/XG(KRR)/XG(KRR)/3.0
-             END DO
-           endif
 
- 				END DO ! K
- 			END DO	! I
- 		END DO ! J
+      else
+         DO KR=p_ff6i01,p_ff6i33
+            KRR = KR - p_ff6i01 + 1
+            DO j = jts,jte
+               DO k = kts,kte
+                  DO i = its,ite
+                     chem_new(I,K,J,KR)=chem_new(I,K,J,KR)*RHOCGS(I,K,J)/COL/XG(KRR)/XG(KRR)/3.0
+                  END DO
+               ENDDO
+            ENDDO
+         ENDDO
+
+      endif
+
   end if
 
   DXHUCM=100.*DX

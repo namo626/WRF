@@ -2987,8 +2987,8 @@ enddo
          KRR = KR - p_ff1i01 + 1
          DO j = jts,jte
             DO k = kts,kte
+                  !$omp simd
                DO i = its,ite
- 				! ... Drops
                 chem_new(I,K,J,KR)=chem_new(I,K,J,KR)*RHOCGS(I,K,J)/COL/XL(KRR)/XL(KRR)/3.0
              END DO
           END DO
@@ -2999,6 +2999,7 @@ enddo
          KRR = KR - p_ff5i01 + 1
          DO j = jts,jte
             DO k = kts,kte
+                  !$omp simd
                DO i = its,ite
                   chem_new(I,K,J,KR)=chem_new(I,K,J,KR)*RHOCGS(I,K,J)/COL/XS(KRR)/XS(KRR)/3.0
                END DO
@@ -3010,6 +3011,7 @@ enddo
       DO KR=p_ff8i01,p_ff8i43
          DO j = jts,jte
             DO k = kts,kte
+                  !$omp simd
                DO i = its,ite
                   chem_new(I,K,J,KR) = chem_new(I,K,J,KR)*RHOCGS(I,K,J)/1000.0
                END DO
@@ -3023,6 +3025,7 @@ enddo
             KRR = KR - p_ff6i01 + 1
             DO j = jts,jte
                DO k = kts,kte
+                  !$omp simd
                   DO i = its,ite
                      chem_new(I,K,J,KR)=chem_new(I,K,J,KR)*RHOCGS(I,K,J)/COL/XH(KRR)/XH(KRR)/3.0
                   END DO
@@ -3036,6 +3039,7 @@ enddo
             KRR = KR - p_ff6i01 + 1
             DO j = jts,jte
                DO k = kts,kte
+                  !$omp simd
                   DO i = its,ite
                      chem_new(I,K,J,KR)=chem_new(I,K,J,KR)*RHOCGS(I,K,J)/COL/XG(KRR)/XG(KRR)/3.0
                   END DO

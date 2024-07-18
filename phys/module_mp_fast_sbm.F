@@ -3838,88 +3838,131 @@ enddo
     qnmax=0
     inmax=0
     knmax=0
-    DO j = jts,jte
-      DO k = kts,kte
-        DO i = its,ite
-          QC(I,K,J) = 0.0
-          QR(I,K,J) = 0.0
-          QI(I,K,J) = 0.0
-          QS(I,K,J) = 0.0
-          QG(I,K,J) = 0.0
-          QNC(I,K,J) = 0.0
-          QNR(I,K,J) = 0.0
-          QNI(I,K,J) = 0.0
-          QNS(I,K,J) = 0.0
-          QNG(I,K,J) = 0.0
-          QNA(I,K,J) = 0.0
 
-          tt = th_phy(i,k,j)*pi_phy(i,k,j)
+      QC = 0.0
+      QR = 0.0
+      QI = 0.0
+      QS = 0.0
+      QG = 0.0
+      QNC = 0.0
+      QNR = 0.0
+      QNI = 0.0
+      QNS = 0.0
+      QNG = 0.0
+      QNA = 0.0
+    !DO j = jts,jte
+      !DO k = kts,kte
+        !DO i = its,ite
+
+          !tt = th_phy(i,k,j)*pi_phy(i,k,j)
 
           ! ... Drop output
-          KRR = 0
-          DO KR = p_ff1i01,p_ff1i33
-            KRR=KRR+1
-            IF (KRR < KRDROP)THEN
-              QC(I,K,J) = QC(I,K,J) &
-              + (1./RHOCGS(I,K,J))*COL*chem_new(I,K,J,KR)*XL(KRR)*XL(KRR)*3
-              QNC(I,K,J) = QNC(I,K,J) &
-              + COL*chem_new(I,K,J,KR)*XL(KRR)*3.0/rhocgs(I,K,J)*1000.0 ! #/kg
-            ELSE
-              QR(I,K,J) = QR(I,K,J) &
-              + (1./RHOCGS(I,K,J))*COL*chem_new(I,K,J,KR)*XL(KRR)*XL(KRR)*3.0
-              QNR(I,K,J) = QNR(I,K,J) &
-              + COL*chem_new(I,K,J,KR)*XL(KRR)*3/rhocgs(I,K,J)*1000.0 ! #/kg
-            END IF
-          END DO
+      DO KR = p_ff1i01,p_ff1i33
+         KRR = KR - p_ff1i01 + 1
+         IF (KRR < KRDROP)THEN
+            DO j = jts,jte
+               DO k = kts,kte
+                  DO i = its,ite
+                     QC(I,K,J) = QC(I,K,J) &
+                     + (1./RHOCGS(I,K,J))*COL*chem_new(I,K,J,KR)*XL(KRR)*XL(KRR)*3
+                     QNC(I,K,J) = QNC(I,K,J) &
+                     + COL*chem_new(I,K,J,KR)*XL(KRR)*3.0/rhocgs(I,K,J)*1000.0 ! #/kg
+                  ENDDO
+               ENDDO
+            ENDDO
 
- 			  KRR=0
- 			  IF (ICEPROCS == 1)THEN
- 			  ! ... Snow output
- 			   	KRR=0
- 			   	DO  KR=p_ff5i01,p_ff5i33
- 					KRR=KRR+1
- 					 if (KRR <= KRICE)THEN
- 						 QI(I,K,J) = QI(I,K,J) &
- 					                 +(1.0/RHOCGS(I,K,J))*COL*chem_new(I,K,J,KR)*XS(KRR)*XS(KRR)*3.0
- 						 QNI(I,K,J) = QNI(I,K,J) &
-         				  			  + COL*chem_new(I,K,J,KR)*XS(KRR)*3.0/rhocgs(I,K,J)*1000.0 ! #/kg
- 					 else
- 						 QS(I,K,J) = QS(I,K,J) &
- 									+ (1.0/RHOCGS(I,K,J))*COL*chem_new(I,K,J,KR)*XS(KRR)*XS(KRR)*3.0
- 						 QNS(I,K,J) = QNS(I,K,J) &
- 								 	+ COL*chem_new(I,K,J,KR)*XS(KRR)*3.0/rhocgs(I,K,J)*1000.0 ! #/kg
- 					endif
- 			   END DO
+         ELSE
+            DO j = jts,jte
+               DO k = kts,kte
+                  DO i = its,ite
+                     QR(I,K,J) = QR(I,K,J) &
+                     + (1./RHOCGS(I,K,J))*COL*chem_new(I,K,J,KR)*XL(KRR)*XL(KRR)*3.0
+                     QNR(I,K,J) = QNR(I,K,J) &
+                     + COL*chem_new(I,K,J,KR)*XL(KRR)*3/rhocgs(I,K,J)*1000.0 ! #/kg
+                  ENDDO
+               ENDDO
+            ENDDO
 
- 			   ! ... Hail / Graupel output
-          KRR=0
-          DO  KR=p_ff6i01,p_ff6i33
-            KRR=KRR+1
-            ! ... Hail or Graupel
-            if(hail_opt == 1)then
-              QG(I,K,J)=QG(I,K,J) &
-              +(1.0/RHOCGS(I,K,J))*COL*chem_new(I,K,J,KR)*XH(KRR)*XH(KRR)*3.0
-              QNG(I,K,J)=QNG(I,K,J) &
-              +COL*chem_new(I,K,J,KR)*XH(KRR)*3.0/rhocgs(I,K,J)*1000.0 ! #/kg
-            else
-              QG(I,K,J)=QG(I,K,J) &
-              +(1.0/RHOCGS(I,K,J))*COL*chem_new(I,K,J,KR)*XG(KRR)*XG(KRR)*3.0
-              QNG(I,K,J)=QNG(I,K,J) &
-              +COL*chem_new(I,K,J,KR)*XG(KRR)*3.0/rhocgs(I,K,J)*1000.0 ! #/kg
-            endif
-          END DO
-   		END IF !IF (ICEPROCS.EQ.1)THEN
-
-      KRR = 0
-      DO  KR = p_ff8i01,p_ff8i43
-      	KRR = KRR + 1
-      	QNA(I,K,J) = QNA(I,K,J) &
-      			   	+ COL*chem_new(I,K,J,KR)/rhocgs(I,K,J)*1000.0   ! #/kg
+         END IF
       END DO
 
- 		END DO
-   END DO
-  END DO
+      IF (ICEPROCS == 1)THEN
+ 			  ! ... Snow output
+         DO  KR=p_ff5i01,p_ff5i33
+            KRR = KR - p_ff5i01 + 1
+            if (KRR <= KRICE)THEN
+               DO j = jts,jte
+                  DO k = kts,kte
+                     DO i = its,ite
+                        QI(I,K,J) = QI(I,K,J) &
+                        +(1.0/RHOCGS(I,K,J))*COL*chem_new(I,K,J,KR)*XS(KRR)*XS(KRR)*3.0
+                        QNI(I,K,J) = QNI(I,K,J) &
+                        + COL*chem_new(I,K,J,KR)*XS(KRR)*3.0/rhocgs(I,K,J)*1000.0 ! #/kg
+                     ENDDO
+                  ENDDO
+               ENDDO
+
+            else
+               DO j = jts,jte
+                  DO k = kts,kte
+                     DO i = its,ite
+                        QS(I,K,J) = QS(I,K,J) &
+                        + (1.0/RHOCGS(I,K,J))*COL*chem_new(I,K,J,KR)*XS(KRR)*XS(KRR)*3.0
+                        QNS(I,K,J) = QNS(I,K,J) &
+                        + COL*chem_new(I,K,J,KR)*XS(KRR)*3.0/rhocgs(I,K,J)*1000.0 ! #/kg
+                     ENDDO
+                  ENDDO
+               ENDDO
+
+            endif
+         END DO
+
+ 			   ! ... Hail / Graupel output
+
+         if(hail_opt == 1)then
+          DO  KR=p_ff6i01,p_ff6i33
+             KRR = KR - p_ff6i01 + 1
+            ! ... Hail or Graupel
+               DO j = jts,jte
+                  DO k = kts,kte
+                     DO i = its,ite
+                        QG(I,K,J)=QG(I,K,J) &
+                        +(1.0/RHOCGS(I,K,J))*COL*chem_new(I,K,J,KR)*XH(KRR)*XH(KRR)*3.0
+                        QNG(I,K,J)=QNG(I,K,J) &
+                        +COL*chem_new(I,K,J,KR)*XH(KRR)*3.0/rhocgs(I,K,J)*1000.0 ! #/kg
+                     ENDDO
+                  ENDDO
+               ENDDO
+            ENDDO
+
+         else
+          DO  KR=p_ff6i01,p_ff6i33
+             KRR = KR - p_ff6i01 + 1
+               DO j = jts,jte
+                  DO k = kts,kte
+                     DO i = its,ite
+                        QG(I,K,J)=QG(I,K,J) &
+                        +(1.0/RHOCGS(I,K,J))*COL*chem_new(I,K,J,KR)*XG(KRR)*XG(KRR)*3.0
+                        QNG(I,K,J)=QNG(I,K,J) &
+                        +COL*chem_new(I,K,J,KR)*XG(KRR)*3.0/rhocgs(I,K,J)*1000.0 ! #/kg
+                     ENDDO
+                  ENDDO
+               ENDDO
+          END DO
+       endif
+      END IF                    !IF (ICEPROCS.EQ.1)THEN
+
+       DO  KR = p_ff8i01,p_ff8i43
+          KRR = KR - p_ff8i01 + 1
+          DO j = jts,jte
+             DO k = kts,kte
+                DO i = its,ite
+                   QNA(I,K,J) = QNA(I,K,J) &
+                   + COL*chem_new(I,K,J,KR)/rhocgs(I,K,J)*1000.0 ! #/kg
+                END DO
+             END DO
+          END DO
+       END DO
 
  998   format(' ',10(f10.1,1x))
 

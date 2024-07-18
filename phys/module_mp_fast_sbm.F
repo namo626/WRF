@@ -1527,8 +1527,8 @@ end function expm1
 	IMPLICIT NONE
 
 ! ... Interface
-	INTEGER,INTENT(INOUT) :: IDROP, NKR
-	INTEGER,INTENT(IN) :: Ihydro,Iin,Jin,Kin,Itimestep
+	INTEGER,INTENT(INOUT) :: IDROP
+	INTEGER,INTENT(IN) :: Ihydro,Iin,Jin,Kin,Itimestep, NKR
 	REAL(kind=R4SIZE),intent(IN) :: FI2(:), B21_MY(:), FR_LIM(:), COL
 	REAL(kind=R8SIZE), INTENT(IN) :: TPN, xi(:)
 	REAL(kind=R4SIZE),INTENT(INOUT) :: PSI2(:)
@@ -5610,16 +5610,31 @@ enddo
 				 & ,COL,DTCOND,ICEMAX,NKR,ISYM1 &
 				   ,ISYM2,ISYM3,ISYM4,ISYM5,Iin,Jin,Kin,W_in,DX_in,Itimestep)
 
+                   ! 36 arguments
         IMPLICIT NONE
 
+        real(kind=r8size), intent(inout) :: TT
+        real(kind=r8size), intent(inout) :: QQ
+        real(kind=r8size), intent(inout) :: del1n,del2n
+        real,              intent(inout) :: FF1(:)
+        real,              intent(inout) :: PSI1(:)
+       integer,            intent(inout) :: isym1, isym2(:), isym3, isym4, isym5
 
-       INTEGER NKR,ICEMAX, ISYM1, ISYM2(ICEMAX),ISYM3,ISYM4,ISYM5, Iin, Jin, Kin, &
- 	  		  sea_spray_no_temp_change_per_grid, Itimestep
-       REAL    COL,VR1(NKR),PSINGLE &
-      &       ,AA1_MY,BB1_MY,AA2_MY,BB2_MY &
-      &       ,DTCOND, W_in,DX_in
+        real(kind=r8size), intent(in) :: PP
+        real, intent(in) :: ROR
+        real, intent(in) :: VR1(:), PSINGLE
+        real(kind=r8size), intent(in) :: div1,div2
+        real, intent(in) ::  R1(:), RLEC(:), Ro1BL(:)
+        real, intent(in) :: AA1_MY, BB1_MY, AA2_MY, BB2_MY
+       REAL, intent(in) :: C1_MEY,C2_MEY
+       REAL, intent(in) ::    COL,DTCOND
+       integer, intent(in) :: icemax, nkr
+       integer, intent(in) :: Iin, Jin, Kin
+       REAL, intent(in) ::       W_in,DX_in
+       integer, intent(in) :: Itimestep
 
-       REAL C1_MEY,C2_MEY
+ 	  		  integer sea_spray_no_temp_change_per_grid
+
        INTEGER I_ABERGERON,I_BERGERON, &
       & KR,ICE,ITIME,KCOND,NR,NRM, &
       & KLIMIT, &
@@ -5629,7 +5644,6 @@ enddo
       & A1_MYN, BB1_MYN, A2_MYN, BB2_MYN,DT,DTT,XRAD, &
       & TPC1, TPC2, TPC3, TPC4, TPC5, &
       & EPSDEL, EPSDEL2,DT0L, DT0I,&
-      & ROR, &
       & CWHUCM,B6,B8L,B8I, &
       & DEL1,DEL2,DEL1S,DEL2S, &
       & TIMENEW,TIMEREV,SFN11,SFN12, &
@@ -5651,17 +5665,13 @@ enddo
       &                  ,FI1R1,FI2R2,FI3R3,FI4R4,FI5R5 &
       &                  ,RMASSLAA,RMASSLBB,RMASSIAA,RMASSIBB &
       &                  ,ES1N,ES2N,EW1N,ARGEXP &
-      &                  ,TT,QQ,PP &
-      &                  ,DEL1N,DEL2N,DIV1,DIV2 &
       &                  ,OPER2,OPER3,AR1,AR2
 
         DOUBLE PRECISION DELMASSL1
 
  ! DROPLETS
 
-         REAL R1(NKR) &
-      &           ,RLEC(NKR),RO1BL(NKR) &
-      &           ,FI1(NKR),FF1(NKR),PSI1(NKR) &
+         REAL FI1(NKR) &
       &           ,B11_MY(NKR),B12_MY(NKR)
 
  ! WORK ARRAYS

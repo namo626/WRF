@@ -3839,20 +3839,23 @@ enddo
     inmax=0
     knmax=0
 
-      QC = 0.0
-      QR = 0.0
-      QI = 0.0
-      QS = 0.0
-      QG = 0.0
-      QNC = 0.0
-      QNR = 0.0
-      QNI = 0.0
-      QNS = 0.0
-      QNG = 0.0
-      QNA = 0.0
-    !DO j = jts,jte
-      !DO k = kts,kte
-        !DO i = its,ite
+      DO j = jts,jte
+         DO k = kts,kte
+            DO i = its,ite
+               QC(I,K,J) = 0.0
+               QR(I,K,J) = 0.0
+               QI(I,K,J) = 0.0
+               QS(I,K,J) = 0.0
+               QG(I,K,J) = 0.0
+               QNC(I,K,J) = 0.0
+               QNR(I,K,J) = 0.0
+               QNI(I,K,J) = 0.0
+               QNS(I,K,J) = 0.0
+               QNG(I,K,J) = 0.0
+               QNA(I,K,J) = 0.0
+            ENDDO
+         ENDDO
+      ENDDO
 
           !tt = th_phy(i,k,j)*pi_phy(i,k,j)
 
@@ -3953,7 +3956,6 @@ enddo
       END IF                    !IF (ICEPROCS.EQ.1)THEN
 
        DO  KR = p_ff8i01,p_ff8i43
-          KRR = KR - p_ff8i01 + 1
           DO j = jts,jte
              DO k = kts,kte
                 DO i = its,ite

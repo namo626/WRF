@@ -3728,36 +3728,26 @@ enddo
 
 
     ! ... Drops
-	  KRR = 0
 	  DO kr = p_ff1i01,p_ff1i33
-		 KRR = KRR+1
-		 chem_new(I,K,J,KR) = FF1R(KRR)
+		 chem_new(I,K,J,KR) = FF1R(KR - p_ff1i01 + 1)
 	  END DO
 	  ! ... CCN
-	  KRR = 0
 	  DO kr=p_ff8i01,p_ff8i43
-		  KRR=KRR+1
-		  chem_new(I,K,J,KR)=FCCN(KRR)
+		  chem_new(I,K,J,KR)=FCCN(KR - p_ff8i01 + 1)
 	  END DO
 	  IF (ICEPROCS == 1)THEN
 	  ! ... Snow
-		  KRR = 0
 		  DO kr=p_ff5i01,p_ff5i33
-			  KRR=KRR+1
-			  chem_new(I,K,J,KR)=FF3R(KRR)
+			  chem_new(I,K,J,KR)=FF3R(KR - p_ff5i01 + 1)
 		  END DO
      ! ... Hail/ Graupel
       if(hail_opt == 1)then
-       KRR = 0
        DO KR=p_ff6i01,p_ff6i33
-           KRR=KRR+1
-           chem_new(I,K,J,KR) = FF5R(KRR)
+           chem_new(I,K,J,KR) = FF5R(KR - p_ff6i01 + 1)
        END DO
       else
-       KRR = 0
        DO KR=p_ff6i01,p_ff6i33
-           KRR=KRR+1
-           chem_new(I,K,J,KR) = FF4R(KRR)
+           chem_new(I,K,J,KR) = FF4R(KR - p_ff6i01 + 1)
        END DO
       endif
       ! ICEPROCS == 1

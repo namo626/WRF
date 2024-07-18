@@ -3311,12 +3311,12 @@ enddo
         ENDIF
 
 
-!$omp target teams distribute parallel do  &
-!$omp private(vr2_zc,vr2_zp,vr2_zd,vr1_z,vr3_z,vr4_z,vr5_z, &
-!$omp   ff1r,ff2r,ff3r,ff4r,ff5r,fccn, &
-!$omp ff1in, ff2in,ff3in,ff4in,ff5in, &
-!$omp fmax1,fmax2,fmax3,fmax4,fmax5,&
-        !$omp isym1,isym2,isym3,isym4,isym5)
+!!$omp target teams distribute parallel do  &
+!!$omp private(vr2_zc,vr2_zp,vr2_zd,vr1_z,vr3_z,vr4_z,vr5_z, &
+!!$omp   ff1r,ff2r,ff3r,ff4r,ff5r,fccn, &
+!!$omp ff1in, ff2in,ff3in,ff4in,ff5in, &
+!!$omp fmax1,fmax2,fmax3,fmax4,fmax5,&
+        !!$omp isym1,isym2,isym3,isym4,isym5)
        do j = jts,jte
           do k = kts,kte
              do i = its,ite
@@ -3339,28 +3339,28 @@ enddo
      			  KRR = 0
      			  DO kr = p_ff1i01,p_ff1i33
      				 KRR = KRR + 1
-     				 FF1R(KRR) = chem_new(I,K,J,KR)
-     				 IF (FF1R(KRR) < 0.0)FF1R(KRR) = 0.0
+     				 ff1r_all(krr,i,k,j) = chem_new(I,K,J,KR)
+     				 IF (ff1r_all(krr,i,k,j) < 0.0)ff1r_all(krr,i,k,j) = 0.0
      			  END DO
      			! ... CCN
      			  KRR = 0
      			  DO kr=p_ff8i01,p_ff8i43
      				 KRR = KRR + 1
-     				 FCCN(KRR) = chem_new(I,K,J,KR)
-     				 if (fccn(krr) < 0.0)fccn(krr) = 0.0
+     				 FCCN_all(KRR,i,k,j) = chem_new(I,K,J,KR)
+     				 if (FCCN_all(KRR,i,k,j) < 0.0)FCCN_all(KRR,i,k,j) = 0.0
      			  END DO
 
    				! no explicit Ice Crystals in FSBM
-   				 FF2R(:,1) = 0.0
-   				 FF2R(:,2) = 0.0
-   				 FF2R(:,3) = 0.0
+   				 FF2R_all(:,1,i,k,j) = 0.0
+   				 FF2R_all(:,2,i,k,j) = 0.0
+   				 FF2R_all(:,3,i,k,j) = 0.0
 
    				! ... Snow
    				KRR=0
    				DO kr=p_ff5i01,p_ff5i33
    					KRR=KRR+1
-   					FF3R(KRR)=chem_new(I,K,J,KR)
-   					if (ff3r(krr) < 0.0)ff3r(krr) = 0.0
+   					FF3R_all(KRR,i,k,j)=chem_new(I,K,J,KR)
+   					if (FF3R_all(KRR,i,k,j) < 0.0)FF3R_all(KRR,i,k,j) = 0.0
    				END DO
 
           ! ... Hail or Graupel
@@ -3368,17 +3368,17 @@ enddo
            KRR=0
            DO kr=p_ff6i01,p_ff6i33
                KRR=KRR+1
-               FF5R(KRR) = chem_new(I,K,J,KR)
-               if (ff5r(krr) < 0.0)ff5r(krr) = 0.0
-               FF4R(KRR) = 0.0
+               FF5R_all(KRR,i,k,j) = chem_new(I,K,J,KR)
+               if (FF5R_all(KRR,i,k,j) < 0.0)FF5R_all(KRR,i,k,j) = 0.0
+               FF4R_all(KRR,i,k,j) = 0.0
            ENDDO
           else
            KRR=0
            DO kr=p_ff6i01,p_ff6i33
                KRR=KRR+1
-               FF4R(KRR) = chem_new(I,K,J,KR)
-               if (ff4r(krr) < 0.0)ff4r(krr) = 0.0
-               FF5R(KRR) = 0.0
+               FF4R_all(KRR,i,k,j) = chem_new(I,K,J,KR)
+               if (FF4R_all(KRR,i,k,j) < 0.0)FF4R_all(KRR,i,k,j) = 0.0
+               FF5R_all(KRR, i,k,j) = 0.0
            ENDDO
           endif
 
@@ -3417,7 +3417,7 @@ enddo
               DEL2AD=EW1N/ES2N-1.
               SUP2_OLD=DEL2IN
 
-              IF(del1ad > 0.0 .or. del2ad > 0.0 .or. (sum(FF1R)+sum(FF3R)+sum(FF4R)+sum(FF5R)) > 1.0e-20)THEN
+              IF(del1ad > 0.0 .or. del2ad > 0.0 .or. (sum(FF1R_all(:,i,k,j))+sum(FF3R_all(:,i,k,j))+sum(FF4R_all(:,i,k,j))+sum(FF5R_all(:,i,k,j))) > 1.0e-20)THEN
                 DEL_T = (TTA - TT) / NCOND
                 DEL_Q = (QQA - QQ) / NCOND
                 
@@ -3451,9 +3451,9 @@ enddo
 ! Droplet nucleation :
 ! +------------------------------------------+
                           DO KR=1,NKR
-                            FF1IN(KR)=FF1R(KR)
+                            FF1IN(KR)=FF1R_all(KR,i,k,j)
                               DO ICE=1,ICEMAX
-                                FF2IN(KR,ICE)=FF2R(KR,ICE)
+                                FF2IN(KR,ICE)=FF2R_all(KR,ICE,i,k,j)
                               ENDDO
                             ENDDO
                           Is_This_CloudBase = 0
@@ -3463,7 +3463,7 @@ enddo
                           else
                             w_stag_my = 100*w(i,k,j)
                           end if
-                          CALL JERNUCL01_KS(FF1IN,FF2IN,FCCN 		  &
+                          CALL JERNUCL01_KS(FF1IN,FF2IN,FCCN_all(:,i,k,j) 		  &
                                             ,XL,XI,TT,QQ       					    &
                                             ,rhocgs(I,K,J),pcgs(I,K,J) 			&
                                             ,DEL1IN,DEL2IN     			        &
@@ -3475,11 +3475,11 @@ enddo
                         
                         
                           DO KR=1,NKR
-                            FF1R(KR)=FF1IN(KR)
+                            FF1R_all(KR,i,k,j)=FF1IN(KR)
                             DO ICE=1,ICEMAX
-                              FF3R(KR) = FF3R(KR) + FF2IN(KR,ICE)
+                              FF3R_all(KR,i,k,j) = FF3R_all(KR,i,k,j) + FF2IN(KR,ICE)
                               FF2IN(KR,ICE) = 0.0
-                              FF2R(KR,ICE) = 0.0
+                              FF2R_all(KR,ICE,i,k,j) = 0.0
                             END DO
                           END DO
                         END IF
@@ -3490,17 +3490,17 @@ enddo
                         FMAX4=0.
                         FMAX5=0.
                         DO KR=1,NKR
-                          FF1IN(KR)=FF1R(KR)
-                          FMAX1=AMAX1(FF1R(KR),FMAX1)
-                          FF3IN(KR)=FF3R(KR)
-                          FMAX3=AMAX1(FF3R(KR),FMAX3)
-                          FF4IN(KR)=FF4R(KR)
-                          FMAX4=AMAX1(FF4R(KR),FMAX4)
-                          FF5IN(KR)=FF5R(KR)
-                          FMAX5=AMAX1(FF5R(KR),FMAX5)
+                          FF1IN(KR)=FF1R_all(KR,i,k,j)
+                          FMAX1=AMAX1(FF1R_all(KR,i,k,j),FMAX1)
+                          FF3IN(KR)=FF3R_all(KR,i,k,j)
+                          FMAX3=AMAX1(FF3R_all(KR,i,k,j),FMAX3)
+                          FF4IN(KR)=FF4R_all(KR,i,k,j)
+                          FMAX4=AMAX1(FF4R_all(KR,i,k,j),FMAX4)
+                          FF5IN(KR)=FF5R_all(KR,i,k,j)
+                          FMAX5=AMAX1(FF5R_all(KR,i,k,j),FMAX5)
                           DO ICE=1,ICEMAX
-                            FF2IN(KR,ICE)=FF2R(KR,ICE)
-                            FMAX2(ICE)=AMAX1(FF2R(KR,ICE),FMAX2(ICE)) ! ### (KS) FMAX2(3)
+                            FF2IN(KR,ICE)=FF2R_all(KR,ICE,i,k,j)
+                            FMAX2(ICE)=AMAX1(FF2R_all(KR,ICE,i,k,j),FMAX2(ICE)) ! ### (KS) FMAX2(3)
                           END DO
                         END DO
                       ISYM1=0
@@ -3525,7 +3525,7 @@ enddo
                           CALL ONECOND1(TT,QQ,PP,rhocgs(I,K,J) &
                                         ,VR1_Z(:,K),pcgs(I,K,J) &
                                         ,DEL1IN,DEL2IN,DIV1,DIV2 &
-                                        ,FF1R,FF1IN,XL,RLEC,RO1BL &
+                                        ,FF1R_all(:,i,k,j),FF1IN,XL,RLEC,RO1BL &
                                         ,AA1_MY,BB1_MY,AA2_MY,BB2_MY &
                                         ,C1_MEY,C2_MEY &
                                         ,COL,DTCOND,ICEMAX,NKR,ISYM1 &
@@ -3540,10 +3540,10 @@ enddo
                                     CALL ONECOND2(TT,QQ,PP,rhocgs(I,K,J) &
                                     ,VR2_Z,VR3_Z(:,K),VR4_Z(:,K),VR5_Z(:,K),pcgs(I,K,J) &
                                     ,DEL1IN,DEL2IN,DIV1,DIV2 &
-                                    ,FF2R,FF2IN,XI,RIEC,RO2BL &
-                                    ,FF3R,FF3IN,XS,RSEC,RO3BL &
-                                    ,FF4R,FF4IN,XG,RGEC,RO4BL &
-                                    ,FF5R,FF5IN,XH,RHEC,RO5BL &
+                                    ,FF2R_all(:,:,i,k,j),FF2IN,XI,RIEC,RO2BL &
+                                    ,FF3R_all(:,i,k,j),FF3IN,XS,RSEC,RO3BL &
+                                    ,FF4R_all(:,i,k,j),FF4IN,XG,RGEC,RO4BL &
+                                    ,FF5R_all(:,i,k,j),FF5IN,XH,RHEC,RO5BL &
                                     ,AA1_MY,BB1_MY,AA2_MY,BB2_MY &
                                     ,C1_MEY,C2_MEY &
                                     ,COL,DTCOND,ICEMAX,NKR &
@@ -3558,11 +3558,11 @@ enddo
                                 CALL ONECOND3(TT,QQ,PP,rhocgs(I,K,J) &
                                 ,VR1_Z(:,K),VR2_Z,VR3_Z(:,K),VR4_Z(:,K),VR5_Z(:,K),pcgs(I,K,J) &
                                 ,DEL1IN,DEL2IN,DIV1,DIV2 &
-                                ,FF1R,FF1IN,XL,RLEC,RO1BL &
-                                ,FF2R,FF2IN,XI,RIEC,RO2BL &
-                                ,FF3R,FF3IN,XS,RSEC,RO3BL &
-                                ,FF4R,FF4IN,XG,RGEC,RO4BL &
-                                ,FF5R,FF5IN,XH,RHEC,RO5BL &
+                                ,FF1R_all(:,i,k,j),FF1IN,XL,RLEC,RO1BL &
+                                ,FF2R_all(:,:,i,k,j),FF2IN,XI,RIEC,RO2BL &
+                                ,FF3R_all(:,i,k,j),FF3IN,XS,RSEC,RO3BL &
+                                ,FF4R_all(:,i,k,j),FF4IN,XG,RGEC,RO4BL &
+                                ,FF5R_all(:,i,k,j),FF5IN,XH,RHEC,RO5BL &
                                 ,AA1_MY,BB1_MY,AA2_MY,BB2_MY &
                                 ,C1_MEY,C2_MEY &
                                 ,COL,DTCOND,ICEMAX,NKR &
@@ -3584,12 +3584,12 @@ enddo
                 end if ! temp
             end if
 
-            FF1R_all(:,i,k,j) = FF1R
-            FF2R_all(:,:,i,k,j) = FF2R
-            FCCN_all(:,i,k,j) = FCCN
-            FF3R_all(:,i,k,j) = FF3R
-            FF5R_all(:,i,k,j) = FF5R
-            FF4R_all(:,i,k,j) = FF4R
+            !FF1R_all(:,i,k,j) = FF1R
+            !FF2R_all(:,:,i,k,j) = FF2R
+            !FCCN_all(:,i,k,j) = FCCN
+            !FF3R_all(:,i,k,j) = FF3R
+            !FF5R_all(:,i,k,j) = FF5R
+            !FF4R_all(:,i,k,j) = FF4R
 
             end do ! i j k
         end do

@@ -3550,6 +3550,10 @@ enddo
           END DO
         ENDIF
 
+#define COND1 1
+#define COND2 0
+#define COND3 0
+
 #if 1
 !$omp target teams distribute parallel do collapse(2)  &
 ! !$omp private(vr2_zc,vr2_zp,vr2_zd,vr1_z,vr3_z,vr4_z,vr5_z, &
@@ -3760,24 +3764,29 @@ enddo
                         IF(FMAX5 > 1.E-10)ISYM5 = 1
                       END IF
 
-#if 0
 
                       IF(ISYM1==1 .AND. ((TT-273.15)>-0.187 .OR.(sum(ISYM2)==0 .AND. &
                           ISYM3==0 .AND. ISYM4==0 .AND. ISYM5==0)))THEN
 
+#if COND1
+
                           ! ... only warm phase
                           CALL ONECOND1(TT,QQ,PP,rhocgs(I,K,J) &
-                                        ,VR1_Z(:,K),pcgs(I,K,J) &
+                                        ,VR1_Z(:,i,K,j),pcgs(I,K,J) &
                                         ,DEL1IN,DEL2IN,DIV1,DIV2 &
                                         ,FF1R_all(:,i,k,j),FF1IN,XL,RLEC,RO1BL &
                                         ,AA1_MY,BB1_MY,AA2_MY,BB2_MY &
                                         ,C1_MEY,C2_MEY &
                                         ,COL,DTCOND,ICEMAX,NKR,ISYM1 &
                                         ,ISYM2,ISYM3,ISYM4,ISYM5,I,J,K,W(i,k,j),DX,Itimestep)
+#endif
+
+
 
                         ELSE IF(ISYM1==0 .AND. (TT-273.15)<-0.187 .AND. &
                                 (sum(ISYM2)>1 .OR. ISYM3==1 .OR. ISYM4==1 .OR. ISYM5==1))THEN
                                   !IF (TT.GT.213.15)THEN
+#if COND2
                                     VR2_Z(:,1) = VR2_ZC(:,i,k,j)
                                     VR2_Z(:,2) = VR2_ZP(:,i,k,j)
                                     VR2_Z(:,3) = VR2_ZD(:,i,k,j)
@@ -3792,9 +3801,13 @@ enddo
                                     ,C1_MEY,C2_MEY &
                                     ,COL,DTCOND,ICEMAX,NKR &
                                     ,ISYM1,ISYM2,ISYM3,ISYM4,ISYM5,I,J,K,W(i,k,j),DX,Itimestep)
+#endif
+
                                 !END IF
                           ELSE IF(ISYM1==1 .AND. (TT-273.15)<-0.187 .AND. &
                               (sum(ISYM2)>1 .OR. ISYM3==1 .OR. ISYM4==1 .OR. ISYM5==1))THEN
+
+#if COND3
                               IF (TT > 233.15)THEN
                                 VR2_Z(:,1) = VR2_ZC(:,K)
                                 VR2_Z(:,2) = VR2_ZP(:,K)
@@ -3812,8 +3825,8 @@ enddo
                                 ,COL,DTCOND,ICEMAX,NKR &
                                 ,ISYM1,ISYM2,ISYM3,ISYM4,ISYM5,I,J,K,W(i,k,j),DX,Itimestep)
                               ENDIF
-                            END IF
 #endif
+                            END IF
 
                           END IF ! DIFF.NE.0
                       END IF ! DIFFU.NE.0

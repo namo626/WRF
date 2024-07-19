@@ -4121,11 +4121,11 @@ enddo
 
 #if 1
 !$omp target teams distribute parallel do collapse(2)  &
-! !$omp private(vr2_zc,vr2_zp,vr2_zd,vr1_z,vr3_z,vr4_z,vr5_z, &
 !$omp private ( &
 !$omp ff1in, ff2in,ff3in,ff4in,ff5in, &
 !$omp fmax1,fmax2,fmax3,fmax4,fmax5,&
-!$omp isym1,isym2,isym3,isym4,isym5)
+!$omp isym1,isym2,isym3,isym4,isym5) &
+!$omp map(from: vr2_zc,vr2_zp,vr2_zd,vr1_z,vr3_z,vr4_z,vr5_z,vr1_z3d,vr3_z3d,vr4_z3d,vr5_z3d)
 #endif
 
        do j = jts,jte

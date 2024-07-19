@@ -6040,16 +6040,31 @@ enddo
 
     IMPLICIT NONE
 
-       INTEGER NKR,ICEMAX,ISYM1, Iin, Jin, Kin, Itimestep
-       REAL    COL,VR2(NKR,ICEMAX),VR3(NKR),VR4(NKR) &
-      &           ,VR5(NKR),PSINGLE &
-      &       ,AA1_MY,BB1_MY,AA2_MY,BB2_MY &
-      &       ,DTCOND,W_in,DX_in
+      real(kind=r8size), intent(inout) :: TT,QQ
+      real(kind=r8size), intent(in) :: PP
+      real, intent(in) :: ROR
+      real, intent(in) :: VR2(:,:), VR3(:), VR4(:), VR5(:), PSINGLE
+      real(kind=r8size), intent(inout) ::    DEL1N,DEL2N
+      real(kind=r8size), intent(in) :: DIV1,DIV2
+      real, intent(in) :: R2(:,:), RIEC(:,:), Ro2BL(:,:)
+      real, intent(inout) :: PSI2(:,:), PSI3(:), PSI4(:), PSI5(:)
+      real, intent(inout) :: FF2(:,:), FF3(:), FF4(:), FF5(:)
+      real, intent(in) :: R3(:), RSEC(:), RO3BL(:)
+      real, intent(in) :: R4(:), RGEC(:), RO4BL(:)
+      real, intent(in) :: R5(:), RHEC(:), RO5BL(:)
+      REAL, intent(in) :: AA1_MY,BB1_MY,AA2_MY,BB2_MY
+      real, intent(in) :: C1_MEY,C2_MEY
+      real, intent(in) :: COL, DTCOND
+      integer, intent(in) :: icemax, nkr
+      integer, intent(inout) :: isym1,isym2(:),isym3,isym4,isym5
+      integer, intent(in) :: Iin, Jin, Kin
+      real, intent(in) :: W_in, DX_in
+      integer, intent(in) :: Itimestep
 
-       REAL C1_MEY,C2_MEY
+
        INTEGER I_MIXCOND,I_MIXEVAP,I_ABERGERON,I_BERGERON, &
       & KR,ICE,ITIME,ICM,KCOND,NR,NRM,INUC, &
-      & ISYM2(ICEMAX),ISYM3,ISYM4,ISYM5,KP,KLIMIT, &
+      & KP,KLIMIT, &
       & KM,ITER,KLIMITL,KLIMITG,KLIMITH,KLIMITI_1,KLIMITI_2,KLIMITI_3, &
       & NCRITI
        REAL AL1,AL2,D,GAM,POD, &
@@ -6057,7 +6072,6 @@ enddo
       & A1_MYN, BB1_MYN, A2_MYN, BB2_MYN,DT,DTT,XRAD, &
       & TPC1, TPC2, TPC3, TPC4, TPC5, &
       & EPSDEL, DT0L, DT0I, &
-      & ROR, &
       & DEL1NUC,DEL2NUC, &
       & CWHUCM,B6,B8L,B8I,RMASSGL,RMASSGI, &
       & DEL1,DEL2,DEL1S,DEL2S, &
@@ -6082,8 +6096,6 @@ enddo
       &                  ,FI1R1,FI2R2,FI3R3,FI4R4,FI5R5 &
       &                  ,RMASSLAA,RMASSLBB,RMASSIAA,RMASSIBB &
       &                  ,ES1N,ES2N,EW1N,ARGEXP &
-      &                  ,TT,QQ,PP &
-      &                  ,DEL1N,DEL2N,DIV1,DIV2 &
       &                  ,OPER2,OPER3,AR1,AR2
 
         DOUBLE PRECISION DELTAQ1,DELMASSI1,DELMASSL1
@@ -6092,31 +6104,17 @@ enddo
 
  ! CRYSTALS
 
- 	REAL R2(NKR,ICEMAX) &
-      &           ,RIEC(NKR,ICEMAX) &
-      &           ,RO2BL(NKR,ICEMAX) &
-      &           ,FI2(NKR,ICEMAX),PSI2(NKR,ICEMAX) &
-      &           ,FF2(NKR,ICEMAX) &
-      &           ,B21_MY(NKR,ICEMAX),B22_MY(NKR,ICEMAX)
+ 	REAL         FI2(NKR,ICEMAX)          ,B21_MY(NKR,ICEMAX),B22_MY(NKR,ICEMAX)
 
  ! SNOW
-         REAL R3(NKR) &
-      &           ,RSEC(NKR),RO3BL(NKR) &
-      &           ,FI3(NKR),FF3(NKR),PSI3(NKR) &
-      &           ,B31_MY(NKR),B32_MY(NKR)
+         REAL            FI3(NKR)            ,B31_MY(NKR),B32_MY(NKR)
 
  ! GRAUPELS
 
-         REAL R4(NKR) &
-      &           ,RGEC(NKR),RO4BL(NKR) &
-      &           ,FI4(NKR),FF4(NKR),PSI4(NKR) &
-      &           ,B41_MY(NKR),B42_MY(NKR)
+         REAL            FI4(NKR)            ,B41_MY(NKR),B42_MY(NKR)
 
  ! HAIL
-         REAL R5(NKR) &
-      &           ,RHEC(NKR),RO5BL(NKR) &
-      &           ,FI5(NKR),FF5(NKR),PSI5(NKR) &
-      &           ,B51_MY(NKR),B52_MY(NKR)
+         REAL            FI5(NKR)            ,B51_MY(NKR),B52_MY(NKR)
 
  ! CCN
 

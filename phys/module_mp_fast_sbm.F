@@ -3550,13 +3550,14 @@ enddo
           END DO
         ENDIF
 
+#if 0
+!$omp target teams distribute parallel do  &
+!$omp private(vr2_zc,vr2_zp,vr2_zd,vr1_z,vr3_z,vr4_z,vr5_z, &
+!$omp ff1in, ff2in,ff3in,ff4in,ff5in, &
+!$omp fmax1,fmax2,fmax3,fmax4,fmax5,&
+!$omp isym1,isym2,isym3,isym4,isym5)
+#endif
 
-!!$omp target teams distribute parallel do  &
-!!$omp private(vr2_zc,vr2_zp,vr2_zd,vr1_z,vr3_z,vr4_z,vr5_z, &
-!!$omp   ff1r,ff2r,ff3r,ff4r,ff5r,fccn, &
-!!$omp ff1in, ff2in,ff3in,ff4in,ff5in, &
-!!$omp fmax1,fmax2,fmax3,fmax4,fmax5,&
-        !!$omp isym1,isym2,isym3,isym4,isym5)
        do j = jts,jte
           do k = kts,kte
              do i = its,ite
@@ -3758,6 +3759,8 @@ enddo
                         IF(FMAX5 > 1.E-10)ISYM5 = 1
                       END IF
 
+#if 1
+
                       IF(ISYM1==1 .AND. ((TT-273.15)>-0.187 .OR.(sum(ISYM2)==0 .AND. &
                           ISYM3==0 .AND. ISYM4==0 .AND. ISYM5==0)))THEN
 
@@ -3809,6 +3812,8 @@ enddo
                                 ,ISYM1,ISYM2,ISYM3,ISYM4,ISYM5,I,J,K,W(i,k,j),DX,Itimestep)
                               ENDIF
                             END IF
+#endif
+
                           END IF ! DIFF.NE.0
                       END IF ! DIFFU.NE.0
                   END DO ! NCOND - end of NCOND loop

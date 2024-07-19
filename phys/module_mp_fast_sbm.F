@@ -4115,37 +4115,9 @@ enddo
           END DO
         ENDIF
 
-#define COND1 1
-#define COND2 0
-#define COND3 0
-
-#if 1
-!$omp target teams distribute parallel do collapse(2)  &
-!$omp private ( &
-!$omp ff1in, ff2in,ff3in,ff4in,ff5in, &
-!$omp fmax1,fmax2,fmax3,fmax4,fmax5,&
-!$omp isym1,isym2,isym3,isym4,isym5) &
-!$omp map(from: vr2_zc,vr2_zp,vr2_zd,vr1_z,vr3_z,vr4_z,vr5_z,vr1_z3d,vr3_z3d,vr4_z3d,vr5_z3d)
-#endif
-
        do j = jts,jte
           do k = kts,kte
              do i = its,ite
-
-            ! ... correcting Look-up-table Terminal velocities
-            FACTOR_P = DSQRT(1.0D6/PCGS(I,K,J))
-            VR2_ZC(:,i,k,j) = VR2(1:nkr,1)*FACTOR_P
-            VR2_ZP(:,i,k,j) = VR2(1:nkr,2)*FACTOR_P
-            VR2_ZD(:,i,k,j) = VR2(1:nkr,3)*FACTOR_P
-            VR1_Z(:,i,k,j) =  VR1(1:nkr)*FACTOR_P
-            VR3_Z(:,i,k,j) = VR3(1:nkr)*FACTOR_P
-            VR4_Z(:,i,k,j) = VR4(1:nkr)*FACTOR_P
-            VR5_Z(:,i,k,j) = VR5(1:nkr)*FACTOR_P
-            VR1_Z3D(1:nkr,I,K,J) = VR1(1:nkr)*FACTOR_P
-            VR3_Z3D(1:nkr,I,K,J) = VR3(1:nkr)*FACTOR_P
-            VR4_Z3D(1:nkr,I,K,J) = VR4(1:nkr)*FACTOR_P
-            VR5_Z3D(1:nkr,I,K,J) = VR5(1:nkr)*FACTOR_P
-
      			! ... Liquid
      			  KRR = 0
      			  DO kr = p_ff1i01,p_ff1i33
@@ -4192,6 +4164,42 @@ enddo
                FF5R_all(KRR, i,k,j) = 0.0
            ENDDO
           endif
+       enddo
+      enddo
+      enddo
+
+
+#define COND1 1
+#define COND2 0
+#define COND3 0
+
+#if 1
+!$omp target teams distribute parallel do collapse(2)  &
+!$omp private ( &
+!$omp ff1in, ff2in,ff3in,ff4in,ff5in, &
+!$omp fmax1,fmax2,fmax3,fmax4,fmax5,&
+!$omp isym1,isym2,isym3,isym4,isym5) &
+!$omp map(from: vr2_zc,vr2_zp,vr2_zd,vr1_z,vr3_z,vr4_z,vr5_z,vr1_z3d,vr3_z3d,vr4_z3d,vr5_z3d)
+#endif
+
+       do j = jts,jte
+          do k = kts,kte
+             do i = its,ite
+
+            ! ... correcting Look-up-table Terminal velocities
+            FACTOR_P = DSQRT(1.0D6/PCGS(I,K,J))
+            VR2_ZC(:,i,k,j) = VR2(1:nkr,1)*FACTOR_P
+            VR2_ZP(:,i,k,j) = VR2(1:nkr,2)*FACTOR_P
+            VR2_ZD(:,i,k,j) = VR2(1:nkr,3)*FACTOR_P
+            VR1_Z(:,i,k,j) =  VR1(1:nkr)*FACTOR_P
+            VR3_Z(:,i,k,j) = VR3(1:nkr)*FACTOR_P
+            VR4_Z(:,i,k,j) = VR4(1:nkr)*FACTOR_P
+            VR5_Z(:,i,k,j) = VR5(1:nkr)*FACTOR_P
+            VR1_Z3D(1:nkr,I,K,J) = VR1(1:nkr)*FACTOR_P
+            VR3_Z3D(1:nkr,I,K,J) = VR3(1:nkr)*FACTOR_P
+            VR4_Z3D(1:nkr,I,K,J) = VR4(1:nkr)*FACTOR_P
+            VR5_Z3D(1:nkr,I,K,J) = VR5(1:nkr)*FACTOR_P
+
 
 ! +---------------------------------------------+
 ! Neucliation, Condensation, Collisions

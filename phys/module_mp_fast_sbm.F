@@ -2630,8 +2630,8 @@ real(8), pointer :: dropradii(:)
 	PSI1 = PSI1_r
 	PSI2 = PSI2_r
 	FCCNR = FCCNR_r
-	XL = XL_r
-	XI = XI_r
+	!XL = XL_r
+	!XI = XI_r
 	ROR = ROR_r
 	PP = PP_r
 	COL = COL_r
@@ -2653,7 +2653,7 @@ real(8), pointer :: dropradii(:)
 	IF(SUP1>0.0D0 .AND. TPC>T_NUCL_DROP_MIN) THEN
 		if(sum(FCCNR) > 0.0)then
 			DROPCONCN = 0.0D0
-			CALL WATER_NUCLEATION (COL, NKR_aerosol, PSI1, FCCNR, xl, TT, QQ, ROR, SUP1, DROPCONCN, &
+			CALL WATER_NUCLEATION (COL, NKR_aerosol, PSI1, FCCNR, xl_r, TT, QQ, ROR, SUP1, DROPCONCN, &
 							 	   PP, Is_This_CloudBase, Win, RO_SOLUTE, RCCN, IONS,MWAERO)
 		endif
 		! ... Transfer drops to Ice-Crystals via direct homogenous nucleation
@@ -2661,7 +2661,7 @@ real(8), pointer :: dropradii(:)
 		  SUM_ICE = 0.0D0
 		  DO KR=1,NKR
 			  PSI2(KR,2) = PSI2(KR,2) + PSI1(KR)
-			  SUM_ICE = SUM_ICE + COL3*xl(KR)*xl(KR)*PSI1(KR)
+			  SUM_ICE = SUM_ICE + COL3*xl_r(KR)*xl_r(KR)*PSI1(KR)
 			  PSI1(KR) = 0.0D0
 		  END DO
 		  ARG_1 = 334.0D0*SUM_ICE*RORI
@@ -2682,7 +2682,7 @@ real(8), pointer :: dropradii(:)
 		ENDDO
 
 	if(ice_nucl_method == 0) then
-	  CALL ICE_NUCL (PSI2,xi,SUP2,TT,DSUPICE_XYZ,SUP2_OLD,ICEMAX,NKR,COL)
+	  CALL ICE_NUCL (PSI2,xi_r,SUP2,TT,DSUPICE_XYZ,SUP2_OLD,ICEMAX,NKR,COL)
 	endif
 
 	IF(ISIGN_TQ_ICENUCL == 1) THEN
@@ -2693,7 +2693,7 @@ real(8), pointer :: dropradii(:)
 		DO K=1,NKR
 			DO ICE=1,ICEMAX
 			  FI2_K=FI2(K,ICE)
-			  xi_K=xi(K,ICE)
+			  xi_K=xi_r(K,ICE)
 			  FI2R2=FI2_K*xi_K*xi_K
 			  RMASSIBB_NUCL=RMASSIBB_NUCL+FI2R2
 			ENDDO
@@ -2707,7 +2707,7 @@ real(8), pointer :: dropradii(:)
 		DO K=1,NKR
 			DO ICE=1,ICEMAX
 			  FI2_K=PSI2(K,ICE)
-			  xi_K=xi(K,ICE)
+			  xi_K=xi_r(K,ICE)
 			  FI2R2=FI2_K*xi_K*xi_K
 			  RMASSIAA_NUCL=RMASSIAA_NUCL+FI2R2
 			ENDDO
@@ -2768,7 +2768,8 @@ real(8), pointer :: dropradii(:)
 ! xl((KR), g        - drop bin masses
 
   integer,intent(in) :: 			Is_This_CloudBase, NKR, IONS
-  real(kind=r8size),intent(in) :: 	xl(:), ROR, PP, Win, RCCN(:), COL
+  real(kind=r4size),intent(in) :: 	xl(:)
+  real(kind=r8size),intent(in) :: 	 ROR, PP, Win, RCCN(:), COL
   real(kind=r8size),intent(inout) :: FCCNR(:), PSI1(:), DROPCONCN(:), QQ, TT, SUP1
   real(kind=r4size),intent(in) :: 	 RO_SOLUTE, MWAERO
 
@@ -2902,7 +2903,8 @@ real(8), pointer :: dropradii(:)
 	implicit none
 
 	integer,intent(in) :: NKR, ICEMAX
-	real(kind=r8size),intent(in) :: xi(:,:), DSUPICE_XYZ, COL
+	real(kind=r4size),intent(in) :: xi(:,:)
+	real(kind=r8size),intent(in) ::  DSUPICE_XYZ, COL
 	real(kind=r8size),intent(inout) :: PSI2(:,:),TT,SUP2,SUP2_OLD
 
 	! ... Locals
@@ -4175,7 +4177,7 @@ enddo
 #define COND3 0
 
 #if 1
-!$omp target teams distribute parallel do   &
+!$omp target teams distribute parallel do collapse(2)   &
 !$omp private ( &
 !$omp fmax1,fmax2,fmax3,fmax4,fmax5,&
 !$omp isym1,isym2,isym3,isym4,isym5) &

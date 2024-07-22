@@ -2886,10 +2886,10 @@ enddo
       &  0.1000E-02,0.1000E-05,0.1000E-05, &
       &  2.7015E02/
 
-      REAL (KIND=R4SIZE),DIMENSION (nkr) :: FF1IN,FF3IN,FF4IN,FF5IN,&
-      &              FF1R,FF3R,FF4R,FF5R,FLIQFR_S,FRIMFR_S,FLIQFR_G,FLIQFR_H, &
+      REAL (KIND=R4SIZE),DIMENSION (nkr) ::     FF1R,FF3R,FF4R,FF5R,FLIQFR_S,FRIMFR_S,FLIQFR_G,FLIQFR_H, &
       &              FF1R_NEW,FF3R_NEW,FF4R_NEW,FF5R_NEW
       ! storing FF across loops
+      REAL (KIND=R4SIZE),DIMENSION (nkr,its:ite,kts:kte,jts:jte) :: FF1IN,FF3IN,FF4IN,FF5IN
       REAL (KIND=R4SIZE), DIMENSION (nkr, its:ite, kts:kte, jts:jte) :: &
                      FF1R_all, FF3R_all, FF4R_all,FF5R_all
       REAL (KIND=R4SIZE), DIMENSION (nkr_aerosol, its:ite, kts:kte, jts:jte) :: FCCN_all
@@ -2898,7 +2898,8 @@ enddo
 
       REAL (KIND=R4SIZE),DIMENSION (nkr) :: FL3R,FL4R,FL5R,FL3R_NEW,FL4R_NEW,FL5R_NEW
 
-      REAL (KIND=R4SIZE),DIMENSION (nkr,icemax) :: FF2IN,FF2R,FLIQFR_I
+      REAL (KIND=R4SIZE),DIMENSION (nkr,icemax) :: FF2R,FLIQFR_I
+      REAL (KIND=R4SIZE),DIMENSION (nkr,icemax,its:ite,kts:kte,jts:jte) :: FF2IN
 
       REAL (KIND=R4SIZE) :: XI_MELT(NKR,ICEMAX),XS_MELT(NKR),XG_MELT(NKR),XH_MELT(NKR)
  !!!! NOTE: ZCGS AND OTHER VARIABLES ARE ALSO DIMENSIONED IN FALFLUXHUCM
@@ -3364,22 +3365,21 @@ enddo
       enddo
 
 
-#define COND1 1
+#define COND1 0
 #define COND2 0
 #define COND3 0
 
 #if 1
-!$omp target teams distribute parallel do collapse(2)  &
+!$omp target teams distribute parallel do   &
 !$omp private ( &
-!$omp ff1in, ff2in,ff3in,ff4in,ff5in, &
 !$omp fmax1,fmax2,fmax3,fmax4,fmax5,&
 !$omp isym1,isym2,isym3,isym4,isym5) &
 !$omp map(from: vr2_zc,vr2_zp,vr2_zd,vr1_z,vr3_z,vr4_z,vr5_z,vr1_z3d,vr3_z3d,vr4_z3d,vr5_z3d)
 #endif
 
-       do j = jts,jte
-          do k = kts,kte
-             do i = its,ite
+      do j = jts,jte
+         do k = kts,kte
+            do i = its,ite
 
             ! ... correcting Look-up-table Terminal velocities
             FACTOR_P = DSQRT(1.0D6/PCGS(I,K,J))
@@ -3465,19 +3465,19 @@ enddo
 ! Droplet nucleation :
 ! +------------------------------------------+
                           DO KR=1,NKR
-                            FF1IN(KR)=FF1R_all(KR,i,k,j)
+                            FF1IN(KR,i,k,j)=FF1R_all(KR,i,k,j)
                               DO ICE=1,ICEMAX
-                                FF2IN(KR,ICE)=FF2R_all(KR,ICE,i,k,j)
+                                FF2IN(KR,ICE,i,k,j)=FF2R_all(KR,ICE,i,k,j)
                               ENDDO
                             ENDDO
                           Is_This_CloudBase = 0
-                          IF(KZ_Cloud_Base(I,J) == K .and. col*sum(FF1IN*XL) < 5.0) Is_This_CloudBase = 1
+                          IF(KZ_Cloud_Base(I,J) == K .and. col*sum(FF1IN(:,i,k,j)*XL) < 5.0) Is_This_CloudBase = 1
                           if (k.lt.kte)then
                             w_stag_my 	= 50.*(w(i,k,j)+w(i,k+1,j))
                           else
                             w_stag_my = 100*w(i,k,j)
                           end if
-                          CALL JERNUCL01_KS(FF1IN,FF2IN,FCCN_all(:,i,k,j) 		  &
+                          CALL JERNUCL01_KS(FF1IN(:,i,k,j),FF2IN(:,:,i,k,j),FCCN_all(:,i,k,j) 		  &
                                             ,XL,XI,TT,QQ       					    &
                                             ,rhocgs(I,K,J),pcgs(I,K,J) 			&
                                             ,DEL1IN,DEL2IN     			        &
@@ -3489,10 +3489,10 @@ enddo
                         
                         
                           DO KR=1,NKR
-                            FF1R_all(KR,i,k,j)=FF1IN(KR)
+                            FF1R_all(KR,i,k,j)=FF1IN(KR,i,k,j)
                             DO ICE=1,ICEMAX
-                              FF3R_all(KR,i,k,j) = FF3R_all(KR,i,k,j) + FF2IN(KR,ICE)
-                              FF2IN(KR,ICE) = 0.0
+                              FF3R_all(KR,i,k,j) = FF3R_all(KR,i,k,j) + FF2IN(KR,ICE,i,k,j)
+                              FF2IN(KR,ICE,i,k,j) = 0.0
                               FF2R_all(KR,ICE,i,k,j) = 0.0
                             END DO
                           END DO
@@ -3504,16 +3504,16 @@ enddo
                         FMAX4=0.
                         FMAX5=0.
                         DO KR=1,NKR
-                          FF1IN(KR)=FF1R_all(KR,i,k,j)
+                          FF1IN(KR,i,k,j)=FF1R_all(KR,i,k,j)
                           FMAX1=AMAX1(FF1R_all(KR,i,k,j),FMAX1)
-                          FF3IN(KR)=FF3R_all(KR,i,k,j)
+                          FF3IN(KR,i,k,j)=FF3R_all(KR,i,k,j)
                           FMAX3=AMAX1(FF3R_all(KR,i,k,j),FMAX3)
-                          FF4IN(KR)=FF4R_all(KR,i,k,j)
+                          FF4IN(KR,i,k,j)=FF4R_all(KR,i,k,j)
                           FMAX4=AMAX1(FF4R_all(KR,i,k,j),FMAX4)
-                          FF5IN(KR)=FF5R_all(KR,i,k,j)
+                          FF5IN(KR,i,k,j)=FF5R_all(KR,i,k,j)
                           FMAX5=AMAX1(FF5R_all(KR,i,k,j),FMAX5)
                           DO ICE=1,ICEMAX
-                            FF2IN(KR,ICE)=FF2R_all(KR,ICE,i,k,j)
+                            FF2IN(KR,ICE,i,k,j)=FF2R_all(KR,ICE,i,k,j)
                             FMAX2(ICE)=AMAX1(FF2R_all(KR,ICE,i,k,j),FMAX2(ICE)) ! ### (KS) FMAX2(3)
                           END DO
                         END DO
@@ -3542,7 +3542,7 @@ enddo
                           CALL ONECOND1(TT,QQ,PP,rhocgs(I,K,J) &
                                         ,VR1_Z(:,i,K,j),pcgs(I,K,J) &
                                         ,DEL1IN,DEL2IN,DIV1,DIV2 &
-                                        ,FF1R_all(:,i,k,j),FF1IN,XL,RLEC,RO1BL &
+                                        ,FF1R_all(:,i,k,j),FF1IN(:,i,k,j),XL,RLEC,RO1BL &
                                         ,AA1_MY,BB1_MY,AA2_MY,BB2_MY &
                                         ,C1_MEY,C2_MEY &
                                         ,COL,DTCOND,ICEMAX,NKR,ISYM1 &

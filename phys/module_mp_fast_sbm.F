@@ -3367,11 +3367,11 @@ enddo
       enddo
 
 
-#define COND1 0
-#define COND2 0
-#define COND3 0
+#define COND1 1
+#define COND2 1
+#define COND3 1
 
-#if 1
+#if 0
 !$omp target teams distribute parallel do collapse(2)   &
 !$omp private ( &
 !$omp fmax1,fmax2,fmax3,fmax4,fmax5,&
@@ -3381,7 +3381,7 @@ enddo
 
       do j = jts,jte
          do k = kts,kte
-            do i = its,ite
+         do i = its,ite
 
             ! ... correcting Look-up-table Terminal velocities
             FACTOR_P = DSQRT(1.0D6/PCGS(I,K,J))
@@ -3479,6 +3479,8 @@ enddo
                           else
                             w_stag_my = 100*w(i,k,j)
                           end if
+#if 1
+
                           CALL JERNUCL01_KS(FF1IN(:,i,k,j),FF2IN(:,:,i,k,j),FCCN_all(:,i,k,j) 		  &
                                             ,XL,XI,TT,QQ       					    &
                                             ,rhocgs(I,K,J),pcgs(I,K,J) 			&
@@ -3488,7 +3490,9 @@ enddo
                                             ,RCCN,DROPRADII,NKR,NKR_aerosol,ICEMAX,ICEPROCS &
                                             ,W_Stag_My,Is_This_CloudBase,RO_SOLUTE,IONS,MWAERO &
                                             ,I,J,K)
-                        
+
+#endif
+
                         
                           DO KR=1,NKR
                             FF1R_all(KR,i,k,j)=FF1IN(KR,i,k,j)
@@ -3646,8 +3650,8 @@ enddo
       !$omp private(ff1r,ff2r,ff3r,ff4r,ff5r, &
       !$omp fliqfr_sd,fliqfr_gd,fliqfr_hd,frimfr_sd)
    DO j = jts,jte
-      DO k = kts,kte
          DO i = its,ite
+      DO k = kts,kte
 
             FF1R = FF1R_all(:,i,k,j)
             FF2R = FF2R_all(:,:,i,k,j)

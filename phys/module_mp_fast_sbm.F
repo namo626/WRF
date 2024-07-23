@@ -18,12 +18,12 @@
        integer, parameter :: JMAX = 33
        integer, parameter :: ICEMAX = 3
 
-     real(kind=8) :: g1(nkr),g2(nkr,icemax),g3(nkr),g4(nkr),g5(nkr), &
-                          gdumb(JMAX),gdumb_bf_breakup(JMAX),xl_dumb(JMAX), &
-                          g_orig(nkr),g2_1(nkr),g2_2(nkr),g2_3(nkr)
-     real(kind=8) :: fl1(nkr),rf1(nkr),rf3(nkr),fl3(nkr), &
-                          fl4(nkr),fl5(nkr),fl2_1(nkr),fl2_2(nkr),fl2_3(nkr), &
-                          rf2(nkr),rf4(nkr),rf5(nkr), dm_rime(nkr)
+     real(kind=8), allocatable :: g1(:,:,:,:),g2(:,:,:,:,:),g3(:,:,:,:),g4(:,:,:,:),g5(:,:,:,:), &
+                          gdumb(:,:,:,:),gdumb_bf_breakup(:,:,:,:),xl_dumb(:,:,:,:), &
+                          g_orig(:,:,:,:),g2_1(:,:,:,:),g2_2(:,:,:,:),g2_3(:,:,:,:)
+     real(kind=8), allocatable :: fl1(:,:,:,:),rf1(:,:,:,:),rf3(:,:,:,:),fl3(:,:,:,:), &
+                          fl4(:,:,:,:),fl5(:,:,:,:),fl2_1(:,:,:,:),fl2_2(:,:,:,:),fl2_3(:,:,:,:), &
+                          rf2(:,:,:,:),rf4(:,:,:,:),rf5(:,:,:,:), dm_rime(:,:,:,:)
 
      !$omp declare target( g1,g2,g3,g4,g5, &
      !$omp                     gdumb,gdumb_bf_breakup,xl_dumb, &
@@ -32,6 +32,51 @@
      !$omp declare target (fl1,rf1,rf3,fl3, &
     !$omp                  fl4,fl5,fl2_1,fl2_2,fl2_3, &
       !$omp                     rf2,rf4,rf5, dm_rime )
+
+        contains
+
+        subroutine init_temp_arrays(its,ite,jts,jte,kts,kte)
+
+        implicit none
+        integer, intent(in) :: its, ite, jts, jte, kts, kte
+
+        allocate( g1(its:ite,kts:kte,jts:jte,nkr),&
+        g2(its:ite,kts:kte,jts:jte,nkr,icemax), &
+        g3(its:ite,kts:kte,jts:jte,nkr), &
+        g4(its:ite,kts:kte,jts:jte,nkr), &
+        g5(its:ite,kts:kte,jts:jte,nkr), &
+        gdumb(its:ite,kts:kte,jts:jte,jmax), &
+        gdumb_bf_breakup(its:ite,kts:kte,jts:jte,jmax),&
+        xl_dumb(its:ite,kts:kte,jts:jte,jmax), &
+        g_orig(its:ite,kts:kte,jts:jte,nkr),&
+        g2_1(its:ite,kts:kte,jts:jte,nkr),&
+        g2_2(its:ite,kts:kte,jts:jte,nkr),&
+        g2_3(its:ite,kts:kte,jts:jte,nkr) )
+
+       allocate(   fl1(its:ite,kts:kte,jts:jte,nkr), &
+        rf1(its:ite,kts:kte,jts:jte,nkr), &
+        rf3(its:ite,kts:kte,jts:jte,nkr), &
+        fl3(its:ite,kts:kte,jts:jte,nkr), &
+        fl4(its:ite,kts:kte,jts:jte,nkr), &
+        fl5(its:ite,kts:kte,jts:jte,nkr), &
+        fl2_1(its:ite,kts:kte,jts:jte,nkr), &
+        fl2_2(its:ite,kts:kte,jts:jte,nkr), &
+        fl2_3(its:ite,kts:kte,jts:jte,nkr), &
+        rf2(its:ite,kts:kte,jts:jte,nkr), &
+        rf4(its:ite,kts:kte,jts:jte,nkr), &
+        rf5(its:ite,kts:kte,jts:jte,nkr), &
+        dm_rime(its:ite,kts:kte,jts:jte,nkr) )
+
+     !$omp target enter data map(alloc: g1,g2,g3,g4,g5, &
+     !$omp                     gdumb,gdumb_bf_breakup,xl_dumb, &
+     !$omp                     g_orig,g2_1,g2_2,g2_3 )
+
+     !$omp target enter data map(alloc :fl1,rf1,rf3,fl3, &
+    !$omp                  fl4,fl5,fl2_1,fl2_2,fl2_3, &
+      !$omp                     rf2,rf4,rf5, dm_rime )
+
+        end subroutine init_temp_arrays
+
 
          end module temp_arrays
 

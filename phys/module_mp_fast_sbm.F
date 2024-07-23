@@ -12,11 +12,7 @@
        implicit none
 
 
-       public
 
-       integer, parameter :: NKR = 33
-       integer, parameter :: JMAX = 33
-       integer, parameter :: ICEMAX = 3
 
      real(kind=8), allocatable :: g1(:,:,:,:),g2(:,:,:,:,:),g3(:,:,:,:),g4(:,:,:,:),g5(:,:,:,:), &
                           gdumb(:,:,:,:),gdumb_bf_breakup(:,:,:,:),xl_dumb(:,:,:,:), &
@@ -35,10 +31,10 @@
 
         contains
 
-        subroutine init_temp_arrays(its,ite,jts,jte,kts,kte)
+        subroutine init_temp_arrays(its,ite,jts,jte,kts,kte, nkr, icemax, jmax)
 
         implicit none
-        integer, intent(in) :: its, ite, jts, jte, kts, kte
+        integer, intent(in) :: its, ite, jts, jte, kts, kte, nkr, icemax, jmax
 
         allocate( g1(its:ite,kts:kte,jts:jte,nkr),&
         g2(its:ite,kts:kte,jts:jte,nkr,icemax), &
@@ -2842,6 +2838,7 @@ enddo
       &                      sbm_diagnostics,                            &
       &                      RAINNC,RAINNCV,SNOWNC,SNOWNCV,GRAUPELNC,GRAUPELNCV,SR)
  !-----------------------------------------------------------------------
+      use temp_arrays
        IMPLICIT NONE
  !-----------------------------------------------------------------------
  	INTEGER :: KR,IKL,ICE
@@ -3682,7 +3679,32 @@ enddo
                                 rhocgs(I,K,J),dt_coll,TCRIT,TTCOAL, 	    &
                                 FLIQFR_SD,FLIQFR_GD,FLIQFR_HD,FRIMFR_SD,  &
                                 DEL1IN, DEL2IN, 			        	          &
-                                I,J,K,Itimestep,CollEff_out)
+                                I,J,K,Itimestep,CollEff_out, &
+                                g1(i,k,j,:),&
+                                g2(i,k,j,:,:), &
+                                g3(i,k,j,:), &
+                                g4(i,k,j,:), &
+                                g5(i,k,j,:), &
+                                gdumb(i,k,j,:), &
+                                gdumb_bf_breakup(i,k,j,:),&
+                                xl_dumb(i,k,j,:), &
+                                g_orig(i,k,j,:),&
+                                g2_1(i,k,j,:),&
+                                g2_2(i,k,j,:),&
+                                g2_3(i,k,j,:), &
+                                   fl1(i,k,j,:), &
+                                rf1(i,k,j,:), &
+                                rf3(i,k,j,:), &
+                                fl3(i,k,j,:), &
+                                fl4(i,k,j,:), &
+                                fl5(i,k,j,:), &
+                                fl2_1(i,k,j,:), &
+                                fl2_2(i,k,j,:), &
+                                fl2_3(i,k,j,:), &
+                                rf2(i,k,j,:), &
+                                rf4(i,k,j,:), &
+                                rf5(i,k,j,:), &
+                                dm_rime(i,k,j,:) )
 
                     END IF
                   END DO ! NCOLL - end of NCOLL loop
@@ -7155,11 +7177,43 @@ enddo
 				FF4R,FF5R,TT,QQ,PP,RHO,dt_coll,TCRIT,TTCOAL,&
 			      	FLIQFR_S,FLIQFR_G,FLIQFR_H,FRIMFR_S,        &
 			    	DEL1in, DEL2in,                             &
-  		              	Iin,Jin,Kin,itimestep,CollEff)
+  		              	Iin,Jin,Kin,itimestep,CollEff, &
+                                g1,&
+                                g2, &
+                                g3, &
+                                g4, &
+                                g5, &
+                                gdumb, &
+                                gdumb_bf_breakup,&
+                                xl_dumb, &
+                                g_orig,&
+                                g2_1,&
+                                g2_2,&
+                                g2_3, &
+                                   fl1, &
+                                rf1, &
+                                rf3, &
+                                fl3, &
+                                fl4, &
+                                fl5, &
+                                fl2_1, &
+                                fl2_2, &
+                                fl2_3, &
+                                rf2, &
+                                rf4, &
+                                rf5, &
+                                dm_rime )
 
-        use temp_arrays
      implicit none
 
+                                ! temp
+     real(kind=8), intent(out) :: g1(:),g2(:,:),g3(:),g4(:),g5(:), &
+                          gdumb(:),gdumb_bf_breakup(:),xl_dumb(:), &
+                          g_orig(:),g2_1(:),g2_2(:),g2_3(:)
+     real(kind=8), intent(out) :: fl1(:),rf1(:),rf3(:),fl3(:), &
+                          fl4(:),fl5(:),fl2_1(:),fl2_2(:),fl2_3(:), &
+                          rf2(:),rf4(:),rf5(:), dm_rime(:)
+                          ! temp
 
      integer,intent(in) :: Iin,Jin,Kin,itimestep
      real(kind=r4size),intent(in) :: tcrit,ttcoal,dt_coll

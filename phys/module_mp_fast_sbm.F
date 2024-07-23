@@ -8,6 +8,33 @@
       END MODULE module_mp_fast_sbm
 #else
 #define OFFLOAD 1
+       module temp_arrays
+       implicit none
+
+
+       public
+
+       integer, parameter :: NKR = 33
+       integer, parameter :: JMAX = 33
+       integer, parameter :: ICEMAX = 3
+
+     real(kind=8) :: g1(nkr),g2(nkr,icemax),g3(nkr),g4(nkr),g5(nkr), &
+                          gdumb(JMAX),gdumb_bf_breakup(JMAX),xl_dumb(JMAX), &
+                          g_orig(nkr),g2_1(nkr),g2_2(nkr),g2_3(nkr)
+     real(kind=8) :: fl1(nkr),rf1(nkr),rf3(nkr),fl3(nkr), &
+                          fl4(nkr),fl5(nkr),fl2_1(nkr),fl2_2(nkr),fl2_3(nkr), &
+                          rf2(nkr),rf4(nkr),rf5(nkr), dm_rime(nkr)
+
+     !$omp declare target( g1,g2,g3,g4,g5, &
+     !$omp                     gdumb,gdumb_bf_breakup,xl_dumb, &
+     !$omp                     g_orig,g2_1,g2_2,g2_3 )
+
+     !$omp declare target (fl1,rf1,rf3,fl3, &
+    !$omp                  fl4,fl5,fl2_1,fl2_2,fl2_3, &
+      !$omp                     rf2,rf4,rf5, dm_rime )
+
+         end module temp_arrays
+
 ! +-----------------------------------------------------------------------------+
 ! +-----------------------------------------------------------------------------+
 
@@ -7085,9 +7112,9 @@ enddo
 			    	DEL1in, DEL2in,                             &
   		              	Iin,Jin,Kin,itimestep,CollEff)
 
+        use temp_arrays
      implicit none
 
-        use temp_arrays
 
      integer,intent(in) :: Iin,Jin,Kin,itimestep
      real(kind=r4size),intent(in) :: tcrit,ttcoal,dt_coll
@@ -9179,25 +9206,6 @@ enddo
       end subroutine courant_bott_KS
 ! +-----------------------------------------------------------------------------+
        END MODULE module_mp_fast_sbm
-
-       module temp_arrays
-       implicit none
-
-       contains
-
-       public
-
-       integer, parameter :: NKR = 33
-       integer, parameter :: JMAX = 33
-
-     real(kind=8) :: g1(nkr),g2(nkr,icemax),g3(nkr),g4(nkr),g5(nkr), &
-                          gdumb(JMAX),gdumb_bf_breakup(JMAX),xl_dumb(JMAX), &
-                          g_orig(nkr),g2_1(nkr),g2_2(nkr),g2_3(nkr)
-     real(kind=8) :: prdkrn,fl1(nkr),rf1(nkr),rf3(nkr),fl3(nkr), &
-                          fl4(nkr),fl5(nkr),fl2_1(nkr),fl2_2(nkr),fl2_3(nkr), &
-                          rf2(nkr),rf4(nkr),rf5(nkr), dm_rime(nkr)
-
-         end module temp_arrays
 
 
 #endif

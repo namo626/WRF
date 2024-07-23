@@ -3573,9 +3573,13 @@ enddo
  !$omp target update to( qkj)
  !$omp target update to( ima)
 
+#if 0
+
       !$omp target teams distribute parallel do collapse(2)  &
       !$omp private(ff1r,ff2r,ff3r,ff4r,ff5r, &
       !$omp fliqfr_sd,fliqfr_gd,fliqfr_hd,frimfr_sd)
+#endif
+
    DO j = jts,jte
       DO k = kts,kte
          DO i = its,ite
@@ -7083,6 +7087,8 @@ enddo
 
      implicit none
 
+        use temp_arrays
+
      integer,intent(in) :: Iin,Jin,Kin,itimestep
      real(kind=r4size),intent(in) :: tcrit,ttcoal,dt_coll
      real(kind=r4size),intent(inout) :: ff1r(:),ff2r(:,:),ff3r(:),ff4r(:),  &
@@ -7094,9 +7100,6 @@ enddo
 
  	   integer :: KR,ICE,icol_drop,icol_snow,icol_graupel,icol_hail, &
       		      icol_column,icol_plate,icol_dendrite,icol_drop_brk
-     real(kind=r8size) :: g1(nkr),g2(nkr,icemax),g3(nkr),g4(nkr),g5(nkr), &
-                          gdumb(JMAX),gdumb_bf_breakup(JMAX),xl_dumb(JMAX), &
-                          g_orig(nkr),g2_1(nkr),g2_2(nkr),g2_3(nkr)
      real(kind=r4size) :: cont_fin_drop,dconc,conc_icempl,deldrop,t_new, &
       	                 delt_new,cont_fin_ice,conc_old,conc_new,cont_init_ice, &
   		                   cont_init_drop,ALWC,T_new_real,PP_r,rho,ES1N,ES2N,EW1N
@@ -7104,10 +7107,9 @@ enddo
 
      integer :: I,J,IT,NDIV
      real(kind=r8size) :: break_drop_bef,break_drop_aft,dtbreakup,break_drop_per, &
-                          prdkrn,fl1(nkr),rf1(nkr),rf3(nkr),fl3(nkr), &
-                          fl4(nkr),fl5(nkr),fl2_1(nkr),fl2_2(nkr),fl2_3(nkr), &
-                          rf2(nkr),rf4(nkr),rf5(nkr),conc_drop_old, conc_drop_new, &
-                          dconc_drop, dm_rime(nkr), conc_plate_icempl, &
+                          prdkrn, &
+                          conc_drop_old, conc_drop_new, &
+                          dconc_drop,  conc_plate_icempl, &
                           col3, cont_coll_drop
      real(kind=r8size),parameter :: prdkrn1 = 1.0d0
      real(kind=r4size),parameter :: prdkrn1_r = 1.0
@@ -9177,4 +9179,25 @@ enddo
       end subroutine courant_bott_KS
 ! +-----------------------------------------------------------------------------+
        END MODULE module_mp_fast_sbm
+
+       module temp_arrays
+       implicit none
+
+       contains
+
+       public
+
+       integer, parameter :: NKR = 33
+       integer, parameter :: JMAX = 33
+
+     real(kind=8) :: g1(nkr),g2(nkr,icemax),g3(nkr),g4(nkr),g5(nkr), &
+                          gdumb(JMAX),gdumb_bf_breakup(JMAX),xl_dumb(JMAX), &
+                          g_orig(nkr),g2_1(nkr),g2_2(nkr),g2_3(nkr)
+     real(kind=8) :: prdkrn,fl1(nkr),rf1(nkr),rf3(nkr),fl3(nkr), &
+                          fl4(nkr),fl5(nkr),fl2_1(nkr),fl2_2(nkr),fl2_3(nkr), &
+                          rf2(nkr),rf4(nkr),rf5(nkr), dm_rime(nkr)
+
+         end module temp_arrays
+
+
 #endif

@@ -23,7 +23,7 @@
       integer, intent(in) :: its,ite,jts,jte,kts,kte,nkr
 
       if (.not. allocated(g1_temp)) then
-         allocate (g1_temp(its:ite,kts:kte,jts:jte,nkr))
+         allocate (g1_temp(nkr,its:ite,kts:kte,jts:jte))
 
          !$omp target enter data map(alloc: g1_temp)
       endif
@@ -3599,9 +3599,12 @@ enddo
  !$omp target update to( qkj)
  !$omp target update to( ima)
 
+#if 1
       !$omp target teams distribute parallel do collapse(2)  &
       !$omp private(ff1r,ff2r,ff3r,ff4r,ff5r, &
       !$omp fliqfr_sd,fliqfr_gd,fliqfr_hd,frimfr_sd)
+#endif
+
    DO j = jts,jte
       DO k = kts,kte
          DO i = its,ite
@@ -7110,6 +7113,7 @@ enddo
         use temp_arrays
      implicit none
 
+!$omp declare target
      integer,intent(in) :: Iin,Jin,Kin,itimestep
      real(kind=r4size),intent(in) :: tcrit,ttcoal,dt_coll
      real(kind=r4size),intent(inout) :: ff1r(:),ff2r(:,:),ff3r(:),ff4r(:),  &
@@ -7144,8 +7148,7 @@ enddo
  	   real(kind=r8size),PARAMETER :: g_lim = 1.0D-19*1.0D3,AA1_MY = 2.53E12,  &
                                     BB1_MY = 5.42E3, AA2_MY = 3.41E13 ,BB2_MY = 6.13E3
 
-!$omp declare target
-    g1 => g1_temp(Iin,Kin,Jin,:)
+    g1 => g1_temp(:,Iin,Kin,Jin)
 
     icol_drop_brk=0
     icol_drop=0

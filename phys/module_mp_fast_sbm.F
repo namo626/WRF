@@ -8,6 +8,29 @@
       END MODULE module_mp_fast_sbm
 #else
 #define OFFLOAD 1
+
+      module temp_arrays
+
+      implicit none
+
+      !$omp declare target (g1_temp)
+      real(8), allocatable, target, dimension(:,:,:,:) :: g1_temp
+
+      contains
+
+      subroutine init_temp_arrays(its,ite,jts,jte,kts,kte,nkr)
+
+      integer, intent(in) :: its,ite,jts,jte,kts,kte,nkr
+
+      if (.not. allocated(g1_temp)) then
+         allocate (g1_temp(its:ite,kts:kte,jts:jte,nkr))
+
+         !$omp target enter data map(alloc: g1_temp)
+      endif
+
+      end subroutine init_temp_arrays
+
+      end module temp_arrays
 ! +-----------------------------------------------------------------------------+
 ! +-----------------------------------------------------------------------------+
 
@@ -2770,6 +2793,7 @@ enddo
       &                      sbm_diagnostics,                            &
       &                      RAINNC,RAINNCV,SNOWNC,SNOWNCV,GRAUPELNC,GRAUPELNCV,SR)
  !-----------------------------------------------------------------------
+      use temp_arrays
        IMPLICIT NONE
  !-----------------------------------------------------------------------
  	INTEGER :: KR,IKL,ICE
@@ -2962,6 +2986,8 @@ enddo
     real(kind=r8size), dimension(its:ite,kts:kte,jts:jte) :: tt_all, qq_all, pp_all, del1in_all, del2in_all
     logical, dimension(its:ite,kts:kte,jts:jte) :: call_coal_bott_new
 
+! allocate temp
+      call init_temp_arrays(its,ite,jts,jte,kts,kte,nkr)
   XS_d = XS
 
   if (itimestep.eq.1)then
@@ -7081,6 +7107,7 @@ enddo
 			    	DEL1in, DEL2in,                             &
   		              	Iin,Jin,Kin,itimestep,CollEff)
 
+        use temp_arrays
      implicit none
 
      integer,intent(in) :: Iin,Jin,Kin,itimestep
@@ -7092,9 +7119,10 @@ enddo
      real(kind=r8size),intent(in) :: pp
 ! local vars
 
+        real(kind=r8size), pointer :: g1(:)
  	   integer :: KR,ICE,icol_drop,icol_snow,icol_graupel,icol_hail, &
       		      icol_column,icol_plate,icol_dendrite,icol_drop_brk
-     real(kind=r8size) :: g1(nkr),g2(nkr,icemax),g3(nkr),g4(nkr),g5(nkr), &
+     real(kind=r8size) :: g2(nkr,icemax),g3(nkr),g4(nkr),g5(nkr), &
                           gdumb(JMAX),gdumb_bf_breakup(JMAX),xl_dumb(JMAX), &
                           g_orig(nkr),g2_1(nkr),g2_2(nkr),g2_3(nkr)
      real(kind=r4size) :: cont_fin_drop,dconc,conc_icempl,deldrop,t_new, &
@@ -7117,6 +7145,8 @@ enddo
                                     BB1_MY = 5.42E3, AA2_MY = 3.41E13 ,BB2_MY = 6.13E3
 
 !$omp declare target
+    g1 => g1_temp(Iin,Kin,Jin,:)
+
     icol_drop_brk=0
     icol_drop=0
     icol_snow=0

@@ -3651,7 +3651,7 @@ enddo
  !$omp target update to( ima)
 
 #if 1
-      !$omp target teams distribute parallel do collapse(3)    &
+      !$omp target teams distribute parallel do collapse(3) num_teams(256)    &
 !$omp private( &
       !$omp fliqfr_sd,fliqfr_gd,fliqfr_hd,frimfr_sd)
 #endif
@@ -7315,8 +7315,8 @@ enddo
           break_drop_bef = break_drop_bef+g1(kr)*1.D-3
         end do
       end if
-
-      call coll_breakup_KS(gdumb, xl_dumb, JMAX, dtbreakup, JBREAK, PKIJ, QKJ, NKR, NKR)
+! memory issue
+      !call coll_breakup_KS(gdumb, xl_dumb, JMAX, dtbreakup, JBREAK, PKIJ, QKJ, NKR, NKR)
     end do
 
     do KR=1,NKR

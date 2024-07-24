@@ -13,19 +13,70 @@
 
       implicit none
 
-      !$omp declare target (g1_temp)
-      real(8), allocatable, target, dimension(:,:,:,:) :: g1_temp
+      !$omp declare target (g1_temp, g2_temp, g3_temp, g4_temp, g5_temp
+                          !$omp g_orig_temp, g2_1_temp, g2_2_temp, g2_3_temp,  &
+                          !$omp fl1_temp, rf1_temp, rf3_temp, fl3_temp,  &
+                          !$omp fl4_temp, fl5_temp, fl2_1_temp, fl2_2_temp, fl2_3_temp,  &
+                          !$omp rf2_temp, rf4_temp, rf5_temp, &
+                          !$omp dm_rime_temp, &
+                         !$omp g2_temp, &
+                        !$omp gdumb_temp, gdumb_bf_breakup_temp, xl_dumb_temp )
+
+      real(8), allocatable, target, dimension(:,:,:,:) :: &
+                          g1_temp, g3_temp, g4_temp, g5_temp, &
+                          g_orig_temp, g2_1_temp, g2_2_temp, g2_3_temp,  &
+                          fl1_temp, rf1_temp, rf3_temp, fl3_temp,  &
+                          fl4_temp, fl5_temp, fl2_1_temp, fl2_2_temp, fl2_3_temp,  &
+                          rf2_temp, rf4_temp, rf5_temp, &
+                          dm_rime_temp
+      real(8), allocatable, target, dimension(:,:,:,:,:) :: g2_temp
+     real(8), allocatable, target, dimension(:,:,:,:) :: gdumb_temp, gdumb_bf_breakup_temp, xl_dumb_temp
 
       contains
 
-      subroutine init_temp_arrays(its,ite,jts,jte,kts,kte,nkr)
+      subroutine init_temp_arrays(its,ite,jts,jte,kts,kte,nkr, icemax, jmax)
 
-      integer, intent(in) :: its,ite,jts,jte,kts,kte,nkr
+      integer, intent(in) :: its,ite,jts,jte,kts,kte,nkr, icemax, jmax
 
       if (.not. allocated(g1_temp)) then
          allocate (g1_temp(nkr,its:ite,kts:kte,jts:jte))
+         allocate (g2_temp(nkr,icemax, its:ite,kts:kte,jts:jte))
+         allocate (g3_temp(nkr,its:ite,kts:kte,jts:jte))
+         allocate (g4_temp(nkr,its:ite,kts:kte,jts:jte))
+         allocate (g5_temp(nkr,its:ite,kts:kte,jts:jte))
 
-         !$omp target enter data map(alloc: g1_temp)
+         allocate (g_orig_temp(nkr,its:ite,kts:kte,jts:jte))
+         allocate (g2_1_temp(nkr,its:ite,kts:kte,jts:jte))
+         allocate (g2_2_temp(nkr,its:ite,kts:kte,jts:jte))
+         allocate (g2_3_temp(nkr,its:ite,kts:kte,jts:jte))
+
+         allocate (rf1_temp(nkr,its:ite,kts:kte,jts:jte))
+         allocate (rf3_temp(nkr,its:ite,kts:kte,jts:jte))
+         allocate (rf2_temp(nkr,its:ite,kts:kte,jts:jte))
+         allocate (rf4_temp(nkr,its:ite,kts:kte,jts:jte))
+         allocate (rf5_temp(nkr,its:ite,kts:kte,jts:jte))
+
+         allocate (fl1_temp(nkr,its:ite,kts:kte,jts:jte))
+         allocate (fl3_temp(nkr,its:ite,kts:kte,jts:jte))
+         allocate (fl4_temp(nkr,its:ite,kts:kte,jts:jte))
+         allocate (fl5_temp(nkr,its:ite,kts:kte,jts:jte))
+         allocate (fl2_1_temp(nkr,its:ite,kts:kte,jts:jte))
+         allocate (fl2_2_temp(nkr,its:ite,kts:kte,jts:jte))
+         allocate (fl2_3_temp(nkr,its:ite,kts:kte,jts:jte))
+         allocate (dm_rime_temp(nkr,its:ite,kts:kte,jts:jte))
+
+         allocate (gdumb_temp(jmax,its:ite,kts:kte,jts:jte))
+         allocate (gdumb_bf_breakup_temp(jmax,its:ite,kts:kte,jts:jte))
+         allocate (xl_dumb_temp(jmax,its:ite,kts:kte,jts:jte))
+
+      !$omp target enter data map(alloc: g1_temp, g2_temp, g3_temp, g4_temp, g5_temp
+                          !$omp g_orig_temp, g2_1_temp, g2_2_temp, g2_3_temp,  &
+                          !$omp fl1_temp, rf1_temp, rf3_temp, fl3_temp,  &
+                          !$omp fl4_temp, fl5_temp, fl2_1_temp, fl2_2_temp, fl2_3_temp,  &
+                          !$omp rf2_temp, rf4_temp, rf5_temp, &
+                          !$omp dm_rime_temp, &
+                         !$omp g2_temp, &
+                        !$omp gdumb_temp, gdumb_bf_breakup_temp, xl_dumb_temp )
       endif
 
       end subroutine init_temp_arrays
@@ -2987,7 +3038,7 @@ enddo
     logical, dimension(its:ite,kts:kte,jts:jte) :: call_coal_bott_new
 
 ! allocate temp
-      call init_temp_arrays(its,ite,jts,jte,kts,kte,nkr)
+      call init_temp_arrays(its,ite,jts,jte,kts,kte,nkr, icemax)
   XS_d = XS
 
   if (itimestep.eq.1)then
@@ -7123,11 +7174,10 @@ enddo
      real(kind=r8size),intent(in) :: pp
 ! local vars
 
-        real(kind=r8size), pointer :: g1(:)
+        real(kind=r8size), pointer :: g1(:), g2(:,:), g3(:), g4(:), g5(:)
  	   integer :: KR,ICE,icol_drop,icol_snow,icol_graupel,icol_hail, &
       		      icol_column,icol_plate,icol_dendrite,icol_drop_brk
-     real(kind=r8size) :: g2(nkr,icemax),g3(nkr),g4(nkr),g5(nkr), &
-                          gdumb(JMAX),gdumb_bf_breakup(JMAX),xl_dumb(JMAX), &
+     real(kind=r8size) :: gdumb(JMAX),gdumb_bf_breakup(JMAX),xl_dumb(JMAX), &
                           g_orig(nkr),g2_1(nkr),g2_2(nkr),g2_3(nkr)
      real(kind=r4size) :: cont_fin_drop,dconc,conc_icempl,deldrop,t_new, &
       	                 delt_new,cont_fin_ice,conc_old,conc_new,cont_init_ice, &
@@ -7149,6 +7199,10 @@ enddo
                                     BB1_MY = 5.42E3, AA2_MY = 3.41E13 ,BB2_MY = 6.13E3
 
     g1 => g1_temp(:,Iin,Kin,Jin)
+    g2 => g2_temp(:,:,Iin,Kin,Jin)
+    g3 => g3_temp(:,Iin,Kin,Jin)
+    g4 => g4_temp(:,Iin,Kin,Jin)
+    g5 => g5_temp(:,Iin,Kin,Jin)
 
     icol_drop_brk=0
     icol_drop=0

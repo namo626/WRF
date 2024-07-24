@@ -3651,8 +3651,8 @@ enddo
  !$omp target update to( ima)
 
 #if 1
-      !$omp target teams distribute parallel do collapse(2)  &
-      !$omp private(ff1r,ff2r,ff3r,ff4r,ff5r, &
+      !$omp target teams distribute parallel do collapse(3)    &
+!$omp private( &
       !$omp fliqfr_sd,fliqfr_gd,fliqfr_hd,frimfr_sd)
 #endif
 
@@ -3660,12 +3660,11 @@ enddo
       DO k = kts,kte
          DO i = its,ite
 
-            FF1R = FF1R_all(:,i,k,j)
-            FF2R = FF2R_all(:,:,i,k,j)
-            FF3R = FF3R_all(:,i,k,j)
-            FF4R = FF4R_all(:,i,k,j)
-            FF5R = FF5R_all(:,i,k,j)
-            FCCN = FCCN_all(:,i,k,j)
+            !FF1R = FF1R_all(:,i,k,j)
+            !FF2R = FF2R_all(:,:,i,k,j)
+            !FF3R = FF3R_all(:,i,k,j)
+            !FF4R = FF4R_all(:,i,k,j)
+            !FF5R = FF5R_all(:,i,k,j)
 
             if (call_coal_bott_new(i,k,j)) then
 
@@ -3681,8 +3680,8 @@ enddo
                       FLIQFR_GD = 0.0
                       FLIQFR_HD = 0.0
                       FRIMFR_SD = 0.0
-                      CALL COAL_BOTT_NEW (FF1R,FF2R,FF3R,     				    &
-                                FF4R,FF5R,TT,QQ,PP, 					            &
+                      CALL COAL_BOTT_NEW (FF1R_all(:,i,k,j),FF2R_all(:,:,i,k,j),FF3R_all(:,i,k,j),     				    &
+                                FF4R_all(:,i,k,j),FF5R_all(:,i,k,j),TT,QQ,PP, 					            &
                                 rhocgs(I,K,J),dt_coll,TCRIT,TTCOAL, 	    &
                                 FLIQFR_SD,FLIQFR_GD,FLIQFR_HD,FRIMFR_SD,  &
                                 DEL1IN, DEL2IN, 			        	          &
@@ -3696,11 +3695,11 @@ enddo
                    
              endif
 
-             FF1R_all(:,i,k,j) = FF1R
-             FF2R_all(:,:,i,k,j) = FF2R
-             FF3R_all(:,i,k,j) = FF3R
-             FF4R_all(:,i,k,j) = FF4R
-             FF5R_all(:,i,k,j) = FF5R
+             !FF1R_all(:,i,k,j) = FF1R
+             !FF2R_all(:,:,i,k,j) = FF2R
+             !FF3R_all(:,i,k,j) = FF3R
+             !FF4R_all(:,i,k,j) = FF4R
+             !FF5R_all(:,i,k,j) = FF5R
 
           enddo
        enddo

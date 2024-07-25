@@ -20,7 +20,9 @@
                           !$omp rf2_temp, rf4_temp, rf5_temp, &
                           !$omp dm_rime_temp, &
                          !$omp g2_temp, &
-                        !$omp gdumb_temp, gdumb_bf_breakup_temp, xl_dumb_temp )
+                        !$omp gdumb_temp, gdumb_bf_breakup_temp, xl_dumb_temp , &
+      !$omp gt_temp, xt_temp, ft_temp, fa_temp, &
+      !$omp dg_temp, df_temp, dbreak_temp  ,amweight_temp )
 
       real(8), allocatable, target, dimension(:,:,:,:) :: &
                           g1_temp, g3_temp, g4_temp, g5_temp, &
@@ -32,11 +34,15 @@
       real(8), allocatable, target, dimension(:,:,:,:,:) :: g2_temp
      real(8), allocatable, target, dimension(:,:,:,:) :: gdumb_temp, gdumb_bf_breakup_temp, xl_dumb_temp
 
+      ! from breakup_KS
+      real(8), allocatable, target, dimension(:,:,:,:) :: gt_temp, xt_temp, ft_temp, fa_temp, &
+      dg_temp, df_temp, dbreak_temp  ,amweight_temp
+
       contains
 
-      subroutine init_temp_arrays(its,ite,jts,jte,kts,kte,nkr, icemax, jmax)
+      subroutine init_temp_arrays(its,ite,jts,jte,kts,kte,nkr, icemax, jmax, jbreak)
 
-      integer, intent(in) :: its,ite,jts,jte,kts,kte,nkr, icemax, jmax
+      integer, intent(in) :: its,ite,jts,jte,kts,kte,nkr, icemax, jmax, jbreak
 
       if (.not. allocated(g1_temp)) then
          allocate (g1_temp(nkr,its:ite,kts:kte,jts:jte))
@@ -69,6 +75,14 @@
          allocate (gdumb_bf_breakup_temp(jmax,its:ite,kts:kte,jts:jte))
          allocate (xl_dumb_temp(jmax,its:ite,kts:kte,jts:jte))
 
+         allocate( gt_temp(jmax,its:ite,kts:kte,jts:jte), xt_temp(jmax+1,its:ite,kts:kte,jts:jte), &
+         ft_temp(jmax,its:ite,kts:kte,jts:jte), &
+         fa_temp(jmax,its:ite,kts:kte,jts:jte), &
+        dg_temp(jmax,its:ite,kts:kte,jts:jte), &
+        df_temp(jmax,its:ite,kts:kte,jts:jte), &
+         dbreak_temp(jbreak,its:ite,kts:kte,jts:jte),  &
+                     amweight_temp(jbreak,its:ite,kts:kte,jts:jte) )
+
       !$omp target enter data map(alloc: g1_temp, g2_temp, g3_temp, g4_temp, g5_temp, &
                           !$omp g_orig_temp, g2_1_temp, g2_2_temp, g2_3_temp,  &
                           !$omp fl1_temp, rf1_temp, rf3_temp, fl3_temp,  &
@@ -76,7 +90,9 @@
                           !$omp rf2_temp, rf4_temp, rf5_temp, &
                           !$omp dm_rime_temp, &
                          !$omp g2_temp, &
-                        !$omp gdumb_temp, gdumb_bf_breakup_temp, xl_dumb_temp )
+                        !$omp gdumb_temp, gdumb_bf_breakup_temp, xl_dumb_temp, &
+      !$omp gt_temp, xt_temp, ft_temp, fa_temp, &
+      !$omp dg_temp, df_temp, dbreak_temp  ,amweight_temp )
       endif
 
       end subroutine init_temp_arrays
@@ -3038,7 +3054,7 @@ enddo
     logical, dimension(its:ite,kts:kte,jts:jte) :: call_coal_bott_new
 
 ! allocate temp
-      call init_temp_arrays(its,ite,jts,jte,kts,kte,nkr, icemax, nkr)
+      call init_temp_arrays(its,ite,jts,jte,kts,kte,nkr, icemax, nkr, jbreak)
   XS_d = XS
 
   if (itimestep.eq.1)then
@@ -7320,7 +7336,7 @@ enddo
         end do
       end if
 ! memory issue
-      !call coll_breakup_KS(gdumb, xl_dumb, JMAX, dtbreakup, JBREAK, PKIJ, QKJ, NKR, NKR)
+      call coll_breakup_KS(gdumb, xl_dumb, JMAX, dtbreakup, JBREAK, PKIJ, QKJ, NKR, NKR,Iin,Jin,Kin)
     end do
 
     do KR=1,NKR
@@ -9102,11 +9118,13 @@ enddo
   end subroutine modkrn_KS
   ! +-----------------------------------------------------------+
   subroutine coll_breakup_KS (gt_mg, xt_mg, jmax, dt, jbreak, &
-                              PKIJ, QKJ, NKRinput, NKR)
+                              PKIJ, QKJ, NKRinput, NKR, Iin,Jin,Kin)
 
+                              use temp_arrays
     implicit none
+!$omp declare target
   ! ... Interface
-    integer,intent(in) :: jmax, jbreak, NKRInput, NKR
+    integer,intent(in) :: jmax, jbreak, NKRInput, NKR, Iin,Jin,Kin
     real(kind=r8size),intent(in) :: xt_mg(:)
      real(kind=r8size), value :: dt
     real(kind=r4size),intent(in) :: pkij(:,:,:),qkj(:,:)
@@ -9118,11 +9136,21 @@ enddo
   integer,parameter :: ia=1, ja=1, ka=1
   integer :: ie, je, ke, nkrdiff, jdiff, k, i, j
   real(kind=r8size),parameter :: eps = 1.0d-20
-  real(kind=r8size) :: gt(jmax), xt(jmax+1), ft(jmax), fa(jmax), dg(jmax), df(jmax), dbreak(jbreak) &
-                     ,amweight(jbreak), gain, aloss
+  real(kind=r8size), pointer :: gt(:), xt(:), ft(:), fa(:), dg(:), df(:), dbreak(:) &
+      ,amweight(:)
+
+      real(kind=r8size) :: gain, aloss
   ! ... Locals
 
-!$omp declare target
+  gt => gt_temp(:,Iin,Kin,Jin)
+ xt => gt_temp(:,Iin,Kin,Jin)
+ ft => gt_temp(:,Iin,Kin,Jin)
+ fa => gt_temp(:,Iin,Kin,Jin)
+ dg => gt_temp(:,Iin,Kin,Jin)
+ df => gt_temp(:,Iin,Kin,Jin)
+ dbreak => gt_temp(:,Iin,Kin,Jin)
+      amweight => amweight_temp(:,Iin,Kin,Jin)
+
   ie=jbreak
   je=jbreak
   ke=jbreak

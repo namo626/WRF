@@ -3031,7 +3031,7 @@ enddo
  	REAL (KIND=R4SIZE) :: qna0(its:ite,kts:kte,jts:jte), fr_hom, w_stagm, CollEff_out, FACT
  	REAL (KIND=R4SIZE) :: FACTZ_new(KMS:KME,NKR), TT_r
  ! ### (KS) ............................................................................................
- 	INTEGER :: NZ,NZZ,II,JJ
+ 	INTEGER :: NZ,NZZ,II,JJ,kk
 
       ! For offloading coal_bott_new
     real(kind=r8size), dimension(its:ite,kts:kte,jts:jte) :: tt_all, qq_all, pp_all, del1in_all, del2in_all
@@ -3651,15 +3651,19 @@ enddo
  !$omp target update to( ima)
 
 #if 1
-      !$omp target teams distribute parallel do collapse(3) num_teams(256)    &
+      !$omp target teams distribute parallel do collapse(3)     &
 !$omp private( &
       !$omp fliqfr_sd,fliqfr_gd,fliqfr_hd,frimfr_sd)
 #endif
 
-   DO j = jts,jte
-      DO k = kts,kte
-         DO i = its,ite
 
+   DO jj = 1,jte-jts+1
+      DO kk = 1,kte-kts+1
+         DO ii = 1,ite-its+1
+
+            i = ii + its - 1
+            j = jj + jts - 1
+            k = kk + kts - 1
             !FF1R = FF1R_all(:,i,k,j)
             !FF2R = FF2R_all(:,:,i,k,j)
             !FF3R = FF3R_all(:,i,k,j)

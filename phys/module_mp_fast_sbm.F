@@ -7243,7 +7243,7 @@ enddo
       fl2_3 => fl2_3_temp(:,Iin,Kin,Jin)
       dm_rime => dm_rime_temp(:,Iin,Kin,Jin)
       rf2 => rf2_temp(:,Iin,Kin,Jin)
-      rf4 => rf3_temp(:,Iin,Kin,Jin)
+      rf4 => rf4_temp(:,Iin,Kin,Jin)
       rf5 => rf5_temp(:,Iin,Kin,Jin)
       gdumb => gdumb_temp(:, Iin,Kin,Jin)
       gdumb_bf_breakup => gdumb_bf_breakup_temp(:, Iin,Kin,Jin)
@@ -9143,12 +9143,12 @@ enddo
   ! ... Locals
 
   gt => gt_temp(:,Iin,Kin,Jin)
- xt => gt_temp(:,Iin,Kin,Jin)
- ft => gt_temp(:,Iin,Kin,Jin)
- fa => gt_temp(:,Iin,Kin,Jin)
- dg => gt_temp(:,Iin,Kin,Jin)
- df => gt_temp(:,Iin,Kin,Jin)
- dbreak => gt_temp(:,Iin,Kin,Jin)
+ xt => xt_temp(:,Iin,Kin,Jin)
+ ft => ft_temp(:,Iin,Kin,Jin)
+ fa => fa_temp(:,Iin,Kin,Jin)
+ dg => dg_temp(:,Iin,Kin,Jin)
+ df => df_temp(:,Iin,Kin,Jin)
+ dbreak => dbreak_temp(:,Iin,Kin,Jin)
       amweight => amweight_temp(:,Iin,Kin,Jin)
 
   ie=jbreak

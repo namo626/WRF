@@ -73,7 +73,7 @@ else
   (( c = (64 / (n / SLURM_JOB_NUM_NODES)) * 2 ))
   srun -n $n -c $c --cpu-bind=cores --gpus-per-task=1 --gpu-bind=none /global/common/software/m4232/pm/v4.5.2/wrf.exe
 # Profile with Nsight Compute:
-  srun -n $n -c $c --cpu_bind=cores --gpus-per-task=1 --gpu-bind=none ./wrapper-ncu.sh /global/common/software/m4232/pm/v4.5.2/wrf.exe
+# srun -n $n -c $c --cpu_bind=cores --gpus-per-task=1 --gpu-bind=none ./wrapper-ncu.sh /global/common/software/m4232/pm/v4.5.2/wrf.exe
 fi
 
 #capture error code

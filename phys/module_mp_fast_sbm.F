@@ -13,6 +13,93 @@
 !         from wrf_cog import *
 !         write_module("onecond1.csv", "onecond1_temp")
 !      ]]]
+    module onecond1_temp
+    implicit none
+    logical, private :: firstcall = .true.
+
+
+    real, allocatable, target :: ff1_old_temp(:,:,:,:)
+    real, allocatable, target :: supintw_temp(:,:,:,:)
+    real(8), allocatable, target :: dsupintw_temp(:,:,:,:)
+    real, allocatable, target :: fi1_temp(:,:,:,:)
+    real, allocatable, target :: b11_my_temp(:,:,:,:)
+    real, allocatable, target :: b12_my_temp(:,:,:,:)
+    real, allocatable, target :: dtimeo_temp(:,:,:,:)
+    real, allocatable, target :: dtimel_temp(:,:,:,:)
+    real, allocatable, target :: timestepd_temp(:,:,:,:)
+    real, allocatable, target :: fl1_temp(:,:,:,:)
+    real, allocatable, target :: r1n_temp(:,:,:,:)
+    real(8), allocatable, target :: r1d_temp(:,:,:,:)
+    real(8), allocatable, target :: r1nd_temp(:,:,:,:)
+    real(8), allocatable, target :: vr1_d_temp(:,:,:,:)
+    real(4), allocatable, target :: fr_lim_temp(:,:,:,:)
+    real(4), allocatable, target :: frh_lim_temp(:,:,:,:)
+
+
+    !$omp declare target(ff1_old_temp)
+    !$omp declare target(supintw_temp)
+    !$omp declare target(dsupintw_temp)
+    !$omp declare target(fi1_temp)
+    !$omp declare target(b11_my_temp)
+    !$omp declare target(b12_my_temp)
+    !$omp declare target(dtimeo_temp)
+    !$omp declare target(dtimel_temp)
+    !$omp declare target(timestepd_temp)
+    !$omp declare target(fl1_temp)
+    !$omp declare target(r1n_temp)
+    !$omp declare target(r1d_temp)
+    !$omp declare target(r1nd_temp)
+    !$omp declare target(vr1_d_temp)
+    !$omp declare target(fr_lim_temp)
+    !$omp declare target(frh_lim_temp)
+		contains
+
+    subroutine init_onecond1_temp(its,ite,kts,kte,jts,jte,nkr)
+    implicit none
+    integer, intent(in) :: its,ite,kts,kte,jts,jte,nkr
+    if (firstcall) then
+    firstcall = .false.
+
+
+    allocate( ff1_old_temp(nkr,its:ite,kts:kte,jts:jte) )
+    allocate( supintw_temp(nkr,its:ite,kts:kte,jts:jte) )
+    allocate( dsupintw_temp(nkr,its:ite,kts:kte,jts:jte) )
+    allocate( fi1_temp(nkr,its:ite,kts:kte,jts:jte) )
+    allocate( b11_my_temp(nkr,its:ite,kts:kte,jts:jte) )
+    allocate( b12_my_temp(nkr,its:ite,kts:kte,jts:jte) )
+    allocate( dtimeo_temp(nkr,its:ite,kts:kte,jts:jte) )
+    allocate( dtimel_temp(nkr,its:ite,kts:kte,jts:jte) )
+    allocate( timestepd_temp(nkr,its:ite,kts:kte,jts:jte) )
+    allocate( fl1_temp(nkr,its:ite,kts:kte,jts:jte) )
+    allocate( r1n_temp(nkr,its:ite,kts:kte,jts:jte) )
+    allocate( r1d_temp(nkr,its:ite,kts:kte,jts:jte) )
+    allocate( r1nd_temp(nkr,its:ite,kts:kte,jts:jte) )
+    allocate( vr1_d_temp(nkr,its:ite,kts:kte,jts:jte) )
+    allocate( fr_lim_temp(nkr,its:ite,kts:kte,jts:jte) )
+    allocate( frh_lim_temp(nkr,its:ite,kts:kte,jts:jte) )
+
+
+    !$omp target enter data map(alloc: ff1_old_temp)
+    !$omp target enter data map(alloc: supintw_temp)
+    !$omp target enter data map(alloc: dsupintw_temp)
+    !$omp target enter data map(alloc: fi1_temp)
+    !$omp target enter data map(alloc: b11_my_temp)
+    !$omp target enter data map(alloc: b12_my_temp)
+    !$omp target enter data map(alloc: dtimeo_temp)
+    !$omp target enter data map(alloc: dtimel_temp)
+    !$omp target enter data map(alloc: timestepd_temp)
+    !$omp target enter data map(alloc: fl1_temp)
+    !$omp target enter data map(alloc: r1n_temp)
+    !$omp target enter data map(alloc: r1d_temp)
+    !$omp target enter data map(alloc: r1nd_temp)
+    !$omp target enter data map(alloc: vr1_d_temp)
+    !$omp target enter data map(alloc: fr_lim_temp)
+    !$omp target enter data map(alloc: frh_lim_temp)
+
+
+    endif
+    end subroutine init_onecond1_temp
+    end module onecond1_temp
 !      [[[end]]]
 ! +-----------------------------------------------------------------------------+
 ! +-----------------------------------------------------------------------------+
@@ -2809,6 +2896,7 @@ enddo
       &                      sbm_diagnostics,                            &
       &                      RAINNC,RAINNCV,SNOWNC,SNOWNCV,GRAUPELNC,GRAUPELNCV,SR)
  !-----------------------------------------------------------------------
+      use onecond1_temp, only : init_onecond1_temp
        IMPLICIT NONE
  !-----------------------------------------------------------------------
  	INTEGER :: KR,IKL,ICE
@@ -3002,6 +3090,7 @@ enddo
     real(kind=r8size), dimension(its:ite,kts:kte,jts:jte) :: tt_all, qq_all, pp_all, del1in_all, del2in_all
     logical, dimension(its:ite,kts:kte,jts:jte) :: call_coal_bott_new
 
+      call init_onecond1_temp(its,ite,kts,kte,jts,jte,nkr)
   XS_d = XS
 
   if (itimestep.eq.1)then
@@ -3374,8 +3463,8 @@ enddo
 
 
 #define COND1 1
-#define COND2 1
-#define COND3 1
+#define COND2 0
+#define COND3 0
 
 #if 0
 !$omp target teams distribute parallel do collapse(2)   &
@@ -5650,6 +5739,8 @@ enddo
 				   ,ISYM2,ISYM3,ISYM4,ISYM5,Iin,Jin,Kin,W_in,DX_in,Itimestep)
 
                    ! 36 arguments
+         use onecond1_temp
+
         IMPLICIT NONE
 
         real(kind=r8size), intent(inout) :: TT
@@ -5696,8 +5787,7 @@ enddo
         INTEGER K
  ! NEW ALGORITHM OF CONDENSATION (12.01.00)
 
-       REAL  FF1_OLD(NKR),SUPINTW(NKR)
-       DOUBLE PRECISION DSUPINTW(NKR),DD1N,DB11_MY,DAL1,DAL2
+       DOUBLE PRECISION DD1N,DB11_MY,DAL1,DAL2
        DOUBLE PRECISION COL3,RORI,TPN,TPS,QPN,QPS,TOLD,QOLD &
       &                  ,FI1_K,FI2_K,FI3_K,FI4_K,FI5_K &
       &                  ,R1_K,R2_K,R3_K,R4_K,R5_K &
@@ -5710,23 +5800,17 @@ enddo
 
  ! DROPLETS
 
-         REAL FI1(NKR) &
-      &           ,B11_MY(NKR),B12_MY(NKR)
 
  ! WORK ARRAYS
 
  ! NEW ALGORITHM OF MIXED PHASE FOR EVAPORATION
 
 
- 	REAL DTIMEO(NKR),DTIMEL(NKR) &
-      &           ,TIMESTEPD(NKR)
-
  ! NEW ALGORITHM (NO TYPE OF ICE)
 
- 	REAL :: FL1(NKR), sfndummy(3), R1N(NKR)
+ 	REAL :: sfndummy(3)
  	INTEGER :: IDROP
 
- 	DOUBLE PRECISION :: R1D(NKR),R1ND(NKR)
 
  	OPER2(AR1)=0.622/(0.622+0.378*AR1)/AR1
  	OPER3(AR1,AR2)=AR1*AR2/(0.622+0.378*AR1)
@@ -5748,16 +5832,48 @@ enddo
 
  	DATA DT0L, DT0I /1.E20,1.E20/
 
- 	DOUBLE PRECISION :: DEL1_d , DEL2_d, RW_d , PW_d, RI_d, PI_d, D1N_d, D2N_d, &
- 						VR1_d(NKR)
+ 	DOUBLE PRECISION :: DEL1_d , DEL2_d, RW_d , PW_d, RI_d, PI_d, D1N_d, D2N_d
 
-    real(kind=r4size) :: fr_lim(nkr), frh_lim(nkr)
     !$omp declare target
 
 !      [[[cog
 !         from wrf_cog import *
 !         write_subroutine("onecond1.csv")
 !      ]]]
+    real, pointer :: ff1_old(:)
+    real, pointer :: supintw(:)
+    real(8), pointer :: dsupintw(:)
+    real, pointer :: fi1(:)
+    real, pointer :: b11_my(:)
+    real, pointer :: b12_my(:)
+    real, pointer :: dtimeo(:)
+    real, pointer :: dtimel(:)
+    real, pointer :: timestepd(:)
+    real, pointer :: fl1(:)
+    real, pointer :: r1n(:)
+    real(8), pointer :: r1d(:)
+    real(8), pointer :: r1nd(:)
+    real(8), pointer :: vr1_d(:)
+    real(4), pointer :: fr_lim(:)
+    real(4), pointer :: frh_lim(:)
+
+
+    ff1_old => ff1_old_temp(:,Iin,Kin,Jin)
+    supintw => supintw_temp(:,Iin,Kin,Jin)
+    dsupintw => dsupintw_temp(:,Iin,Kin,Jin)
+    fi1 => fi1_temp(:,Iin,Kin,Jin)
+    b11_my => b11_my_temp(:,Iin,Kin,Jin)
+    b12_my => b12_my_temp(:,Iin,Kin,Jin)
+    dtimeo => dtimeo_temp(:,Iin,Kin,Jin)
+    dtimel => dtimel_temp(:,Iin,Kin,Jin)
+    timestepd => timestepd_temp(:,Iin,Kin,Jin)
+    fl1 => fl1_temp(:,Iin,Kin,Jin)
+    r1n => r1n_temp(:,Iin,Kin,Jin)
+    r1d => r1d_temp(:,Iin,Kin,Jin)
+    r1nd => r1nd_temp(:,Iin,Kin,Jin)
+    vr1_d => vr1_d_temp(:,Iin,Kin,Jin)
+    fr_lim => fr_lim_temp(:,Iin,Kin,Jin)
+    frh_lim => frh_lim_temp(:,Iin,Kin,Jin)
 !      [[[end]]]
 
 

@@ -8,6 +8,12 @@
       END MODULE module_mp_fast_sbm
 #else
 #define OFFLOAD 1
+
+!      [[[cog
+!         from wrf_cog import *
+!         write_module("onecond1.csv", "onecond1_temp")
+!      ]]]
+!      [[[end]]]
 ! +-----------------------------------------------------------------------------+
 ! +-----------------------------------------------------------------------------+
 
@@ -5747,6 +5753,15 @@ enddo
 
     real(kind=r4size) :: fr_lim(nkr), frh_lim(nkr)
     !$omp declare target
+
+!      [[[cog
+!         from wrf_cog import *
+!         write_subroutine("onecond1.csv")
+!      ]]]
+!      [[[end]]]
+
+
+
  sfndummy = 0.0
  B12_MY = 0.0
  B11_MY = 0.0

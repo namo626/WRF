@@ -8,6 +8,63 @@
       END MODULE module_mp_fast_sbm
 #else
 #define OFFLOAD 1
+
+!      [[[cog
+!         from wrf_cog import *
+!         write_module("jerrate_ks.csv", "jerrate_ks_temp", ["nkr", "icemax"])
+!      ]]]
+    module jerrate_ks_temp
+    implicit none
+    logical, private :: firstcall = .true.
+
+
+    integer, allocatable, target :: nskin_temp(:,:,:,:)
+    real(4), allocatable, target :: VENTPLM_temp(:,:,:,:)
+    real(4), allocatable, target :: FD1_temp(:,:,:,:,:)
+    real(4), allocatable, target :: FK1_temp(:,:,:,:,:)
+    real(4), allocatable, target :: xl_MY1_temp(:,:,:,:,:)
+    real(4), allocatable, target :: al1_my_temp(:,:,:,:)
+    real(4), allocatable, target :: esat1_temp(:,:,:,:)
+
+
+    !$omp declare target(nskin_temp)
+    !$omp declare target(VENTPLM_temp)
+    !$omp declare target(FD1_temp)
+    !$omp declare target(FK1_temp)
+    !$omp declare target(xl_MY1_temp)
+    !$omp declare target(al1_my_temp)
+    !$omp declare target(esat1_temp)
+		contains
+
+    subroutine init_jerrate_ks_temp(its,ite,kts,kte,jts,jte,nkr,icemax)
+    implicit none
+    integer, intent(in) :: its,ite,kts,kte,jts,jte,nkr,icemax
+    if (firstcall) then
+    firstcall = .false.
+
+
+    allocate( nskin_temp(nkr,its:ite,kts:kte,jts:jte) )
+    allocate( VENTPLM_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( FD1_temp(NKR,ICEMAX,its:ite,kts:kte,jts:jte) )
+    allocate( FK1_temp(NKR,ICEMAX,its:ite,kts:kte,jts:jte) )
+    allocate( xl_MY1_temp(NKR,ICEMAX,its:ite,kts:kte,jts:jte) )
+    allocate( al1_my_temp(2,its:ite,kts:kte,jts:jte) )
+    allocate( esat1_temp(2,its:ite,kts:kte,jts:jte) )
+
+
+    !$omp target enter data map(alloc: nskin_temp)
+    !$omp target enter data map(alloc: VENTPLM_temp)
+    !$omp target enter data map(alloc: FD1_temp)
+    !$omp target enter data map(alloc: FK1_temp)
+    !$omp target enter data map(alloc: xl_MY1_temp)
+    !$omp target enter data map(alloc: al1_my_temp)
+    !$omp target enter data map(alloc: esat1_temp)
+
+
+    endif
+    end subroutine init_jerrate_ks_temp
+    end module jerrate_ks_temp
+!      [[[end]]]
     module jerdfun_ks_temp
     implicit none
     logical, private :: firstcall = .true.
@@ -617,19 +674,20 @@ end module module_mp_SBM_BreakUp
         						        TP,PP, &
 						                Vxl,RIEC,RO1BL, &
 						                B11_MY, &
-						                ID,IN,fl1,NKR,ICEMAX)
+						                ID,IN,fl1,NKR,ICEMAX,Iin,Kin,Jin)
 
+            use jerrate_ks_temp
 		IMPLICIT NONE
 ! ... Interface
-		INTEGER,INTENT(IN) :: ID, IN, NKR, ICEMAX
+		INTEGER,INTENT(IN) :: ID, IN, NKR, ICEMAX, Iin, Kin, Jin
 		REAL(KIND=r4size),INTENT(IN) :: RO1BL(NKR,ID),RIEC(NKR,ID),FL1(NKR)
 		REAL(KIND=r4size),INTENT(INOUT) :: B11_MY(NKR,ID)
 		REAL(KIND=r8size),INTENT(IN) :: PP, TP, xlS(NKR,ID),Vxl(NKR,ID)
 ! ... Interface
 ! ... Locals
-		INTEGER :: KR, nskin(nkr), ICE
-		REAL(KIND=r4size) :: VENTPLM(NKR), FD1(NKR,ICEMAX),FK1(NKR,ICEMAX), xl_MY1(NKR,ICEMAX), &
-        		              AL1_MY(2),ESAT1(2), TPreal
+		INTEGER :: KR, ICE
+		REAL(KIND=r4size) :: &
+        		               TPreal
 		REAL(KIND=r8size) :: PZERO, TZERO, CONST, D_MY, COEFF_VISCOUS, SHMIDT_NUMBER,     &
 							           A, B, RVT, SHMIDT_NUMBER03, XLS_KR_ICE, RO1BL_KR_ICE, VXL_KR_ICE, REINOLDS_NUMBER, &
 							           RESHM, VENTPL, CONSTL, DETL
@@ -639,6 +697,28 @@ end module module_mp_SBM_BreakUp
 ! A1L_MY - CONSTANTS FOR "MAXWELL": MKS
 		REAL(KIND=r8size),parameter:: RV_MY=461.5D4, CF_MY=2.4D3, D_MYIN=0.211D0
 !$omp declare target
+
+!        [[[cog
+!           from wrf_cog import *
+!           write_subroutine("jerrate_ks.csv")
+!        ]]]
+integer, pointer :: nskin(:)
+real(4), pointer :: VENTPLM(:)
+real(4), pointer :: FD1(:,:)
+real(4), pointer :: FK1(:,:)
+real(4), pointer :: xl_MY1(:,:)
+real(4), pointer :: al1_my(:)
+real(4), pointer :: esat1(:)
+
+
+nskin => nskin_temp(:,Iin,Kin,Jin)
+VENTPLM => VENTPLM_temp(:,Iin,Kin,Jin)
+FD1 => FD1_temp(:,:,Iin,Kin,Jin)
+FK1 => FK1_temp(:,:,Iin,Kin,Jin)
+xl_MY1 => xl_MY1_temp(:,:,Iin,Kin,Jin)
+al1_my => al1_my_temp(:,Iin,Kin,Jin)
+esat1 => esat1_temp(:,Iin,Kin,Jin)
+!        [[[end]]]
 ! CGS :
 
 ! RV_MY, CM*CM/SEC/SEC/KELVIN - INDIVIDUAL GAS CONSTANT
@@ -1686,10 +1766,6 @@ end function expm1
 ! ... Locals
 
 !$omp declare target
-!          [[[cog
-!             from wrf_cog import *
-!             write_subroutine("jerdfun_ks.csv")
-!          ]]]
 real(8), pointer :: FI2R(:)
 real(8), pointer :: PSI2R(:)
 real(8), pointer :: xiR(:)
@@ -1700,7 +1776,6 @@ FI2R => FI2R_temp(:,Iin,Kin,Jin)
 PSI2R => PSI2R_temp(:,Iin,Kin,Jin)
 xiR => xiR_temp(:,Iin,Kin,Jin)
 xiNR => xiNR_temp(:,Iin,Kin,Jin)
-!          [[[end]]]
 	C=2.0D0/3.0D0
 
 	DEGREE1=C/2.0D0
@@ -1764,11 +1839,11 @@ xiNR => xiNR_temp(:,Iin,Kin,Jin)
             							   R3,VR3,FF3in,RSEC,RO3BL, &
             							   R4,VR4,FF4in,RGEC,RO4BL, &
             							   R5,VR5,FF5in,RHEC,RO5BL, &
-            							   NKR,ICEMAX,COL,DTdyn,NCOND,DTCOND)
+            							   NKR,ICEMAX,COL,DTdyn,NCOND,DTCOND, Iin,Kin,Jin)
 
 	implicit none
 ! ... Interface
-	integer,intent(in) :: NKR,ICEMAX
+	integer,intent(in) :: NKR,ICEMAX,Iin,Kin,Jin
 	integer,intent(out) :: NCOND
 	real(kind=R4SIZE),intent(in) :: R1(:),FF1in(:),RLEC(:),RO1BL(:), &
 					   R2(:,:),FF2in(:,:),RIEC(:,:),RO2BL(:,:), &
@@ -1845,7 +1920,7 @@ xiNR => xiNR_temp(:,Iin,Kin,Jin)
 		  ! ... Drops
 		  IF(ISYM1 == 1)THEN
   			FL1 = 0.0
-  			CALL JERRATE_KS(R1D,TPS,PP,VR1_d,RLEC,RO1BL,B11_MY,1,1,fl1,NKR,ICEMAX)
+  			CALL JERRATE_KS(R1D,TPS,PP,VR1_d,RLEC,RO1BL,B11_MY,1,1,fl1,NKR,ICEMAX,Iin,Kin,Jin)
         sfndummy(1) = SFN11
         CALL JERTIMESC_KS(FF1in,R1D,SFNDUMMY,B11_MY,B8I,1,NKR,ICEMAX,COL)
   			SFN11 = sfndummy(1)
@@ -1861,7 +1936,7 @@ xiNR => xiNR_temp(:,Iin,Kin,Jin)
       IF(ISYM3 == 1) THEN
 	  		FL3 = 0.0
 	  		! ... snow
-		  	CALL JERRATE_KS (R3D,TPS,PP,VR3_d,RSEC,RO3BL,B31_MY,1,3,fl3,NKR,ICEMAX)
+		  	CALL JERRATE_KS (R3D,TPS,PP,VR3_d,RSEC,RO3BL,B31_MY,1,3,fl3,NKR,ICEMAX,Iin,Kin,Jin)
 		  	sfndummy(1) = SFN31
 		  	CALL JERTIMESC_KS(FF3in,R3D,SFNDUMMY,B31_MY,B8I,1,NKR,ICEMAX,COL)
 	  	  	SFN31 = sfndummy(1)
@@ -1870,7 +1945,7 @@ xiNR => xiNR_temp(:,Iin,Kin,Jin)
      IF(ISYM4 == 1) THEN
 	  		FL4 = 0.0
 	  		! ... graupel
-		  	CALL JERRATE_KS(R4D,TPS,PP,VR4_d,RGEC,RO4BL,B41_MY,1,2,fl4,NKR,ICEMAX)
+		  	CALL JERRATE_KS(R4D,TPS,PP,VR4_d,RGEC,RO4BL,B41_MY,1,2,fl4,NKR,ICEMAX,Iin,Kin,Jin)
 
 		  	sfndummy(1) = SFN41
 		  	CALL JERTIMESC_KS(FF4in,R4D,SFNDUMMY,B41_MY,B8I,1,NKR,ICEMAX,COL)
@@ -1880,7 +1955,7 @@ xiNR => xiNR_temp(:,Iin,Kin,Jin)
       IF(ISYM5 == 1) THEN
         FL5 = 0.0
         ! ... hail
-        CALL JERRATE_KS(R5D,TPS,PP,VR5_d,RHEC,RO5BL,B51_MY,1,2,fl5,NKR,ICEMAX)
+        CALL JERRATE_KS(R5D,TPS,PP,VR5_d,RHEC,RO5BL,B51_MY,1,2,fl5,NKR,ICEMAX,Iin,Kin,Jin)
 
         sfndummy(1) = SFN51
         CALL JERTIMESC_KS(FF5in,R5D,SFNDUMMY,B51_MY,B8I,1,NKR,ICEMAX,COL)
@@ -2962,6 +3037,7 @@ enddo
  !-----------------------------------------------------------------------
       use onecond1_temp, only : init_onecond1_temp
       use jerdfun_ks_temp, only : init_jerdfun_ks_temp
+      use jerrate_ks_temp, only : init_jerrate_ks_temp
        IMPLICIT NONE
  !-----------------------------------------------------------------------
  	INTEGER :: KR,IKL,ICE
@@ -3156,6 +3232,7 @@ enddo
 
       call init_onecond1_temp(its,ite,kts,kte,jts,jte,nkr)
       call init_jerdfun_ks_temp(its,ite,kts,kte,jts,jte,nkr)
+      call init_jerrate_ks_temp(its,ite,kts,kte,jts,jte,nkr, icemax)
   XS_d = XS
 
   if (itimestep.eq.1)then
@@ -5972,7 +6049,7 @@ enddo
  	FL1 = 0.0
  	VR1_d = VR1
  	CALL JERRATE_KS &
- 				(R1D,TPS,PP,VR1_d,RLEC,RO1BL,B11_MY,1,1,fl1,NKR,ICEMAX)
+ 				(R1D,TPS,PP,VR1_d,RLEC,RO1BL,B11_MY,1,1,fl1,NKR,ICEMAX,Iin,Kin,Jin)
  	sfndummy(1)=SFN11
  	CALL JERTIMESC_KS(FI1,R1D,SFNDUMMY,B11_MY,B8L,1,NKR,ICEMAX,COL)
  	SFN11 = sfndummy(1)
@@ -6452,7 +6529,7 @@ enddo
  	    FL1 = 0.0
  	    VR2_d = VR2
  	  ! ... ice crystals
- 		  CALL JERRATE_KS (R2D,TPS,PP,VR2_d,RIEC,RO2BL,B21_MY,3,2,fl1,NKR,ICEMAX)
+ 		  CALL JERRATE_KS (R2D,TPS,PP,VR2_d,RIEC,RO2BL,B21_MY,3,2,fl1,NKR,ICEMAX,Iin,Kin,Jin)
 
  		  CALL JERTIMESC_KS (FI2,R2D,SFNI1,B21_MY,B8I,ICM,NKR,ICEMAX,COL)
  	  ENDIF
@@ -6460,7 +6537,7 @@ enddo
  	    FL3 = 0.0
  	    VR3_d = VR3
  	  ! ... snow
- 		  CALL JERRATE_KS (R3D,TPS,PP,VR3_d,RSEC,RO3BL,B31_MY,1,3,fl3,NKR,ICEMAX)
+ 		  CALL JERRATE_KS (R3D,TPS,PP,VR3_d,RSEC,RO3BL,B31_MY,1,3,fl3,NKR,ICEMAX,Iin,Kin,Jin)
 
  		  sfndummy(1) = SFN31
  		  CALL JERTIMESC_KS(FI3,R3D,SFNDUMMY,B31_MY,B8I,1,NKR,ICEMAX,COL)
@@ -6470,7 +6547,7 @@ enddo
  	    FL4 = 0.0
  	    VR4_d = VR4
  	  ! ... graupel
- 		  CALL JERRATE_KS(R4D,TPS,PP,VR4_d,RGEC,RO4BL,B41_MY,1,2,fl4,NKR,ICEMAX)
+ 		  CALL JERRATE_KS(R4D,TPS,PP,VR4_d,RGEC,RO4BL,B41_MY,1,2,fl4,NKR,ICEMAX,Iin,Kin,Jin)
 
  		  sfndummy(1) = SFN41
  		  CALL JERTIMESC_KS(FI4,R4D,SFNDUMMY,B41_MY,B8I,1,NKR,ICEMAX,COL)
@@ -6480,7 +6557,7 @@ enddo
  	    FL5 = 0.0
  	    VR5_d = VR5
  	  ! ... hail
- 		  CALL JERRATE_KS(R5D,TPS,PP,VR5_d,RHEC,RO5BL,B51_MY,1,2,fl5,NKR,ICEMAX)
+ 		  CALL JERRATE_KS(R5D,TPS,PP,VR5_d,RHEC,RO5BL,B51_MY,1,2,fl5,NKR,ICEMAX,Iin,Kin,Jin)
 
  		  sfndummy(1) = SFN51
  		  CALL JERTIMESC_KS(FI5,R5D,SFNDUMMY,B51_MY,B8I,1,NKR,ICEMAX,COL)
@@ -7022,7 +7099,7 @@ enddo
  IF(ISYM1 == 1)THEN
   FL1 = 0.0
  	CALL JERRATE_KS &
-      	 	(R1D,TPS,PP,VR1_d,RLEC,RO1BL,B11_MY,1,1,fl1,NKR,ICEMAX)
+      	 	(R1D,TPS,PP,VR1_d,RLEC,RO1BL,B11_MY,1,1,fl1,NKR,ICEMAX,Iin,Kin,Jin)
 
  	sfndummy(1) = SFN11
  	CALL JERTIMESC_KS(FI1,R1D,SFNDUMMY,B11_MY,B8L,1,NKR,ICEMAX,COL)
@@ -7032,13 +7109,13 @@ enddo
  IF(sum(ISYM2) > 0) THEN
  		FL1 = 0.0
  		! ... ice crystals
-   	CALL JERRATE_KS (R2D,TPS,PP,VR2_d,RIEC,RO2BL,B21_MY,3,2,fl1,NKR,ICEMAX)
+   	CALL JERRATE_KS (R2D,TPS,PP,VR2_d,RIEC,RO2BL,B21_MY,3,2,fl1,NKR,ICEMAX,Iin,Kin,Jin)
    	CALL JERTIMESC_KS (FI2,R2D,SFNI1,B21_MY,B8I,ICM,NKR,ICEMAX,COL)
  ENDIF
  IF(ISYM3 == 1) THEN
  		FL3 = 0.0
  		! ... snow
- 		CALL JERRATE_KS (R3D,TPS,PP,VR3_d,RSEC,RO3BL,B31_MY,1,3,fl3,NKR,ICEMAX)
+ 		CALL JERRATE_KS (R3D,TPS,PP,VR3_d,RSEC,RO3BL,B31_MY,1,3,fl3,NKR,ICEMAX,Iin,Kin,Jin)
  		sfndummy(1) = SFN31
  		CALL JERTIMESC_KS(FI3,R3D,SFNDUMMY,B31_MY,B8I,1,NKR,ICEMAX,COL)
    	SFN31 = sfndummy(1)
@@ -7046,7 +7123,7 @@ enddo
  IF(ISYM4 == 1) THEN
  		FL4 = 0.0
  		! ... graupel
- 		CALL JERRATE_KS(R4D,TPS,PP,VR4_d,RGEC,RO4BL,B41_MY,1,2,fl4,NKR,ICEMAX)
+ 		CALL JERRATE_KS(R4D,TPS,PP,VR4_d,RGEC,RO4BL,B41_MY,1,2,fl4,NKR,ICEMAX,Iin,Kin,Jin)
  		sfndummy(1) = SFN41
  		CALL JERTIMESC_KS(FI4,R4D,SFNDUMMY,B41_MY,B8I,1,NKR,ICEMAX,COL)
  		SFN41 = sfndummy(1)
@@ -7054,7 +7131,7 @@ enddo
  IF(ISYM5 == 1) THEN
  		FL5 = 0.0
  		! ... hail
- 		CALL JERRATE_KS(R5D,TPS,PP,VR5_d,RHEC,RO5BL,B51_MY,1,2,fl5,NKR,ICEMAX)
+ 		CALL JERRATE_KS(R5D,TPS,PP,VR5_d,RHEC,RO5BL,B51_MY,1,2,fl5,NKR,ICEMAX,Iin,Kin,Jin)
  		sfndummy(1) = SFN51
  		CALL JERTIMESC_KS(FI5,R5D,SFNDUMMY,B51_MY,B8I,1,NKR,ICEMAX,COL)
  		SFN51 = sfndummy(1)

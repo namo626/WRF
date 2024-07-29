@@ -8,10 +8,6 @@
       END MODULE module_mp_fast_sbm
 #else
 #define OFFLOAD 1
-!      [[[cog
-!         from wrf_cog import *
-!         write_module("jerdfun_ks.csv", "jerdfun_ks_temp", ["nkr"])
-!      ]]]
     module jerdfun_ks_temp
     implicit none
     logical, private :: firstcall = .true.
@@ -55,7 +51,6 @@
     endif
     end subroutine init_jerdfun_ks_temp
     end module jerdfun_ks_temp
-!     [[[end]]]
 
     module onecond1_temp
     implicit none
@@ -1246,10 +1241,6 @@ end function expm1
 
 
 !$omp declare target
-!       [[[cog
-!          from wrf_cog import *
-!          write_subroutine("jerdfun_ks.csv")
-!       ]]]
        REAL(8), pointer :: FL2_NEW(:)
        real(8), pointer :: FI2R(:)
        real(8), pointer :: PSI2R(:)
@@ -1262,7 +1253,6 @@ end function expm1
        PSI2R   => PSI2R_temp(:,Iin,Kin,Jin)
        xiR     => xiR_temp(:,Iin,Kin,Jin)
        xiNR    => xiNR_temp(:,Iin,Kin,Jin)
-!       [[[end]]]
 	C = 2.0D0/3.0D0
 
 	DEGREE1 = 1.0D0/3.0D0
@@ -1678,6 +1668,7 @@ end function expm1
         			FI2,PSI2, &
         			TPN,IDROP,FR_LIM,NKR,COL,Ihydro,Iin,Jin,Kin,Itimestep)
 
+        use jerdfun_ks_temp, only : xir_temp, fi2r_temp, psi2r_temp, xinr_temp
 	IMPLICIT NONE
 
 ! ... Interface
@@ -1691,11 +1682,25 @@ end function expm1
 
 ! ... Locals
 	INTEGER :: NR, KR, IDSD_Negative
-	REAL(kind=R8SIZE) :: C, DEGREE1, DEGREE2, DEGREE3, D, RATEXI, B, A, &
-						           xiR(NKR),FI2R(NKR),PSI2R(NKR),xiNR(NKR)
+	REAL(kind=R8SIZE) :: C, DEGREE1, DEGREE2, DEGREE3, D, RATEXI, B, A
 ! ... Locals
 
 !$omp declare target
+!          [[[cog
+!             from wrf_cog import *
+!             write_subroutine("jerdfun_ks.csv")
+!          ]]]
+real(8), pointer :: FI2R(:)
+real(8), pointer :: PSI2R(:)
+real(8), pointer :: xiR(:)
+real(8), pointer :: xiNR(:)
+
+
+FI2R => FI2R_temp(:,Iin,Kin,Jin)
+PSI2R => PSI2R_temp(:,Iin,Kin,Jin)
+xiR => xiR_temp(:,Iin,Kin,Jin)
+xiNR => xiNR_temp(:,Iin,Kin,Jin)
+!          [[[end]]]
 	C=2.0D0/3.0D0
 
 	DEGREE1=C/2.0D0

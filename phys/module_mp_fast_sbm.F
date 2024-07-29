@@ -8,11 +8,55 @@
       END MODULE module_mp_fast_sbm
 #else
 #define OFFLOAD 1
-
 !      [[[cog
 !         from wrf_cog import *
-!         write_module("onecond1.csv", "onecond1_temp")
+!         write_module("jerdfun_ks.csv", "jerdfun_ks_temp", ["nkr"])
 !      ]]]
+    module jerdfun_ks_temp
+    implicit none
+    logical, private :: firstcall = .true.
+
+
+    REAL(8), allocatable, target :: FL2_NEW_temp(:,:,:,:)
+    real(8), allocatable, target :: FI2R_temp(:,:,:,:)
+    real(8), allocatable, target :: PSI2R_temp(:,:,:,:)
+    real(8), allocatable, target :: xiR_temp(:,:,:,:)
+    real(8), allocatable, target :: xiNR_temp(:,:,:,:)
+
+
+    !$omp declare target(FL2_NEW_temp)
+    !$omp declare target(FI2R_temp)
+    !$omp declare target(PSI2R_temp)
+    !$omp declare target(xiR_temp)
+    !$omp declare target(xiNR_temp)
+		contains
+
+    subroutine init_jerdfun_ks_temp(its,ite,kts,kte,jts,jte,nkr)
+    implicit none
+    integer, intent(in) :: its,ite,kts,kte,jts,jte,nkr
+    if (firstcall) then
+    firstcall = .false.
+
+
+    allocate( FL2_NEW_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( FI2R_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( PSI2R_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( xiR_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( xiNR_temp(NKR,its:ite,kts:kte,jts:jte) )
+
+
+    !$omp target enter data map(alloc: FL2_NEW_temp)
+    !$omp target enter data map(alloc: FI2R_temp)
+    !$omp target enter data map(alloc: PSI2R_temp)
+    !$omp target enter data map(alloc: xiR_temp)
+    !$omp target enter data map(alloc: xiNR_temp)
+
+
+    endif
+    end subroutine init_jerdfun_ks_temp
+    end module jerdfun_ks_temp
+!     [[[end]]]
+
     module onecond1_temp
     implicit none
     logical, private :: firstcall = .true.
@@ -100,7 +144,6 @@
     endif
     end subroutine init_onecond1_temp
     end module onecond1_temp
-!      [[[end]]]
 ! +-----------------------------------------------------------------------------+
 ! +-----------------------------------------------------------------------------+
 
@@ -1183,6 +1226,7 @@ end function expm1
         					       ISYM2,IND,ITYPE,TPN,IDROP, &
         					       FR_LIM,FRH_LIM,ICEMAX,NKR,COL,Ihydro,Iin,Jin,Kin,Itimestep)
 
+    use jerdfun_ks_temp
 	IMPLICIT NONE
 ! ... Interface
 	INTEGER,INTENT(IN) :: ISYM2, IND, ITYPE, NKR, ICEMAX, Ihydro, Iin, Jin ,Kin, Itimestep
@@ -1196,12 +1240,29 @@ end function expm1
 
 ! ... Locals
 	INTEGER :: ITYP, KR, NR, ICE, K, IDSD_Negative
-	REAL(kind=R8SIZE) :: FL2_NEW(NKR), FI2R(NKR), PSI2R(NKR), C, DEGREE1, DEGREE2, DEGREE3, D, RATEXI, &
-						           B, A, xiR(NKR),xiNR(NKR), FR_LIM_KR
+	REAL(kind=R8SIZE) :: C, DEGREE1, DEGREE2, DEGREE3, D, RATEXI, &
+						           B, A,  FR_LIM_KR
 ! ... Locals
 
 
 !$omp declare target
+!       [[[cog
+!          from wrf_cog import *
+!          write_subroutine("jerdfun_ks.csv")
+!       ]]]
+       REAL(8), pointer :: FL2_NEW(:)
+       real(8), pointer :: FI2R(:)
+       real(8), pointer :: PSI2R(:)
+       real(8), pointer :: xiR(:)
+       real(8), pointer :: xiNR(:)
+
+
+       FL2_NEW => FL2_NEW_temp(:,Iin,Kin,Jin)
+       FI2R    => FI2R_temp(:,Iin,Kin,Jin)
+       PSI2R   => PSI2R_temp(:,Iin,Kin,Jin)
+       xiR     => xiR_temp(:,Iin,Kin,Jin)
+       xiNR    => xiNR_temp(:,Iin,Kin,Jin)
+!       [[[end]]]
 	C = 2.0D0/3.0D0
 
 	DEGREE1 = 1.0D0/3.0D0
@@ -2895,6 +2956,7 @@ enddo
       &                      RAINNC,RAINNCV,SNOWNC,SNOWNCV,GRAUPELNC,GRAUPELNCV,SR)
  !-----------------------------------------------------------------------
       use onecond1_temp, only : init_onecond1_temp
+      use jerdfun_ks_temp, only : init_jerdfun_ks_temp
        IMPLICIT NONE
  !-----------------------------------------------------------------------
  	INTEGER :: KR,IKL,ICE
@@ -3088,6 +3150,7 @@ enddo
     logical, dimension(its:ite,kts:kte,jts:jte) :: call_coal_bott_new
 
       call init_onecond1_temp(its,ite,kts,kte,jts,jte,nkr)
+      call init_jerdfun_ks_temp(its,ite,kts,kte,jts,jte,nkr)
   XS_d = XS
 
   if (itimestep.eq.1)then
@@ -5802,10 +5865,6 @@ enddo
  	DOUBLE PRECISION :: DEL1_d , DEL2_d, RW_d , PW_d, RI_d, PI_d, D1N_d, D2N_d
     !$omp declare target
 
-!      [[[cog
-!         from wrf_cog import *
-!         write_subroutine("onecond1.csv")
-!      ]]]
     real, pointer :: ff1_old(:)
     real, pointer :: supintw(:)
     real(8), pointer :: dsupintw(:)
@@ -5840,7 +5899,6 @@ enddo
     vr1_d => vr1_d_temp(:,Iin,Kin,Jin)
     fr_lim => fr_lim_temp(:,Iin,Kin,Jin)
     frh_lim => frh_lim_temp(:,Iin,Kin,Jin)
-!      [[[end]]]
 
 
  sfndummy = 0.0

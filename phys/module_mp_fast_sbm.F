@@ -3607,12 +3607,12 @@ enddo
       enddo
 
 
-#define COND1 0
+#define COND1 1
 #define COND2 0
 #define COND3 0
 
 #if 1
-!$omp target teams distribute parallel do collapse(2)   &
+!$omp target teams distribute parallel do collapse(3)   &
 !$omp private ( &
 !$omp fmax1,fmax2,fmax3,fmax4,fmax5,&
 !$omp isym1,isym2,isym3,isym4,isym5) &
@@ -3719,6 +3719,8 @@ enddo
                           else
                             w_stag_my = 100*w(i,k,j)
                           end if
+#if 0
+
                           CALL JERNUCL01_KS(FF1IN(:,i,k,j),FF2IN(:,:,i,k,j),FCCN_all(:,i,k,j) 		  &
                                             ,XL,XI,TT,QQ       					    &
                                             ,rhocgs(I,K,J),pcgs(I,K,J) 			&
@@ -3728,6 +3730,8 @@ enddo
                                             ,RCCN,DROPRADII,NKR,NKR_aerosol,ICEMAX,ICEPROCS &
                                             ,W_Stag_My,Is_This_CloudBase,RO_SOLUTE,IONS,MWAERO &
                                             ,I,J,K)
+#endif
+
                         
                         
                           DO KR=1,NKR

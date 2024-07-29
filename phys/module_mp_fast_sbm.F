@@ -3084,7 +3084,7 @@ enddo
  	REAL (KIND=R4SIZE) :: qna0(its:ite,kts:kte,jts:jte), fr_hom, w_stagm, CollEff_out, FACT
  	REAL (KIND=R4SIZE) :: FACTZ_new(KMS:KME,NKR), TT_r
  ! ### (KS) ............................................................................................
- 	INTEGER :: NZ,NZZ,II,JJ
+ 	INTEGER :: NZ,NZZ,II,JJ,kk
 
       ! For offloading coal_bott_new
     real(kind=r8size), dimension(its:ite,kts:kte,jts:jte) :: tt_all, qq_all, pp_all, del1in_all, del2in_all
@@ -3461,22 +3461,25 @@ enddo
       enddo
       enddo
 
-
+#define JERNUCL 0
 #define COND1 1
 #define COND2 0
 #define COND3 0
 
-#if 0
-!$omp target teams distribute parallel do collapse(2)   &
+#if 1
+!$omp target teams distribute parallel do collapse(3)   &
 !$omp private ( &
 !$omp fmax1,fmax2,fmax3,fmax4,fmax5,&
 !$omp isym1,isym2,isym3,isym4,isym5) &
 !$omp map(from: vr2_zc,vr2_zp,vr2_zd,vr1_z,vr3_z,vr4_z,vr5_z,vr1_z3d,vr3_z3d,vr4_z3d,vr5_z3d)
 #endif
 
-      do j = jts,jte
-         do k = kts,kte
-         do i = its,ite
+      do jj = 1, jte-jts+1
+         do kk = 1,kte-kts+1
+         do ii = 1,ite-its+1
+            j = jj + jts - 1
+            i = ii + its - 1
+            k = kk + kts - 1
 
             ! ... correcting Look-up-table Terminal velocities
             FACTOR_P = DSQRT(1.0D6/PCGS(I,K,J))
@@ -3574,7 +3577,7 @@ enddo
                           else
                             w_stag_my = 100*w(i,k,j)
                           end if
-#if 1
+#if JERNUCL
 
                           CALL JERNUCL01_KS(FF1IN(:,i,k,j),FF2IN(:,:,i,k,j),FCCN_all(:,i,k,j) 		  &
                                             ,XL,XI,TT,QQ       					    &
@@ -5743,6 +5746,7 @@ enddo
 
         IMPLICIT NONE
 
+    !$omp declare target
         real(kind=r8size), intent(inout) :: TT
         real(kind=r8size), intent(inout) :: QQ
         real(kind=r8size), intent(inout) :: del1n,del2n
@@ -5834,7 +5838,6 @@ enddo
 
  	DOUBLE PRECISION :: DEL1_d , DEL2_d, RW_d , PW_d, RI_d, PI_d, D1N_d, D2N_d
 
-    !$omp declare target
 
 !      [[[cog
 !         from wrf_cog import *
@@ -5876,6 +5879,8 @@ enddo
     frh_lim => frh_lim_temp(:,Iin,Kin,Jin)
 !      [[[end]]]
 
+
+#define JERD 0
 
 
  sfndummy = 0.0
@@ -5943,11 +5948,18 @@ enddo
  IF(ISYM1 == 1)THEN
  	FL1 = 0.0
  	VR1_d = VR1
+#if JERD
  	CALL JERRATE_KS &
  				(R1D,TPS,PP,VR1_d,RLEC,RO1BL,B11_MY,1,1,fl1,NKR,ICEMAX)
+#endif
+
+#if 1
+
  	sfndummy(1)=SFN11
  	CALL JERTIMESC_KS(FI1,R1D,SFNDUMMY,B11_MY,B8L,1,NKR,ICEMAX,COL)
  	SFN11 = sfndummy(1)
+#endif
+
  ENDIF
 
  SFN12 = 0.0
@@ -5996,10 +6008,13 @@ enddo
      	RI_d = RI
      	PI_d = PI
 
+#if 1
  	    CALL JERSUPSAT_KS(DEL1_d,DEL2_d,DEL1N,DEL2N, &
              					  RW_d,PW_d,RI_d,PI_d, &
              					  DTT,D1N_d,D2N_d,0.0,0.0, &
              					  ISYM1,ISYM2,ISYM3,ISYM4,ISYM5)
+#endif
+
      	DEL1 = DEL1_d
      	DEL2 = DEL2_d
      	RW = RW_d
@@ -6011,8 +6026,11 @@ enddo
 
      	IF(ISYM1 == 1)THEN
      		IDROP = ISYM1
+#if JERD
      		CALL JERDFUN_KS(R1D, R1ND, B11_MY, FI1, PSI1, fl1, D1N, &
      						        ISYM1, 1, 1, TPN, IDROP, FR_LIM, FRH_LIM, ICEMAX, NKR, COL, 1, Iin, Jin ,Kin, Itimestep)
+#endif
+
      	ENDIF
 
      	IF((DEL1.GT.0.AND.DEL1N.LT.0) &
@@ -6043,10 +6061,14 @@ enddo
  	    PW_d = PW
  	    RI_d = RI
  	    PI_d = PI
+#if 1
+
  	    CALL JERSUPSAT_KS(DEL1_d,DEL2_d,DEL1N,DEL2N, &
  					  RW_d,PW_d,RI_d,PI_d, &
  					  DTT,D1N_d,D2N_d,0.0,0.0, &
  					  ISYM1,ISYM2,ISYM3,ISYM4,ISYM5)
+#endif
+
      	DEL1 = DEL1_d
      	DEL2 = DEL2_d
      	RW = RW_d
@@ -6058,9 +6080,13 @@ enddo
 
       IF(ISYM1 == 1)THEN
  	      IDROP = ISYM1
+#if JERD
+
  	      CALL JERDFUN_KS(R1D, R1ND, B11_MY, &
 				              FI1, PSI1, fl1, D1N, &
  					            ISYM1, 1, 1, TPN, IDROP, FR_LIM, FRH_LIM, ICEMAX, NKR, COL, 1, Iin, Jin ,Kin, Itimestep)
+#endif
+
       ENDIF
 
       IF((DEL1.LT.0.AND.DEL1N.GT.0) &
@@ -6129,9 +6155,13 @@ enddo
  57  CONTINUE
 
  IF(ISYM1 == 1) THEN
+#if JERD
+
     CALL JERDFUN_NEW_KS (R1D,R1ND,SUPINTW, &
  					FF1_OLD,PSI1, &
  					TPN,IDROP,FR_LIM, NKR, COL,1,Iin,Jin,Kin,Itimestep)
+#endif
+
  ENDIF ! in case ISYM1/=0
 
  RMASSLAA=0.0

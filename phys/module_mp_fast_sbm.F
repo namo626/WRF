@@ -4177,7 +4177,7 @@ enddo
 #define COND3 0
 
 #if 1
-!$omp target teams distribute parallel do collapse(3) num_teams(512)   &
+!$omp target teams distribute parallel do collapse(3)   &
 !$omp private ( &
 !$omp fmax1,fmax2,fmax3,fmax4,fmax5,&
 !$omp isym1,isym2,isym3,isym4,isym5) &

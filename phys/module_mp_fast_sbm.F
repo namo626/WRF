@@ -6084,8 +6084,11 @@ enddo
  IF(ISYM1 == 1)THEN
  	FL1 = 0.0
  	VR1_d = VR1
+#if 0
  	CALL JERRATE_KS &
  				(R1D,TPS,PP,VR1_d,RLEC,RO1BL,B11_MY,1,1,fl1,NKR,ICEMAX,Iin,Kin,Jin)
+#endif
+
  	sfndummy(1)=SFN11
  	CALL JERTIMESC_KS(FI1,R1D,SFNDUMMY,B11_MY,B8L,1,NKR,ICEMAX,COL)
  	SFN11 = sfndummy(1)

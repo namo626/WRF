@@ -823,7 +823,6 @@ enddo
 		SHMIDT_NUMBER03=SHMIDT_NUMBER**DEG03
 
 	   DO ICE=1,ID
-#if 1
 	      DO KR=1,NKR
 
           xlS_KR_ICE=xlS(KR)
@@ -836,15 +835,20 @@ enddo
 
           IF(REINOLDS_NUMBER<2.5D0) THEN
             VENTPL=1.0D0+0.108D0*RESHM*RESHM
+#if 1
             VENTPLM(KR)=VENTPL
+#endif
+
           ELSE
             VENTPL=0.78D0+0.308D0*RESHM
+#if 0
+
             VENTPLM(KR)=VENTPL
+#endif
           ENDIF
 
 
         ENDDO
-#endif
 ! cycle by KR
 
 ! VENTPL_MAX is given in MICRO.PRM include file

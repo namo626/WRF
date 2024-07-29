@@ -622,7 +622,7 @@ end module module_mp_SBM_BreakUp
  module module_mp_SBM_Auxiliary
 
  private
- public :: POLYSVP, JERRATE_KS, JERTIMESC_KS, JERSUPSAT_KS, &
+ public :: POLYSVP, JERRATE_KS, jerrate_ks_1, JERTIMESC_KS, JERSUPSAT_KS, &
  		       JERDFUN_KS, JERDFUN_NEW_KS, Relaxation_Time
 
  ! Kind paramater
@@ -670,6 +670,215 @@ end module module_mp_SBM_BreakUp
  return
  end function POLYSVP
 ! + -------------------------------------------------------- +
+      SUBROUTINE JERRATE_KS_1 (xlS, &
+        						        TP,PP, &
+						                Vxl,RIEC,RO1BL, &
+						                B11_MY, &
+						                ID,IN,fl1,NKR,ICEMAX,Iin,Kin,Jin)
+
+            use jerrate_ks_temp
+		IMPLICIT NONE
+! ... Interface
+		INTEGER,INTENT(IN) :: ID, IN, NKR, ICEMAX, Iin, Kin, Jin
+		REAL(KIND=r4size),INTENT(IN) :: RO1BL(:),RIEC(:),FL1(:)
+		REAL(KIND=r4size),INTENT(INOUT) :: B11_MY(:)
+		REAL(KIND=r8size),INTENT(IN) :: PP, TP, xlS(:),Vxl(:)
+! ... Interface
+! ... Locals
+		INTEGER :: KR, ICE
+		REAL(KIND=r4size) :: &
+        		               TPreal
+		REAL(KIND=r8size) :: PZERO, TZERO, CONST, D_MY, COEFF_VISCOUS, SHMIDT_NUMBER,     &
+							           A, B, RVT, SHMIDT_NUMBER03, XLS_KR_ICE, RO1BL_KR_ICE, VXL_KR_ICE, REINOLDS_NUMBER, &
+							           RESHM, VENTPL, CONSTL, DETL
+
+		REAL(KIND=r4size) :: deg01,deg03
+
+! A1L_MY - CONSTANTS FOR "MAXWELL": MKS
+		REAL(KIND=r8size),parameter:: RV_MY=461.5D4, CF_MY=2.4D3, D_MYIN=0.211D0
+!$omp declare target
+
+!        [[[cog
+!           from wrf_cog import *
+!           write_subroutine("jerrate_ks.csv")
+!        ]]]
+integer, pointer :: nskin(:)
+real(4), pointer :: VENTPLM(:)
+real(4), pointer :: FD1(:,:)
+real(4), pointer :: FK1(:,:)
+real(4), pointer :: xl_MY1(:,:)
+real(4), pointer :: al1_my(:)
+real(4), pointer :: esat1(:)
+
+
+nskin => nskin_temp(:,Iin,Kin,Jin)
+VENTPLM => VENTPLM_temp(:,Iin,Kin,Jin)
+FD1 => FD1_temp(:,:,Iin,Kin,Jin)
+FK1 => FK1_temp(:,:,Iin,Kin,Jin)
+xl_MY1 => xl_MY1_temp(:,:,Iin,Kin,Jin)
+al1_my => al1_my_temp(:,Iin,Kin,Jin)
+esat1 => esat1_temp(:,Iin,Kin,Jin)
+!        [[[end]]]
+
+
+! CGS :
+
+! RV_MY, CM*CM/SEC/SEC/KELVIN - INDIVIDUAL GAS CONSTANT
+!                               FOR WATER VAPOUR
+	!RV_MY=461.5D4
+
+! D_MYIN, CM*CM/SEC - COEFFICIENT OF DIFFUSION OF WATER VAPOUR
+
+	!D_MYIN=0.211D0
+
+! PZERO, DYNES/CM/CM - REFERENCE PRESSURE
+
+	PZERO=1.013D6
+
+! TZERO, KELVIN - REFERENCE TEMPERATURE
+
+	TZERO=273.15D0
+
+do kr=1,nkr
+	if (in==2 .and. fl1(kr)==0.0 .or. in==6 .or. in==3 .and. tp<273.15) then
+	   nskin(kr) = 2
+	else !in==1 or in==6 or lef/=0
+	   nskin(kr) = 1
+	endif
+enddo
+
+! CONSTANTS FOR CLAUSIUS-CLAPEYRON EQUATION :
+
+! A1_MY(1),G/SEC/SEC/CM
+
+!	A1_MY(1)=2.53D12
+
+! A1_MY(2),G/SEC/SEC/CM
+
+!	A1_MY(2)=3.41D13
+
+! BB1_MY(1), KELVIN
+
+!	BB1_MY(1)=5.42D3
+
+! BB1_MY(2), KELVIN
+
+!	BB1_MY(2)=6.13D3
+
+! AL1_MY(1), CM*CM/SEC/SEC - LATENT HEAT OF VAPORIZATION
+
+	AL1_MY(1)=2.5D10
+
+! AL1_MY(2), CM*CM/SEC/SEC - LATENT HEAT OF SUBLIMATION
+
+	AL1_MY(2)=2.834D10
+
+! CF_MY, G*CM/SEC/SEC/SEC/KELVIN - COEFFICIENT OF
+!                                  THERMAL CONDUCTIVITY OF AIR
+	!CF_MY=2.4D3
+
+  DEG01=1.0/3.0
+  DEG03=1.0/3.0
+
+	CONST=12.566372D0
+
+! coefficient of diffusion
+
+	D_MY=D_MYIN*(PZERO/PP)*(TP/TZERO)**1.94D0
+
+! coefficient of viscousity
+
+! COEFF_VISCOUS=0.13 cm*cm/sec
+
+        COEFF_VISCOUS=0.13D0
+
+! Shmidt number
+
+        SHMIDT_NUMBER=COEFF_VISCOUS/D_MY
+
+! Constants used for calculation of Reinolds number
+
+        A=2.0D0*(3.0D0/4.0D0/3.141593D0)**DEG01
+        B=A/COEFF_VISCOUS
+
+	RVT=RV_MY*TP
+  !	ESAT1(IN)=A1_MY(IN)*DEXP(-BB1_MY(IN)/TP)
+  !	if (IN==1) then
+  !            ESAT1(IN)=EW(TP)
+  !	ELSE
+  !            ESAT1(IN)=EI(TP)
+  !	endif
+
+		! ... (KS) - update the saturation vapor pressure
+		!ESAT1(1)=EW(TP)
+    !ESAT1(2)=EI(TP)
+		TPreal = TP
+		ESAT1(1) = POLYSVP(TPreal,0)
+		ESAT1(2) = POLYSVP(TPreal,1)
+
+	   DO KR=1,NKR
+	      VENTPLM(KR)=0.0D0
+    ENDDO
+
+		SHMIDT_NUMBER03=SHMIDT_NUMBER**DEG03
+
+	   DO ICE=1,ID
+#if 1
+	      DO KR=1,NKR
+
+          xlS_KR_ICE=xlS(KR)
+          RO1BL_KR_ICE=RO1BL(KR)
+          Vxl_KR_ICE=Vxl(KR)
+! Reynolds numbers
+          REINOLDS_NUMBER= &
+              B*Vxl_KR_ICE*(xlS_KR_ICE/RO1BL_KR_ICE)**DEG03
+          RESHM=DSQRT(REINOLDS_NUMBER)*SHMIDT_NUMBER03
+
+          IF(REINOLDS_NUMBER<2.5D0) THEN
+            VENTPL=1.0D0+0.108D0*RESHM*RESHM
+            VENTPLM(KR)=VENTPL
+          ELSE
+            VENTPL=0.78D0+0.308D0*RESHM
+            VENTPLM(KR)=VENTPL
+          ENDIF
+
+
+        ENDDO
+#endif
+! cycle by KR
+
+! VENTPL_MAX is given in MICRO.PRM include file
+
+	     DO KR=1,NKR
+
+        VENTPL=VENTPLM(KR)
+
+        IF(VENTPL>VENTPL_MAX) THEN
+          VENTPL=VENTPL_MAX
+          VENTPLM(KR)=VENTPL
+        ENDIF
+
+        CONSTL=CONST*RIEC(KR)
+
+        FD1(KR,ice)=RVT/D_MY/ESAT1(nskin(kr))
+        FK1(KR,ice)=(AL1_MY(nskin(kr))/RVT-1.0D0)*AL1_MY(nskin(kr))/CF_MY/TP
+
+        xl_MY1(KR,ice)=VENTPL*CONSTL
+        ! growth rate
+        DETL=FK1(KR,ice)+FD1(KR,ice)
+        B11_MY(KR)=xl_MY1(KR,ice)/DETL
+
+       ENDDO
+! cycle by KR
+
+      ENDDO
+! cycle by ICE
+
+
+      ! namo - test
+	RETURN
+
+	END SUBROUTINE JERRATE_KS_1
       SUBROUTINE JERRATE_KS (xlS, &
         						        TP,PP, &
 						                Vxl,RIEC,RO1BL, &
@@ -2853,7 +3062,7 @@ enddo
   USE module_mp_SBM_polar_radar,ONLY:polar_hucm
   USE module_mp_SBM_BreakUp,ONLY:Spont_Rain_BreakUp,BreakUp_Snow,KR_SNOW_MIN,KR_SNOW_MAX
   USE module_mp_SBM_Nucleation,ONLY:JERNUCL01_KS, LogNormal_modes_Aerosol
-  USE module_mp_SBM_Auxiliary,ONLY:JERRATE_KS,JERTIMESC_KS,JERSUPSAT_KS,  &
+  USE module_mp_SBM_Auxiliary,ONLY:JERRATE_KS,jerrate_ks_1,JERTIMESC_KS,JERSUPSAT_KS,  &
                                    JERDFUN_KS,JERDFUN_NEW_KS,POLYSVP,Relaxation_Time
   USE scatt_tables,ONLY:faf1,fbf1,fab1,fbb1,         &
  						            faf3,fbf3,fab3,fbb3,         &
@@ -6084,8 +6293,8 @@ enddo
  IF(ISYM1 == 1)THEN
  	FL1 = 0.0
  	VR1_d = VR1
-#if 0
- 	CALL JERRATE_KS &
+#if 1
+ 	CALL JERRATE_KS_1 &
  				(R1D,TPS,PP,VR1_d,RLEC,RO1BL,B11_MY,1,1,fl1,NKR,ICEMAX,Iin,Kin,Jin)
 #endif
 

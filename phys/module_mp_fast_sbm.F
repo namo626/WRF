@@ -3227,7 +3227,7 @@ enddo
  	REAL (KIND=R4SIZE) :: qna0(its:ite,kts:kte,jts:jte), fr_hom, w_stagm, CollEff_out, FACT
  	REAL (KIND=R4SIZE) :: FACTZ_new(KMS:KME,NKR), TT_r
  ! ### (KS) ............................................................................................
- 	INTEGER :: NZ,NZZ,II,JJ
+ 	INTEGER :: NZ,NZZ,II,JJ,kk
 
       ! For offloading coal_bott_new
     real(kind=r8size), dimension(its:ite,kts:kte,jts:jte) :: tt_all, qq_all, pp_all, del1in_all, del2in_all
@@ -3612,17 +3612,20 @@ enddo
 #define COND3 0
 
 #if 1
-!$omp target teams distribute parallel do collapse(3)   &
+!$omp target teams distribute parallel do collapse(3) num_teams(512)   &
 !$omp private ( &
 !$omp fmax1,fmax2,fmax3,fmax4,fmax5,&
 !$omp isym1,isym2,isym3,isym4,isym5) &
 !$omp map(from: vr2_zc,vr2_zp,vr2_zd,vr1_z,vr3_z,vr4_z,vr5_z,vr1_z3d,vr3_z3d,vr4_z3d,vr5_z3d)
 #endif
 
-      do j = jts,jte
-         do k = kts,kte
-            do i = its,ite
+      do jj = 1,jte-jts+1
+         do kk = 1,kte-kts+1
+            do ii = 1,ite-its+1
 
+               i = ii + its - 1
+               j = jj + jts - 1
+               k = kk + kts - 1
             ! ... correcting Look-up-table Terminal velocities
             FACTOR_P = DSQRT(1.0D6/PCGS(I,K,J))
             VR2_ZC(:,i,k,j) = VR2(1:nkr,1)*FACTOR_P

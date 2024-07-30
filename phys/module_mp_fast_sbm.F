@@ -4287,7 +4287,7 @@ enddo
                           else
                             w_stag_my = 100*w(i,k,j)
                           end if
-#if 0
+#if 1
 
                           CALL JERNUCL01_KS(FF1IN(:,i,k,j),FF2IN(:,:,i,k,j),FCCN_all(:,i,k,j) 		  &
                                             ,XL,XI,TT,QQ       					    &

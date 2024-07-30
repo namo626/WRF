@@ -3727,7 +3727,7 @@ enddo
  	REAL (KIND=R4SIZE) :: VRX(kts:kte,NKR)
 
  	REAL (KIND=R4SIZE) :: VR1_Z(NKR,ITS:ITE,KTS:KTE,JTS:JTE), FACTOR_P, VR1_Z3D(NKR,ITS:ITE,KTS:KTE,JTS:JTE)
- 	REAL (KIND=R4SIZE) :: VR2_ZC(NKR,ITS:ITE,KTS:KTE,JTS:JTE), VR2_Z(NKR,ICEMAX)
+ 	REAL (KIND=R4SIZE) :: VR2_ZC(NKR,ITS:ITE,KTS:KTE,JTS:JTE), VR2_Z(NKR,ICEMAX,its:ite,kts:kte,jts:jte)
  	REAL (KIND=R4SIZE) :: VR2_ZP(NKR,ITS:ITE,KTS:KTE,JTS:JTE)
  	REAL (KIND=R4SIZE) :: VR2_ZD(NKR,ITS:ITE,KTS:KTE,JTS:JTE)
  	REAL (KIND=R4SIZE) :: VR3_Z(NKR,ITS:ITE,KTS:KTE,JTS:JTE), VR3_Z3D(NKR,ITS:ITE,KTS:KTE,JTS:JTE)
@@ -4173,7 +4173,7 @@ enddo
 
 
 #define COND1 1
-#define COND2 0
+#define COND2 1
 #define COND3 0
 
 #if 1
@@ -4369,16 +4369,16 @@ enddo
                                 (sum(ISYM2)>1 .OR. ISYM3==1 .OR. ISYM4==1 .OR. ISYM5==1))THEN
                                   !IF (TT.GT.213.15)THEN
 #if COND2
-                                    VR2_Z(:,1) = VR2_ZC(:,i,k,j)
-                                    VR2_Z(:,2) = VR2_ZP(:,i,k,j)
-                                    VR2_Z(:,3) = VR2_ZD(:,i,k,j)
+                                    VR2_Z(:,1,i,k,j) = VR2_ZC(:,i,k,j)
+                                    VR2_Z(:,2,i,k,j) = VR2_ZP(:,i,k,j)
+                                    VR2_Z(:,3,i,k,j) = VR2_ZD(:,i,k,j)
                                     CALL ONECOND2(TT,QQ,PP,rhocgs(I,K,J) &
-                                    ,VR2_Z,VR3_Z(:,K),VR4_Z(:,K),VR5_Z(:,K),pcgs(I,K,J) &
+                                    ,VR2_Z(:,:,i,k,j),VR3_Z(:,i,K,j),VR4_Z(:,i,K,j),VR5_Z(:,i,k,j),pcgs(I,K,J) &
                                     ,DEL1IN,DEL2IN,DIV1,DIV2 &
-                                    ,FF2R_all(:,:,i,k,j),FF2IN,XI,RIEC,RO2BL &
-                                    ,FF3R_all(:,i,k,j),FF3IN,XS,RSEC,RO3BL &
-                                    ,FF4R_all(:,i,k,j),FF4IN,XG,RGEC,RO4BL &
-                                    ,FF5R_all(:,i,k,j),FF5IN,XH,RHEC,RO5BL &
+                                    ,FF2R_all(:,:,i,k,j),FF2IN(:,:,i,k,j),XI,RIEC,RO2BL &
+                                    ,FF3R_all(:,i,k,j),FF3IN(:,i,k,j),XS,RSEC,RO3BL &
+                                    ,FF4R_all(:,i,k,j),FF4IN(:,i,k,j),XG,RGEC,RO4BL &
+                                    ,FF5R_all(:,i,k,j),FF5IN(:,i,k,j),XH,RHEC,RO5BL &
                                     ,AA1_MY,BB1_MY,AA2_MY,BB2_MY &
                                     ,C1_MEY,C2_MEY &
                                     ,COL,DTCOND,ICEMAX,NKR &

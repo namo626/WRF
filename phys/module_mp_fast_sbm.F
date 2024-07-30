@@ -11,8 +11,68 @@
 
 !      [[[cog
 !         from wrf_cog import *
-!         write_module("jerrate_ks.csv", "jerrate_ks_temp", ["nkr", "icemax"])
+!         write_module("jernucl.csv", "jernucl_temp", ["nkr", "icemax","nkr_aerosol"])
 !      ]]]
+    module jernucl_temp
+    implicit none
+    logical, private :: firstcall = .true.
+
+
+    real(8), allocatable, target :: dropconcn_temp(:,:,:,:)
+    real(8), allocatable, target :: fi2_temp(:,:,:,:,:)
+    real(8), allocatable, target :: psi1_temp(:,:,:,:)
+    real(8), allocatable, target :: psi2_temp(:,:,:,:,:)
+    real(8), allocatable, target :: fccnr_temp(:,:,:,:)
+    real(8), allocatable, target :: xl_temp(:,:,:,:)
+    real(8), allocatable, target :: xi_temp(:,:,:,:,:)
+    real(8), allocatable, target :: rccn_temp(:,:,:,:)
+    real(8), allocatable, target :: dropradii_temp(:,:,:,:)
+
+
+    !$omp declare target(dropconcn_temp)
+    !$omp declare target(fi2_temp)
+    !$omp declare target(psi1_temp)
+    !$omp declare target(psi2_temp)
+    !$omp declare target(fccnr_temp)
+    !$omp declare target(xl_temp)
+    !$omp declare target(xi_temp)
+    !$omp declare target(rccn_temp)
+    !$omp declare target(dropradii_temp)
+		contains
+
+    subroutine init_jernucl_temp(its,ite,kts,kte,jts,jte,nkr,icemax,nkr_aerosol)
+    implicit none
+    integer, intent(in) :: its,ite,kts,kte,jts,jte,nkr,icemax,nkr_aerosol
+    if (firstcall) then
+    firstcall = .false.
+
+
+    allocate( dropconcn_temp(nkr,its:ite,kts:kte,jts:jte) )
+    allocate( fi2_temp(nkr,icemax,its:ite,kts:kte,jts:jte) )
+    allocate( psi1_temp(nkr,its:ite,kts:kte,jts:jte) )
+    allocate( psi2_temp(nkr,icemax,its:ite,kts:kte,jts:jte) )
+    allocate( fccnr_temp(nkr_aerosol,its:ite,kts:kte,jts:jte) )
+    allocate( xl_temp(nkr,its:ite,kts:kte,jts:jte) )
+    allocate( xi_temp(nkr,icemax,its:ite,kts:kte,jts:jte) )
+    allocate( rccn_temp(nkr_aerosol,its:ite,kts:kte,jts:jte) )
+    allocate( dropradii_temp(nkr,its:ite,kts:kte,jts:jte) )
+
+
+    !$omp target enter data map(alloc: dropconcn_temp)
+    !$omp target enter data map(alloc: fi2_temp)
+    !$omp target enter data map(alloc: psi1_temp)
+    !$omp target enter data map(alloc: psi2_temp)
+    !$omp target enter data map(alloc: fccnr_temp)
+    !$omp target enter data map(alloc: xl_temp)
+    !$omp target enter data map(alloc: xi_temp)
+    !$omp target enter data map(alloc: rccn_temp)
+    !$omp target enter data map(alloc: dropradii_temp)
+
+
+    endif
+    end subroutine init_jernucl_temp
+    end module jernucl_temp
+!     [[[end]]]
     module jerrate_ks_temp
     implicit none
     logical, private :: firstcall = .true.
@@ -64,7 +124,6 @@
     endif
     end subroutine init_jerrate_ks_temp
     end module jerrate_ks_temp
-!      [[[end]]]
     module jerdfun_ks_temp
     implicit none
     logical, private :: firstcall = .true.
@@ -698,10 +757,6 @@ end module module_mp_SBM_BreakUp
 		REAL(KIND=r8size),parameter:: RV_MY=461.5D4, CF_MY=2.4D3, D_MYIN=0.211D0
 !$omp declare target
 
-!        [[[cog
-!           from wrf_cog import *
-!           write_subroutine("jerrate_ks.csv")
-!        ]]]
 integer, pointer :: nskin(:)
 real(4), pointer :: VENTPLM(:)
 real(4), pointer :: FD1(:,:)
@@ -718,7 +773,6 @@ FK1 => FK1_temp(:,:,Iin,Kin,Jin)
 xl_MY1 => xl_MY1_temp(:,:,Iin,Kin,Jin)
 al1_my => al1_my_temp(:,Iin,Kin,Jin)
 esat1 => esat1_temp(:,Iin,Kin,Jin)
-!        [[[end]]]
 ! CGS :
 
 ! RV_MY, CM*CM/SEC/SEC/KELVIN - INDIVIDUAL GAS CONSTANT
@@ -2045,6 +2099,7 @@ end module module_mp_SBM_Auxiliary
 			                  Iin, Jin, Kin)
 
 
+        use jernucl_temp
 	implicit none
 
  	integer,intent(in) :: 	 Kin, Jin, Iin, NKR, NKR_aerosol, ICEMAX, ICEPROCS, Is_This_CloudBase,IONS
@@ -2056,16 +2111,42 @@ end module module_mp_SBM_Auxiliary
 
  ! ... Locals
  	integer :: KR, ICE, K
- 	real(kind=r8size) :: DROPCONCN(NKR), ARG_1, COL3, RORI, TPN, QPN, TPC, AR1, AR2, OPER3,           &
-						           SUM_ICE, DEL2N, FI2(NKR,ICEMAX), TFREEZ_OLD, DTFREEZXZ, RMASSIAA_NUCL, RMASSIBB_NUCL, &
+ 	real(kind=r8size) :: ARG_1, COL3, RORI, TPN, QPN, TPC, AR1, AR2, OPER3,           &
+						           SUM_ICE, DEL2N, TFREEZ_OLD, DTFREEZXZ, RMASSIAA_NUCL, RMASSIBB_NUCL, &
 		                   FI2_K, xi_K, FI2R2, DELMASSICE_NUCL, ES1N, ES2N, EW1N
   real(kind=r8size),parameter :: AL2 = 2834.0D0
-  real(kind=r8size) :: PSI1(NKR),PSI2(NKR,ICEMAX),FCCNR(NKR_aerosol),ROR,XL(NKR),XI(NKR,ICEMAX),PP,COL, &
-						           SUP2_OLD,DSUPICE_XYZ,Win, RCCN(NKR_aerosol),DROPRADII(NKR)
+  real(kind=r8size) :: ROR,PP,COL, &
+						           SUP2_OLD,DSUPICE_XYZ,Win
 	real(kind=r4size) :: TPNreal
  ! ... Locals
  !$omp declare target
+
  	OPER3(AR1,AR2) = AR1*AR2/(0.622D0+0.378D0*AR1)
+!      [[[cog
+!      from wrf_cog import *
+!      write_subroutine("jernucl.csv")
+!      ]]]
+real(8), pointer :: dropconcn(:)
+real(8), pointer :: fi2(:,:)
+real(8), pointer :: psi1(:)
+real(8), pointer :: psi2(:,:)
+real(8), pointer :: fccnr(:)
+real(8), pointer :: xl(:)
+real(8), pointer :: xi(:,:)
+real(8), pointer :: rccn(:)
+real(8), pointer :: dropradii(:)
+
+
+      dropconcn => dropconcn_temp(:,Iin,Kin,Jin)
+      fi2 => fi2_temp(:,:,Iin,Kin,Jin)
+      psi1 => psi1_temp(:,Iin,Kin,Jin)
+      psi2 => psi2_temp(:,:,Iin,Kin,Jin)
+      fccnr => fccnr_temp(:,Iin,Kin,Jin)
+      xl => xl_temp(:,Iin,Kin,Jin)
+      xi => xi_temp(:,:,Iin,Kin,Jin)
+      rccn => rccn_temp(:,Iin,Kin,Jin)
+      dropradii => dropradii_temp(:,Iin,Kin,Jin)
+!      [[[end]]]
 
 	! ... Adjust the Imput
 	PSI1 = PSI1_r
@@ -3038,6 +3119,7 @@ enddo
       use onecond1_temp, only : init_onecond1_temp
       use jerdfun_ks_temp, only : init_jerdfun_ks_temp
       use jerrate_ks_temp, only : init_jerrate_ks_temp
+      use jernucl_temp, only : init_jernucl_temp
        IMPLICIT NONE
  !-----------------------------------------------------------------------
  	INTEGER :: KR,IKL,ICE
@@ -3233,6 +3315,7 @@ enddo
       call init_onecond1_temp(its,ite,kts,kte,jts,jte,nkr)
       call init_jerdfun_ks_temp(its,ite,kts,kte,jts,jte,nkr)
       call init_jerrate_ks_temp(its,ite,kts,kte,jts,jte,nkr, icemax)
+      call init_jernucl_temp(its,ite,kts,kte,jts,jte,nkr, icemax, nkr_aerosol)
   XS_d = XS
 
   if (itimestep.eq.1)then

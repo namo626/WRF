@@ -11,8 +11,232 @@
 
 !      [[[cog
 !         from wrf_cog import *
-!         write_module("jernucl.csv", "jernucl_temp", ["nkr", "icemax","nkr_aerosol"])
+!         write_module("onecond2.csv", "onecond2_temp", ["nkr", "icemax"])
 !      ]]]
+    module onecond2_temp
+    implicit none
+    logical, private :: firstcall = .true.
+
+
+    REAL, allocatable, target :: FI2_temp(:,:,:,:,:)
+    real, allocatable, target :: B21_MY_temp(:,:,:,:,:)
+    real, allocatable, target :: B22_MY_temp(:,:,:,:,:)
+    REAL, allocatable, target :: FI3_temp(:,:,:,:)
+    real, allocatable, target :: B31_MY_temp(:,:,:,:)
+    real, allocatable, target :: B32_MY_temp(:,:,:,:)
+    REAL, allocatable, target :: FI4_temp(:,:,:,:)
+    real, allocatable, target :: B41_MY_temp(:,:,:,:)
+    real, allocatable, target :: B42_MY_temp(:,:,:,:)
+    REAL, allocatable, target :: FI5_temp(:,:,:,:)
+    real, allocatable, target :: B51_MY_temp(:,:,:,:)
+    real, allocatable, target :: B52_MY_temp(:,:,:,:)
+    REAL, allocatable, target :: DTIMEG_temp(:,:,:,:)
+    real, allocatable, target :: DTIMEH_temp(:,:,:,:)
+    REAL, allocatable, target :: DEL2D_temp(:,:,:,:)
+    real, allocatable, target :: DTIMEO_temp(:,:,:,:)
+    real, allocatable, target :: DTIMEL_temp(:,:,:,:)
+    real, allocatable, target :: DTIMEI_1_temp(:,:,:,:)
+    real, allocatable, target :: DTIMEI_2_temp(:,:,:,:)
+    real, allocatable, target :: DTIMEI_3_temp(:,:,:,:)
+    real, allocatable, target :: SFNI1_temp(:,:,:,:)
+    real, allocatable, target :: SFNI2_temp(:,:,:,:)
+    real, allocatable, target :: TIMESTEPD_temp(:,:,:,:)
+    real, allocatable, target :: FI1REF_temp(:,:,:,:)
+    real, allocatable, target :: PSI1REF_temp(:,:,:,:)
+    real, allocatable, target :: FI2REF_temp(:,:,:,:,:)
+    real, allocatable, target :: PSI2REF_temp(:,:,:,:,:)
+    real, allocatable, target :: FCCNRREF_temp(:,:,:,:)
+    REAL, allocatable, target :: FL1_temp(:,:,:,:)
+    real, allocatable, target :: FL3_temp(:,:,:,:)
+    real, allocatable, target :: FL4_temp(:,:,:,:)
+    real, allocatable, target :: FL5_temp(:,:,:,:)
+    real, allocatable, target :: R2N_temp(:,:,:,:,:)
+    real, allocatable, target :: R3N_temp(:,:,:,:)
+    real, allocatable, target :: R4N_temp(:,:,:,:)
+    real, allocatable, target :: R5N_temp(:,:,:,:)
+    real(8), allocatable, target :: R2D_temp(:,:,:,:,:)
+    real(8), allocatable, target :: R3D_temp(:,:,:,:)
+    real(8), allocatable, target :: R4D_temp(:,:,:,:)
+    real(8), allocatable, target :: R5D_temp(:,:,:,:)
+    real(8), allocatable, target :: R2ND_temp(:,:,:,:,:)
+    real(8), allocatable, target :: R3ND_temp(:,:,:,:)
+    real(8), allocatable, target :: R4ND_temp(:,:,:,:)
+    real(8), allocatable, target :: R5ND_temp(:,:,:,:)
+    real(8), allocatable, target :: VR2_d_temp(:,:,:,:,:)
+    real(8), allocatable, target :: VR3_d_temp(:,:,:,:)
+    real(8), allocatable, target :: VR4_d_temp(:,:,:,:)
+    real(8), allocatable, target :: VR5_d_temp(:,:,:,:)
+    real(4), allocatable, target :: fr_lim_temp(:,:,:,:)
+    real(4), allocatable, target :: frh_lim_temp(:,:,:,:)
+
+
+    !$omp declare target(FI2_temp)
+    !$omp declare target(B21_MY_temp)
+    !$omp declare target(B22_MY_temp)
+    !$omp declare target(FI3_temp)
+    !$omp declare target(B31_MY_temp)
+    !$omp declare target(B32_MY_temp)
+    !$omp declare target(FI4_temp)
+    !$omp declare target(B41_MY_temp)
+    !$omp declare target(B42_MY_temp)
+    !$omp declare target(FI5_temp)
+    !$omp declare target(B51_MY_temp)
+    !$omp declare target(B52_MY_temp)
+    !$omp declare target(DTIMEG_temp)
+    !$omp declare target(DTIMEH_temp)
+    !$omp declare target(DEL2D_temp)
+    !$omp declare target(DTIMEO_temp)
+    !$omp declare target(DTIMEL_temp)
+    !$omp declare target(DTIMEI_1_temp)
+    !$omp declare target(DTIMEI_2_temp)
+    !$omp declare target(DTIMEI_3_temp)
+    !$omp declare target(SFNI1_temp)
+    !$omp declare target(SFNI2_temp)
+    !$omp declare target(TIMESTEPD_temp)
+    !$omp declare target(FI1REF_temp)
+    !$omp declare target(PSI1REF_temp)
+    !$omp declare target(FI2REF_temp)
+    !$omp declare target(PSI2REF_temp)
+    !$omp declare target(FCCNRREF_temp)
+    !$omp declare target(FL1_temp)
+    !$omp declare target(FL3_temp)
+    !$omp declare target(FL4_temp)
+    !$omp declare target(FL5_temp)
+    !$omp declare target(R2N_temp)
+    !$omp declare target(R3N_temp)
+    !$omp declare target(R4N_temp)
+    !$omp declare target(R5N_temp)
+    !$omp declare target(R2D_temp)
+    !$omp declare target(R3D_temp)
+    !$omp declare target(R4D_temp)
+    !$omp declare target(R5D_temp)
+    !$omp declare target(R2ND_temp)
+    !$omp declare target(R3ND_temp)
+    !$omp declare target(R4ND_temp)
+    !$omp declare target(R5ND_temp)
+    !$omp declare target(VR2_d_temp)
+    !$omp declare target(VR3_d_temp)
+    !$omp declare target(VR4_d_temp)
+    !$omp declare target(VR5_d_temp)
+    !$omp declare target(fr_lim_temp)
+    !$omp declare target(frh_lim_temp)
+		contains
+
+    subroutine init_onecond2_temp(its,ite,kts,kte,jts,jte,nkr,icemax)
+    implicit none
+    integer, intent(in) :: its,ite,kts,kte,jts,jte,nkr,icemax
+    if (firstcall) then
+    firstcall = .false.
+
+
+    allocate( FI2_temp(NKR,ICEMAX,its:ite,kts:kte,jts:jte) )
+    allocate( B21_MY_temp(NKR,ICEMAX,its:ite,kts:kte,jts:jte) )
+    allocate( B22_MY_temp(NKR,ICEMAX,its:ite,kts:kte,jts:jte) )
+    allocate( FI3_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( B31_MY_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( B32_MY_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( FI4_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( B41_MY_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( B42_MY_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( FI5_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( B51_MY_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( B52_MY_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( DTIMEG_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( DTIMEH_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( DEL2D_temp(ICEMAX,its:ite,kts:kte,jts:jte) )
+    allocate( DTIMEO_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( DTIMEL_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( DTIMEI_1_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( DTIMEI_2_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( DTIMEI_3_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( SFNI1_temp(ICEMAX,its:ite,kts:kte,jts:jte) )
+    allocate( SFNI2_temp(ICEMAX,its:ite,kts:kte,jts:jte) )
+    allocate( TIMESTEPD_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( FI1REF_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( PSI1REF_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( FI2REF_temp(NKR,ICEMAX,its:ite,kts:kte,jts:jte) )
+    allocate( PSI2REF_temp(NKR,ICEMAX,its:ite,kts:kte,jts:jte) )
+    allocate( FCCNRREF_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( FL1_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( FL3_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( FL4_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( FL5_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( R2N_temp(NKR,ICEMAX,its:ite,kts:kte,jts:jte) )
+    allocate( R3N_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( R4N_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( R5N_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( R2D_temp(NKR,ICEMAX,its:ite,kts:kte,jts:jte) )
+    allocate( R3D_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( R4D_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( R5D_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( R2ND_temp(NKR,ICEMAX,its:ite,kts:kte,jts:jte) )
+    allocate( R3ND_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( R4ND_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( R5ND_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( VR2_d_temp(NKR,ICEMAX,its:ite,kts:kte,jts:jte) )
+    allocate( VR3_d_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( VR4_d_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( VR5_d_temp(NKR,its:ite,kts:kte,jts:jte) )
+    allocate( fr_lim_temp(nkr,its:ite,kts:kte,jts:jte) )
+    allocate( frh_lim_temp(nkr,its:ite,kts:kte,jts:jte) )
+
+
+    !$omp target enter data map(alloc: FI2_temp)
+    !$omp target enter data map(alloc: B21_MY_temp)
+    !$omp target enter data map(alloc: B22_MY_temp)
+    !$omp target enter data map(alloc: FI3_temp)
+    !$omp target enter data map(alloc: B31_MY_temp)
+    !$omp target enter data map(alloc: B32_MY_temp)
+    !$omp target enter data map(alloc: FI4_temp)
+    !$omp target enter data map(alloc: B41_MY_temp)
+    !$omp target enter data map(alloc: B42_MY_temp)
+    !$omp target enter data map(alloc: FI5_temp)
+    !$omp target enter data map(alloc: B51_MY_temp)
+    !$omp target enter data map(alloc: B52_MY_temp)
+    !$omp target enter data map(alloc: DTIMEG_temp)
+    !$omp target enter data map(alloc: DTIMEH_temp)
+    !$omp target enter data map(alloc: DEL2D_temp)
+    !$omp target enter data map(alloc: DTIMEO_temp)
+    !$omp target enter data map(alloc: DTIMEL_temp)
+    !$omp target enter data map(alloc: DTIMEI_1_temp)
+    !$omp target enter data map(alloc: DTIMEI_2_temp)
+    !$omp target enter data map(alloc: DTIMEI_3_temp)
+    !$omp target enter data map(alloc: SFNI1_temp)
+    !$omp target enter data map(alloc: SFNI2_temp)
+    !$omp target enter data map(alloc: TIMESTEPD_temp)
+    !$omp target enter data map(alloc: FI1REF_temp)
+    !$omp target enter data map(alloc: PSI1REF_temp)
+    !$omp target enter data map(alloc: FI2REF_temp)
+    !$omp target enter data map(alloc: PSI2REF_temp)
+    !$omp target enter data map(alloc: FCCNRREF_temp)
+    !$omp target enter data map(alloc: FL1_temp)
+    !$omp target enter data map(alloc: FL3_temp)
+    !$omp target enter data map(alloc: FL4_temp)
+    !$omp target enter data map(alloc: FL5_temp)
+    !$omp target enter data map(alloc: R2N_temp)
+    !$omp target enter data map(alloc: R3N_temp)
+    !$omp target enter data map(alloc: R4N_temp)
+    !$omp target enter data map(alloc: R5N_temp)
+    !$omp target enter data map(alloc: R2D_temp)
+    !$omp target enter data map(alloc: R3D_temp)
+    !$omp target enter data map(alloc: R4D_temp)
+    !$omp target enter data map(alloc: R5D_temp)
+    !$omp target enter data map(alloc: R2ND_temp)
+    !$omp target enter data map(alloc: R3ND_temp)
+    !$omp target enter data map(alloc: R4ND_temp)
+    !$omp target enter data map(alloc: R5ND_temp)
+    !$omp target enter data map(alloc: VR2_d_temp)
+    !$omp target enter data map(alloc: VR3_d_temp)
+    !$omp target enter data map(alloc: VR4_d_temp)
+    !$omp target enter data map(alloc: VR5_d_temp)
+    !$omp target enter data map(alloc: fr_lim_temp)
+    !$omp target enter data map(alloc: frh_lim_temp)
+
+
+    endif
+    end subroutine init_onecond2_temp
+    end module onecond2_temp
+!     [[[end]]]
     module jernucl_temp
     implicit none
     logical, private :: firstcall = .true.
@@ -72,7 +296,6 @@
     endif
     end subroutine init_jernucl_temp
     end module jernucl_temp
-!     [[[end]]]
     module jerrate_ks_temp
     implicit none
     logical, private :: firstcall = .true.
@@ -2122,10 +2345,6 @@ end module module_mp_SBM_Auxiliary
  !$omp declare target
 
  	OPER3(AR1,AR2) = AR1*AR2/(0.622D0+0.378D0*AR1)
-!      [[[cog
-!      from wrf_cog import *
-!      write_subroutine("jernucl.csv")
-!      ]]]
 real(8), pointer :: dropconcn(:)
 real(8), pointer :: fi2(:,:)
 real(8), pointer :: psi1(:)
@@ -2146,7 +2365,6 @@ real(8), pointer :: dropradii(:)
       xi => xi_temp(:,:,Iin,Kin,Jin)
       rccn => rccn_temp(:,Iin,Kin,Jin)
       dropradii => dropradii_temp(:,Iin,Kin,Jin)
-!      [[[end]]]
 
 	! ... Adjust the Imput
 	PSI1 = PSI1_r
@@ -3120,6 +3338,7 @@ enddo
       use jerdfun_ks_temp, only : init_jerdfun_ks_temp
       use jerrate_ks_temp, only : init_jerrate_ks_temp
       use jernucl_temp, only : init_jernucl_temp
+      use onecond2_temp, only : init_onecond2_temp
        IMPLICIT NONE
  !-----------------------------------------------------------------------
  	INTEGER :: KR,IKL,ICE
@@ -3313,6 +3532,7 @@ enddo
     logical, dimension(its:ite,kts:kte,jts:jte) :: call_coal_bott_new
 
       call init_onecond1_temp(its,ite,kts,kte,jts,jte,nkr)
+      call init_onecond2_temp(its,ite,kts,kte,jts,jte,nkr,icemax)
       call init_jerdfun_ks_temp(its,ite,kts,kte,jts,jte,nkr)
       call init_jerrate_ks_temp(its,ite,kts,kte,jts,jte,nkr, icemax)
       call init_jernucl_temp(its,ite,kts,kte,jts,jte,nkr, icemax, nkr_aerosol)
@@ -6389,9 +6609,10 @@ enddo
  					 & ,COL,DTCOND,ICEMAX,NKR &
  					 & ,ISYM1,ISYM2,ISYM3,ISYM4,ISYM5, &
  					 	Iin,Jin,Kin,W_in,DX_in,Itimestep)
-
+use onecond2_temp
     IMPLICIT NONE
 
+      !$omp declare target
       real(kind=r8size), intent(inout) :: TT,QQ
       real(kind=r8size), intent(in) :: PP
       real, intent(in) :: ROR
@@ -6456,37 +6677,11 @@ enddo
 
  ! CRYSTALS
 
- 	REAL         FI2(NKR,ICEMAX)          ,B21_MY(NKR,ICEMAX),B22_MY(NKR,ICEMAX)
 
- ! SNOW
-         REAL            FI3(NKR)            ,B31_MY(NKR),B32_MY(NKR)
 
- ! GRAUPELS
 
-         REAL            FI4(NKR)            ,B41_MY(NKR),B42_MY(NKR)
-
- ! HAIL
-         REAL            FI5(NKR)            ,B51_MY(NKR),B52_MY(NKR)
-
- ! CCN
-
- 	REAL DTIMEG(NKR),DTIMEH(NKR)
-
- 	REAL DEL2D(ICEMAX),DTIMEO(NKR),DTIMEL(NKR) &
-
-      &           ,DTIMEI_1(NKR),DTIMEI_2(NKR),DTIMEI_3(NKR) &
-      &           ,SFNI1(ICEMAX),SFNI2(ICEMAX) &
-      &           ,TIMESTEPD(NKR) &
-      &           ,FI1REF(NKR),PSI1REF(NKR) &
-      &           ,FI2REF(NKR,ICEMAX),PSI2REF(NKR,ICEMAX)&
-      &           ,FCCNRREF(NKR)
-
- 	REAL :: FL1(NKR), sfndummy(3), FL3(NKR), FL4(NKR), FL5(NKR), &
- 					R2N(NKR,ICEMAX), R3N(NKR), R4N(NKR), R5N(NKR)
+         real :: sfndummy(3)
  	INTEGER :: IDROP, ISYMICE
- 	DOUBLE PRECISION :: R2D(NKR,ICEMAX),R3D(NKR), R4D(NKR), R5D(NKR), &
- 			    R2ND(NKR,ICEMAX),R3ND(NKR), R4ND(NKR), R5ND(NKR), &
- 			    VR2_d(NKR,ICEMAX), VR3_d(NKR), VR4_d(NKR), VR5_d(NKR)
 
  	OPER2(AR1)=0.622/(0.622+0.378*AR1)/AR1
  	OPER3(AR1,AR2)=AR1*AR2/(0.622+0.378*AR1)
@@ -6509,18 +6704,125 @@ enddo
 
  	DOUBLE PRECISION :: DEL1_d, DEL2_d, RW_d, PW_d, RI_d, PI_d, D1N_d, D2N_d
 
-      real(kind=r4size) :: fr_lim(nkr), frh_lim(nkr)
 
-      !$omp declare target
- 	B22_MY = 0.0
- 	B32_MY = 0.0
- 	B42_MY = 0.0
- 	B52_MY = 0.0
 
- 	B21_MY = 0.0
- 	B31_MY = 0.0
- 	B41_MY = 0.0
- 	B51_MY = 0.0
+!      [[[cog
+!         from wrf_cog import *
+!         write_subroutine("onecond2.csv")
+!      ]]]
+REAL, pointer :: FI2(:,:)
+real, pointer :: B21_MY(:,:)
+real, pointer :: B22_MY(:,:)
+REAL, pointer :: FI3(:)
+real, pointer :: B31_MY(:)
+real, pointer :: B32_MY(:)
+REAL, pointer :: FI4(:)
+real, pointer :: B41_MY(:)
+real, pointer :: B42_MY(:)
+REAL, pointer :: FI5(:)
+real, pointer :: B51_MY(:)
+real, pointer :: B52_MY(:)
+REAL, pointer :: DTIMEG(:)
+real, pointer :: DTIMEH(:)
+REAL, pointer :: DEL2D(:)
+real, pointer :: DTIMEO(:)
+real, pointer :: DTIMEL(:)
+real, pointer :: DTIMEI_1(:)
+real, pointer :: DTIMEI_2(:)
+real, pointer :: DTIMEI_3(:)
+real, pointer :: SFNI1(:)
+real, pointer :: SFNI2(:)
+real, pointer :: TIMESTEPD(:)
+real, pointer :: FI1REF(:)
+real, pointer :: PSI1REF(:)
+real, pointer :: FI2REF(:,:)
+real, pointer :: PSI2REF(:,:)
+real, pointer :: FCCNRREF(:)
+REAL, pointer :: FL1(:)
+real, pointer :: FL3(:)
+real, pointer :: FL4(:)
+real, pointer :: FL5(:)
+real, pointer :: R2N(:,:)
+real, pointer :: R3N(:)
+real, pointer :: R4N(:)
+real, pointer :: R5N(:)
+real(8), pointer :: R2D(:,:)
+real(8), pointer :: R3D(:)
+real(8), pointer :: R4D(:)
+real(8), pointer :: R5D(:)
+real(8), pointer :: R2ND(:,:)
+real(8), pointer :: R3ND(:)
+real(8), pointer :: R4ND(:)
+real(8), pointer :: R5ND(:)
+real(8), pointer :: VR2_d(:,:)
+real(8), pointer :: VR3_d(:)
+real(8), pointer :: VR4_d(:)
+real(8), pointer :: VR5_d(:)
+real(4), pointer :: fr_lim(:)
+real(4), pointer :: frh_lim(:)
+
+
+        FI2 => FI2_temp(:,:,Iin,Kin,Jin)
+        B21_MY => B21_MY_temp(:,:,Iin,Kin,Jin)
+        B22_MY => B22_MY_temp(:,:,Iin,Kin,Jin)
+        FI3 => FI3_temp(:,Iin,Kin,Jin)
+        B31_MY => B31_MY_temp(:,Iin,Kin,Jin)
+        B32_MY => B32_MY_temp(:,Iin,Kin,Jin)
+        FI4 => FI4_temp(:,Iin,Kin,Jin)
+        B41_MY => B41_MY_temp(:,Iin,Kin,Jin)
+        B42_MY => B42_MY_temp(:,Iin,Kin,Jin)
+        FI5 => FI5_temp(:,Iin,Kin,Jin)
+        B51_MY => B51_MY_temp(:,Iin,Kin,Jin)
+        B52_MY => B52_MY_temp(:,Iin,Kin,Jin)
+        DTIMEG => DTIMEG_temp(:,Iin,Kin,Jin)
+        DTIMEH => DTIMEH_temp(:,Iin,Kin,Jin)
+        DEL2D => DEL2D_temp(:,Iin,Kin,Jin)
+        DTIMEO => DTIMEO_temp(:,Iin,Kin,Jin)
+        DTIMEL => DTIMEL_temp(:,Iin,Kin,Jin)
+        DTIMEI_1 => DTIMEI_1_temp(:,Iin,Kin,Jin)
+        DTIMEI_2 => DTIMEI_2_temp(:,Iin,Kin,Jin)
+        DTIMEI_3 => DTIMEI_3_temp(:,Iin,Kin,Jin)
+        SFNI1 => SFNI1_temp(:,Iin,Kin,Jin)
+        SFNI2 => SFNI2_temp(:,Iin,Kin,Jin)
+        TIMESTEPD => TIMESTEPD_temp(:,Iin,Kin,Jin)
+        FI1REF => FI1REF_temp(:,Iin,Kin,Jin)
+        PSI1REF => PSI1REF_temp(:,Iin,Kin,Jin)
+        FI2REF => FI2REF_temp(:,:,Iin,Kin,Jin)
+        PSI2REF => PSI2REF_temp(:,:,Iin,Kin,Jin)
+        FCCNRREF => FCCNRREF_temp(:,Iin,Kin,Jin)
+        FL1 => FL1_temp(:,Iin,Kin,Jin)
+        FL3 => FL3_temp(:,Iin,Kin,Jin)
+        FL4 => FL4_temp(:,Iin,Kin,Jin)
+        FL5 => FL5_temp(:,Iin,Kin,Jin)
+        R2N => R2N_temp(:,:,Iin,Kin,Jin)
+        R3N => R3N_temp(:,Iin,Kin,Jin)
+        R4N => R4N_temp(:,Iin,Kin,Jin)
+        R5N => R5N_temp(:,Iin,Kin,Jin)
+        R2D => R2D_temp(:,:,Iin,Kin,Jin)
+        R3D => R3D_temp(:,Iin,Kin,Jin)
+        R4D => R4D_temp(:,Iin,Kin,Jin)
+        R5D => R5D_temp(:,Iin,Kin,Jin)
+        R2ND => R2ND_temp(:,:,Iin,Kin,Jin)
+        R3ND => R3ND_temp(:,Iin,Kin,Jin)
+        R4ND => R4ND_temp(:,Iin,Kin,Jin)
+        R5ND => R5ND_temp(:,Iin,Kin,Jin)
+        VR2_d => VR2_d_temp(:,:,Iin,Kin,Jin)
+        VR3_d => VR3_d_temp(:,Iin,Kin,Jin)
+        VR4_d => VR4_d_temp(:,Iin,Kin,Jin)
+        VR5_d => VR5_d_temp(:,Iin,Kin,Jin)
+        fr_lim => fr_lim_temp(:,Iin,Kin,Jin)
+        frh_lim => frh_lim_temp(:,Iin,Kin,Jin)
+!      [[[end]]]
+
+! 	B22_MY = 0.0
+! 	B32_MY = 0.0
+! 	B42_MY = 0.0
+! 	B52_MY = 0.0
+!
+! 	B21_MY = 0.0
+! 	B31_MY = 0.0
+! 	B41_MY = 0.0
+! 	B51_MY = 0.0
 
  	SFNDUMMY = 0.0
  	R2D = R2

@@ -6242,12 +6242,13 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
 
       !$omp target enter data map(to: field_old, field, msftx,msfty, mut, c1,c2)
-      !$omp target enter data map(to: rv) nowait depend(out: rv)
-      !$omp target enter data map(to: ru) nowait depend(out: ru)
-      !$omp target enter data map(to: rom) nowait depend(out: rom)
-      !$omp target enter data map(to: tendency) nowait depend(out:tendency)
+      !$omp target enter data map(to: rv)
+      !$omp target enter data map(to: ru)
+      !$omp target enter data map(to: rom)
+      !$omp target enter data map(to: tendency)
 
      !$omp target enter data map(alloc: fqx,fqxl,fqy,fqyl,fqz,fqzl,flux_out,ph_low)
+     !$omp target enter data map(alloc: h_tendency, z_tendency)
 ! set order for the advection schemes
 
 !  write(6,*) ' in pd advection routine '
@@ -6612,7 +6613,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 !  compute fluxes, 5th order
 
       if (j_start_f >= j_start .and. j_end_f <= j_end+1) then
-      !$omp target teams distribute parallel do collapse(3) depend(in: rv)
+      !$omp target teams distribute parallel do collapse(3)
       DO j = j_start_f, j_end_f ! use full stencil
         DO k=kts,ktf
         DO i = i_start, i_end
@@ -6641,7 +6642,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
       !IF ( j == jds+1 ) THEN   ! 2nd order flux next to south boundary
 
-      !$omp target teams distribute parallel do collapse(2) depend(in: rv)
+      !$omp target teams distribute parallel do collapse(2)
             DO k=kts,ktf
             DO i = i_start, i_end
 
@@ -6665,7 +6666,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
       if (j >= j_start .and. j <= j_end+1) then
       !ELSE IF  ( j == jds+2 ) THEN  ! third of 4th order flux 2 in from south boundary
 
-      !$omp target teams distribute parallel do collapse(2) depend(in: rv)
+      !$omp target teams distribute parallel do collapse(2)
             DO k=kts,ktf
             DO i = i_start, i_end
 
@@ -6687,7 +6688,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
       if (j >= j_start .and. j <= j_end+1) then
       !ELSE IF ( j == jde-1 ) THEN  ! 2nd order flux next to north boundary
 
-      !$omp target teams distribute parallel do collapse(2) depend(in: rv)
+      !$omp target teams distribute parallel do collapse(2)
             DO k=kts,ktf
             DO i = i_start, i_end
 
@@ -6710,7 +6711,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
       if (j >= j_start .and. j <= j_end+1) then
       !ELSE IF ( j == jde-2 ) THEN  ! 3rd or 4th order flux 2 in from north boundary
 
-      !$omp target teams distribute parallel do collapse(2) depend(in: rv)
+      !$omp target teams distribute parallel do collapse(2)
             DO k=kts,ktf
             DO i = i_start, i_end
 
@@ -6763,7 +6764,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
 !  compute fluxes
 
-      !$omp target teams distribute parallel do collapse(3) depend(in: ru)
+      !$omp target teams distribute parallel do collapse(3)
       DO j = j_start, j_end
 
 !  5th order flux
@@ -6794,7 +6795,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
            i = ids + 1
            IF (i >= i_start .and. i <= i_start_f - 1) THEN
-      !$omp target teams distribute parallel do collapse(2) depend(in: ru)
+      !$omp target teams distribute parallel do collapse(2)
               DO j = j_start,j_end
 !DO i=i_start,i_start_f-1
                  DO k=kts,ktf
@@ -6812,7 +6813,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
            i = ids+2
            IF (i >= i_start .and. i <= i_start_f - 1) THEN
-      !$omp target teams distribute parallel do collapse(2) depend(in: ru)
+      !$omp target teams distribute parallel do collapse(2)
               DO j = j_start,j_end
                  DO k=kts,ktf
                     dx = 2./(msfty(i,j)+msfty(i-1,j))/rdx ! ADT eqn 48 d/dx
@@ -6834,7 +6835,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
            i = ide-1
          if(i >= i_end_f+1 .and. i <= i_end+1) then
-      !$omp target teams distribute parallel do collapse(2) depend(in: ru)
+      !$omp target teams distribute parallel do collapse(2)
            DO j = j_start, j_end
               DO k=kts,ktf
                 dx = 2./(msfty(i,j)+msfty(i-1,j))/rdx  ! ADT eqn 48 d/dx
@@ -6852,7 +6853,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
         i = ide-2
          if(i >= i_end_f+1 .and. i <= i_end+1) then
-      !$omp target teams distribute parallel do collapse(2) depend(in: ru)
+      !$omp target teams distribute parallel do collapse(2)
             DO j = j_start, j_end
               DO k=kts,ktf
                 dx = 2./(msfty(i,j)+msfty(i-1,j))/rdx  ! ADT eqn 48 d/dx
@@ -7363,7 +7364,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
    IF( (config_flags%open_xs) .and. (its == ids) ) THEN
 
-      !$omp target teams distribute parallel do collapse(2) depend(in: tendency)
+      !$omp target teams distribute parallel do collapse(2)
        DO j = j_start, j_end
        DO k = kts, ktf
          ub = MIN( 0.5*(ru(its,k,j)+ru(its+1,k,j)), 0. )
@@ -7380,7 +7381,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
    IF( (config_flags%open_xe) .and. (ite == ide) ) THEN
 
-      !$omp target teams distribute parallel do collapse(2) depend(in: tendency)
+      !$omp target teams distribute parallel do collapse(2)
        DO j = j_start, j_end
        DO k = kts, ktf
          ub = MAX( 0.5*(ru(ite-1,k,j)+ru(ite,k,j)), 0. )
@@ -7397,7 +7398,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
    IF( (config_flags%open_ys) .and. (jts == jds) ) THEN
 
-      !$omp target teams distribute parallel do collapse(2) depend(in: tendency)
+      !$omp target teams distribute parallel do collapse(2)
        DO i = i_start, i_end
        DO k = kts, ktf
          vb = MIN( 0.5*(rv(i,k,jts)+rv(i,k,jts+1)), 0. )
@@ -7414,7 +7415,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
    IF( (config_flags%open_ye) .and. (jte == jde)) THEN
 
-      !$omp target teams distribute parallel do collapse(2) depend(in: tendency)
+      !$omp target teams distribute parallel do collapse(2)
        DO i = i_start, i_end
        DO k = kts, ktf
          vb = MAX( 0.5*(rv(i,k,jte-1)+rv(i,k,jte)), 0. )
@@ -7431,7 +7432,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
    IF( (config_flags%polar) .and. (jts == jds) ) THEN
 
-      !$omp target teams distribute parallel do collapse(2) depend(in: tendency)
+      !$omp target teams distribute parallel do collapse(2)
        ! Assuming rv(i,k,jds) = 0.
        DO i = i_start, i_end
        DO k = kts, ktf
@@ -7449,7 +7450,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
    IF( (config_flags%polar) .and. (jte == jde)) THEN
 
-      !$omp target teams distribute parallel do collapse(2) depend(in: tendency)
+      !$omp target teams distribute parallel do collapse(2)
        ! Assuming rv(i,k,jde) = 0.
        DO i = i_start, i_end
        DO k = kts, ktf
@@ -7691,7 +7692,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
       ENDDO
 
 
-       !$omp target teams distribute parallel do collapse(3) depend(in: rom)
+       !$omp target teams distribute parallel do collapse(3)
       DO j = j_start, j_end
          DO k=kts+2,ktf-1
 ! !DEC$ vector always
@@ -7711,7 +7712,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
          ENDDO
       ENDDO
 
-       !$omp target teams distribute parallel do collapse(2) depend(in: rom)
+       !$omp target teams distribute parallel do collapse(2)
       DO j = j_start, j_end
          DO i = i_start, i_end
 
@@ -7770,7 +7771,6 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
    ENDIF vert_order_test
 
-!$omp  target data map(from: h_tendency, z_tendency)
 
    IF (pd_limit) THEN
 
@@ -7887,7 +7887,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
   ! Codee: Technique applied: offloading with 'omp-teams' pragmas
   ! Codee: Offloaded loop: begin
   ! TODO (Codee): Consider optimizing data transfers of arrays by adding the proper array ranges in data mapping clauses
-  !$omp target teams distribute parallel do collapse(3) depend(in: tendency)
+  !$omp target teams distribute parallel do collapse(3)
   DO j = j_start, j_end
   DO k = kts, ktf
 !!DEC$ vector always
@@ -7928,7 +7928,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
   ! Codee: Technique applied: offloading with 'omp-teams' pragmas
   ! Codee: Offloaded loop: begin
   ! TODO (Codee): Consider optimizing data transfers of arrays by adding the proper array ranges in data mapping clauses
-  !$omp target teams distribute parallel do collapse(3) depend(in: tendency)
+  !$omp target teams distribute parallel do collapse(3)
   DO j = j_start, j_end
   DO k = kts, ktf
 !!DEC$ vector always
@@ -7973,7 +7973,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
   ! Codee: Technique applied: offloading with 'omp-teams' pragmas
   ! Codee: Offloaded loop: begin
   ! TODO (Codee): Consider optimizing data transfers of arrays by adding the proper array ranges in data mapping clauses
-  !$omp target teams distribute parallel do collapse(3) depend(in: tendency)
+  !$omp target teams distribute parallel do collapse(3)
   DO j = j_start, j_end
   DO k = kts, ktf
 !!DEC$ vector always
@@ -8008,7 +8008,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
   ENDDO
   END IF
 
-      !$omp end target data
+      !$omp target exit data map(delete: h_tendency, z_tendency)
       !$omp target exit data map(delete: field_old, field, mut, msftx, msfty, rv, ru, c1, c2)
       !$omp target exit data map(from: tendency)
      !$omp target exit data map(delete: fqx,fqxl,fqy,fqyl,fqz,fqzl,flux_out,ph_low,rom)

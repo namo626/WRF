@@ -4174,7 +4174,7 @@ enddo
 
 #define COND1 1
 #define COND2 1
-#define COND3 0
+#define COND3 1
 
 #if 1
 !$omp target teams distribute parallel do collapse(3)   &
@@ -4391,17 +4391,17 @@ enddo
 
 #if COND3
                               IF (TT > 233.15)THEN
-                                VR2_Z(:,1) = VR2_ZC(:,K)
-                                VR2_Z(:,2) = VR2_ZP(:,K)
-                                VR2_Z(:,3) = VR2_ZD(:,K)
+                                VR2_Z(:,1,i,k,j) = VR2_ZC(:,i,k,j)
+                                VR2_Z(:,2,i,k,j) = VR2_ZP(:,i,k,j)
+                                VR2_Z(:,3,i,k,j) = VR2_ZD(:,i,k,j)
                                 CALL ONECOND3(TT,QQ,PP,rhocgs(I,K,J) &
-                                ,VR1_Z(:,K),VR2_Z,VR3_Z(:,K),VR4_Z(:,K),VR5_Z(:,K),pcgs(I,K,J) &
+                                ,VR1_Z(:,i,K,j),VR2_Z(:,:,i,k,j),VR3_Z(:,i,K,j),VR4_Z(:,i,K,j),VR5_Z(:,i,K,j),pcgs(I,K,J) &
                                 ,DEL1IN,DEL2IN,DIV1,DIV2 &
-                                ,FF1R_all(:,i,k,j),FF1IN,XL,RLEC,RO1BL &
-                                ,FF2R_all(:,:,i,k,j),FF2IN,XI,RIEC,RO2BL &
-                                ,FF3R_all(:,i,k,j),FF3IN,XS,RSEC,RO3BL &
-                                ,FF4R_all(:,i,k,j),FF4IN,XG,RGEC,RO4BL &
-                                ,FF5R_all(:,i,k,j),FF5IN,XH,RHEC,RO5BL &
+                                ,FF1R_all(:,i,k,j),FF1IN(:,i,k,j),XL,RLEC,RO1BL &
+                                ,FF2R_all(:,:,i,k,j),FF2IN(:,:,i,k,j),XI,RIEC,RO2BL &
+                                ,FF3R_all(:,i,k,j),FF3IN(:,i,k,j),XS,RSEC,RO3BL &
+                                ,FF4R_all(:,i,k,j),FF4IN(:,i,k,j),XG,RGEC,RO4BL &
+                                ,FF5R_all(:,i,k,j),FF5IN(:,i,k,j),XH,RHEC,RO5BL &
                                 ,AA1_MY,BB1_MY,AA2_MY,BB2_MY &
                                 ,C1_MEY,C2_MEY &
                                 ,COL,DTCOND,ICEMAX,NKR &

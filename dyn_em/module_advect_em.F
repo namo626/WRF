@@ -7842,10 +7842,12 @@ use module_offload_advect, only : ru_device, rv_device
    ENDDO
 
       !$omp target teams distribute parallel do collapse(3)
-   DO j=j_start, j_end
-   DO k=kts, ktf
-!!DIR$ vector always
-   DO i=i_start, i_end
+   DO jj = 1,j_end-j_start+1
+   DO kk = 1,ktf-kts+1
+   DO ii=1,i_end-i_start+1
+      j = jj + j_start - 1
+      k = kk + kts - 1
+      i = ii + i_start - 1
 
      flux_out(i,k,j) = dt*( (msftx(i,j)*msfty(i,j))*( &
                                 rdx*(  max(0.,fqx (i+1,k,j))      &
@@ -7860,10 +7862,12 @@ use module_offload_advect, only : ru_device, rv_device
    ENDDO
 
       !$omp target teams distribute parallel do collapse(3)
-   DO j=j_start, j_end
-   DO k=kts, ktf
-!!DIR$ vector always
-   DO i=i_start, i_end
+   DO jj = 1,j_end-j_start+1
+   DO kk = 1,ktf-kts+1
+   DO ii=1,i_end-i_start+1
+      j = jj + j_start - 1
+      k = kk + kts - 1
+      i = ii + i_start - 1
      IF( flux_out(i,k,j) .gt. ph_low(i,k,j) ) THEN
        scale = max(0.,ph_low(i,k,j)/(flux_out(i,k,j)+eps))
        IF( fqx (i+1,k,j) .gt. 0.) fqx(i+1,k,j) = scale*fqx(i+1,k,j)
@@ -7895,10 +7899,12 @@ use module_offload_advect, only : ru_device, rv_device
   ! Codee: Offloaded loop: begin
   ! TODO (Codee): Consider optimizing data transfers of arrays by adding the proper array ranges in data mapping clauses
   !$omp target teams distribute parallel do collapse(3)
-  DO j = j_start, j_end
-  DO k = kts, ktf
-!!DEC$ vector always
-  DO i = i_start, i_end
+   DO jj = 1,j_end-j_start+1
+   DO kk = 1,ktf-kts+1
+   DO ii=1,i_end-i_start+1
+      j = jj + j_start - 1
+      k = kk + kts - 1
+      i = ii + i_start - 1
 
      tendency (i,k,j) = tendency(i,k,j)                           &
                             -rdzw(k)*( fqz (i,k+1,j)-fqz (i,k,j)  &
@@ -7914,9 +7920,12 @@ use module_offload_advect, only : ru_device, rv_device
   ! Codee: Offloaded loop: begin
   ! TODO (Codee): Consider optimizing data transfers of arrays by adding the proper array ranges in data mapping clauses
   !$omp target teams distribute parallel do collapse(3)
-  DO j = j_start, j_end
-  DO k = kts, ktf
-  DO i = i_start, i_end
+   DO jj = 1,j_end-j_start+1
+   DO kk = 1,ktf-kts+1
+   DO ii=1,i_end-i_start+1
+      j = jj + j_start - 1
+      k = kk + kts - 1
+      i = ii + i_start - 1
 
      z_tendency (i,k,j) = 0. -rdzw(k)*( fqz (i,k+1,j)-fqz (i,k,j)  &
                                       +fqzl(i,k+1,j)-fqzl(i,k,j))
@@ -7936,10 +7945,12 @@ use module_offload_advect, only : ru_device, rv_device
   ! Codee: Offloaded loop: begin
   ! TODO (Codee): Consider optimizing data transfers of arrays by adding the proper array ranges in data mapping clauses
   !$omp target teams distribute parallel do collapse(3)
-  DO j = j_start, j_end
-  DO k = kts, ktf
-!!DEC$ vector always
-  DO i = i_start, i_end
+   DO jj = 1,j_end-j_start+1
+   DO kk = 1,ktf-kts+1
+   DO ii=1,i_end-i_start+1
+      j = jj + j_start - 1
+      k = kk + kts - 1
+      i = ii + i_start - 1
 
      ! Un-"canceled" map scale factor, ADT Eq. 48
      tendency (i,k,j) = tendency(i,k,j)                           &
@@ -7981,10 +7992,12 @@ use module_offload_advect, only : ru_device, rv_device
   ! Codee: Offloaded loop: begin
   ! TODO (Codee): Consider optimizing data transfers of arrays by adding the proper array ranges in data mapping clauses
   !$omp target teams distribute parallel do collapse(3)
-  DO j = j_start, j_end
-  DO k = kts, ktf
-!!DEC$ vector always
-  DO i = i_start, i_end
+   DO jj = 1,j_end-j_start+1
+   DO kk = 1,ktf-kts+1
+   DO ii=1,i_end-i_start+1
+      j = jj + j_start - 1
+      k = kk + kts - 1
+      i = ii + i_start - 1
 
      ! Un-"canceled" map scale factor, ADT Eq. 48
      ! It is correct to use msftx (and not msfty), per W. Skamarock, 20080606

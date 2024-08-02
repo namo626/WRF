@@ -6184,7 +6184,7 @@ use module_offload_advect, only : ru_device, rv_device
 
    ! Local data
    
-   INTEGER :: i, j, k, itf, jtf, ktf
+   INTEGER :: i, j, k, itf, jtf, ktf, ii, kk, jj
    INTEGER :: i_start, i_end, j_start, j_end
    INTEGER :: i_start_f, i_end_f, j_start_f, j_end_f
    INTEGER :: jmin, jmax, jp, jm, imin, imax
@@ -6606,9 +6606,12 @@ use module_offload_advect, only : ru_device, rv_device
 
       if (j_start_f >= j_start .and. j_end_f <= j_end+1) then
       !$omp target teams distribute parallel do collapse(3)
-      DO j = j_start_f, j_end_f ! use full stencil
-        DO k=kts,ktf
-        DO i = i_start, i_end
+      DO jj = 1, j_end_f-j_start_f+1
+        DO kk=1,ktf-kts+1
+        DO ii = 1,i_end-i_start+1
+           j = jj + j_start_f - 1
+           k = kk + kts - 1
+           i = ii + i_start - 1
 
           dy = 2./(msftx(i,j)+msftx(i,j-1))/rdy  ! ADT eqn 48 d/dy
           mu = 0.5*((c1(k)*mut(i,j)+c2(k))+(c1(k)*mut(i,j-1)+c2(k)))
@@ -6757,12 +6760,16 @@ use module_offload_advect, only : ru_device, rv_device
 !  compute fluxes
 
       !$omp target teams distribute parallel do collapse(3)
-      DO j = j_start, j_end
+      DO jj = 1,j_end-j_start+1
 
 !  5th order flux
 
-        DO k=kts,ktf
-        DO i = i_start_f, i_end_f
+        DO kk=1,ktf-kts+1
+        DO ii = 1,i_end_f-i_start_f + 1
+
+           j = jj + j_start - 1
+           k = kk + kts - 1
+           i = ii + i_start_f - 1
 
           dx = 2./(msfty(i,j)+msfty(i-1,j))/rdx  ! ADT eqn 48 d/dx
           mu = 0.5*((c1(k)*mut(i,j)+c2(k))+(c1(k)*mut(i-1,j)+c2(k)))
@@ -7685,10 +7692,14 @@ use module_offload_advect, only : ru_device, rv_device
 
 
        !$omp target teams distribute parallel do collapse(3)
-      DO j = j_start, j_end
-         DO k=kts+2,ktf-1
+      DO jj = 1,j_end-j_start+1
+         DO kk=1,ktf-1-(kts+2)+1
 ! !DEC$ vector always
-         DO i = i_start, i_end
+         DO ii = 1,i_end-i_start+1
+
+            j = jj + j_start -1
+            k = kk + kts+2 - 1
+            i = ii + i_start - 1
 
            dz = 2./(rdzw(k)+rdzw(k-1))
            mu = 0.5*((c1(k)*mut(i,j)+c2(k))+(c1(k)*mut(i,j)+c2(k)))
@@ -7807,14 +7818,18 @@ use module_offload_advect, only : ru_device, rv_device
 
 !-- here is the limiter...
       !$omp target teams distribute parallel do collapse(3)
-   DO j=j_start, j_end
-   DO k=kts, ktf
+   DO jj = 1,j_end-j_start+1
+   DO kk = 1,ktf-kts+1
 #ifdef XEON_SIMD
 !!DIR$ simd
 #else
 !!DIR$ vector always
 #endif
-   DO i=i_start, i_end
+   DO ii=1,i_end-i_start+1
+
+      j = jj + j_start - 1
+      k = kk + kts - 1
+      i = ii + i_start - 1
 
      ph_low(i,k,j) = ((c1(k)*mub(i,j)+c2(k))+(c1(k)*mu_old(i,j)))*field_old(i,k,j) &
                 - dt*( msftx(i,j)*msfty(i,j)*(               &

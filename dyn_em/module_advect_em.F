@@ -6141,6 +6141,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
 !  WCS, 3 December 2002, 24 February 2003
 use module_offload_advect, only : ru_device, rv_device
+
    IMPLICIT NONE
    
    ! Input data

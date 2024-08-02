@@ -2190,7 +2190,7 @@ BENCH_END(small_step_finish_tim)
 !</pre>
 !</DESCRIPTION>
 
-      call update_offload_advect(ims,ime,kms,kme,jms,jme, grid%ru_m, grid%rv_m)
+      !call update_offload_advect(ims,ime,kms,kme,jms,jme, grid%ru_m, grid%rv_m)
 
        moist_scalar_advance: IF (num_3d_m >= PARAM_FIRST_SCALAR )  THEN
 
@@ -2768,6 +2768,11 @@ BENCH_END(tracer_adv_tim)
 !  next the other scalar species
      other_scalar_advance: IF (num_3d_s >= PARAM_FIRST_SCALAR)  THEN
 
+      call update_offload_advect(ims,ime,kms,kme,jms,jme, grid%ru_m, grid%rv_m)
+      call update_offload_field(ims,ime,kms,kme,jms,jme, &
+      scalar(ims:ime,kms:kme,jms:jme,PARAM_FIRST_SCALAR),&
+      scalar_old(ims:ime,kms:kme,jms:jme,PARAM_FIRST_SCALAR), .false.)
+
        scalar_variable_loop: do is = PARAM_FIRST_SCALAR, num_3d_s
          !$OMP PARALLEL DO   &
          !$OMP PRIVATE ( ij, tenddec )
@@ -2775,7 +2780,7 @@ BENCH_END(tracer_adv_tim)
 
            CALL wrf_debug ( 200 , ' call rk_scalar_tend' )
            tenddec = .false.
-           CALL rk_scalar_tend ( is, is, config_flags, tenddec,                   & 
+           CALL rk_scalar_tend ( is, is, config_flags, tenddec,                   &
                                  rk_step, dt_rk,                                  &
                                  grid%ru_m, grid%rv_m, grid%ww_m, wwE, wwI,       &
                                  grid%u_1, grid%v_1,                              &  
@@ -2801,6 +2806,12 @@ BENCH_END(tracer_adv_tim)
                                  grid%i_start(ij), grid%i_end(ij), &
                                  grid%j_start(ij), grid%j_end(ij), &
                                  k_start    , k_end               )
+
+         if (is < num_3d_s) then
+            call update_offload_field(ims,ime,kms,kme,jms,jme, &
+            scalar(ims:ime,kms:kme,jms:jme,is+1),&
+            scalar_old(ims:ime,kms:kme,jms:jme,is+1), .true.)
+      endif
 
            IF( rk_step == 1 ) THEN
              IF ( config_flags%nested .OR. &

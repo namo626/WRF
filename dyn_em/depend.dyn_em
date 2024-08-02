@@ -257,6 +257,7 @@ start_em.o:     module_bc_em.o \
 
 solve_em.o:     module_small_step_em.o \
 		module_em.o            \
+		module_offload_advect.o \
 		module_solvedebug_em.o \
                 module_bc_em.o         \
 		module_diffusion_em.o  \
@@ -284,6 +285,7 @@ solve_em.o:     module_small_step_em.o \
 		../phys/module_checkerror.o \
                 ../phys/module_firebrand_spotting.o
 
+module_offload_advect.o :
 module_convtrans_prep.o : 
 
 module_first_rk_step_part1.o : \

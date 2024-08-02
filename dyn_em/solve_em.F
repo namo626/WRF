@@ -6,6 +6,7 @@ SUBROUTINE solve_em ( grid , config_flags  &
 !
                     )
 ! Driver layer modules
+                    USE module_offload_advect
    USE module_state_description
    USE module_domain, ONLY : &
                   domain, get_ijk_from_grid, get_ijk_from_subgrid                          &
@@ -2189,6 +2190,7 @@ BENCH_END(small_step_finish_tim)
 !</pre>
 !</DESCRIPTION>
 
+      call update_offload_advect(ims,ime,kms,kme,jms,jme, grid%ru_m, grid%rv_m)
 
        moist_scalar_advance: IF (num_3d_m >= PARAM_FIRST_SCALAR )  THEN
 

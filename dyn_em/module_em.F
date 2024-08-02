@@ -1244,7 +1244,7 @@ SUBROUTINE rk_scalar_tend ( scs, sce, config_flags,          &
    
    CALL nl_get_time_step ( 1, time_step )
 
-      call update_offload_advect(ims,ime,kms,kme,jms,jme, ru, rv)
+      !call update_offload_advect(ims,ime,kms,kme,jms,jme, ru, rv)
 
    scalar_loop : DO im = scs, sce
 

@@ -6140,7 +6140,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 !  fluxes initially
 
 !  WCS, 3 December 2002, 24 February 2003
-
+use module_offload_advect, only : ru_device, rv_device
    IMPLICIT NONE
    
    ! Input data
@@ -6158,6 +6158,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
                                                                       ru,        &
                                                                       rv,        &
                                                                       rom
+
 
    REAL , DIMENSION( ims:ime , jms:jme ) , INTENT(IN   ) :: mut, mub, mu_old
    REAL , DIMENSION( ims:ime , kms:kme , jms:jme ) , INTENT(INOUT) :: tendency
@@ -6242,8 +6243,6 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
 
       !$omp target enter data map(to: field_old, field, msftx,msfty, mut, c1,c2)
-      !$omp target enter data map(to: rv)
-      !$omp target enter data map(to: ru)
       !$omp target enter data map(to: rom)
       !$omp target enter data map(to: tendency)
 
@@ -6329,12 +6328,10 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
 !  compute fluxes, 6th order
 
-      !!$omp target data map(to: field_old, field) map(from: fqy, fqyl)
       j_loop_y_flux_6 : DO j = j_start, j_end+1
 
       IF( (j >= j_start_f ) .and. (j <= j_end_f) ) THEN ! use full stencil
 
-         !$omp target teams distribute parallel do collapse(2)
         DO k=kts,ktf
         DO i = i_start, i_end
 
@@ -6355,7 +6352,6 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
       ELSE IF ( j == jds+1 ) THEN   ! 2nd order flux next to south boundary
 
-         !$omp target teams distribute parallel do collapse(2)
             DO k=kts,ktf
             DO i = i_start, i_end
 
@@ -6375,7 +6371,6 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
       ELSE IF  ( j == jds+2 ) THEN  ! third of 4th order flux 2 in from south boundary
 
-         !$omp target teams distribute parallel do collapse(2)
             DO k=kts,ktf
             DO i = i_start, i_end
 
@@ -6394,7 +6389,6 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
       ELSE IF ( j == jde-1 ) THEN  ! 2nd order flux next to north boundary
 
-         !$omp target teams distribute parallel do collapse(2)
             DO k=kts,ktf
             DO i = i_start, i_end
 
@@ -6413,7 +6407,6 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
       ELSE IF ( j == jde-2 ) THEN  ! 3rd or 4th order flux 2 in from north boundary
 
-         !$omp target teams distribute parallel do collapse(2)
             DO k=kts,ktf
             DO i = i_start, i_end
 
@@ -6434,7 +6427,6 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
       ENDIF
 
    ENDDO j_loop_y_flux_6
-      !!$omp end target data
 
 !  next, x flux
 
@@ -6620,7 +6612,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
           dy = 2./(msftx(i,j)+msftx(i,j-1))/rdy  ! ADT eqn 48 d/dy
           mu = 0.5*((c1(k)*mut(i,j)+c2(k))+(c1(k)*mut(i,j-1)+c2(k)))
-          vel = rv(i,k,j)
+          vel = rv_device(i,k,j)
           cr = vel*dt/dy/mu
           fqyl(i,k,j) = mu*(dy/dt)*flux_upwind_pd(field_old(i,k,j-1), field_old(i,k,j  ), cr)
 
@@ -6648,11 +6640,11 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
               dy = 2./(msftx(i,j)+msftx(i,j-1))/rdy  ! ADT eqn 48 d/dy
               mu = 0.5*((c1(k)*mut(i,j)+c2(k))+(c1(k)*mut(i,j-1)+c2(k)))
-              vel = rv(i,k,j)
+              vel = rv_device(i,k,j)
               cr = vel*dt/dy/mu
               fqyl(i,k,j) = mu*(dy/dt)*flux_upwind_pd(field_old(i,k,j-1), field_old(i,k,j  ), cr)
 
-              fqy(i,k, j) = 0.5*rv(i,k,j)*          &
+              fqy(i,k, j) = 0.5*rv_device(i,k,j)*          &
                      (field(i,k,j)+field(i,k,j-1))
 
               fqy(i,k,j) = fqy(i,k,j) - fqyl(i,k,j)
@@ -6672,7 +6664,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
               dy = 2./(msftx(i,j)+msftx(i,j-1))/rdy  ! ADT eqn 48 d/dy
               mu = 0.5*((c1(k)*mut(i,j)+c2(k))+(c1(k)*mut(i,j-1)+c2(k)))
-              vel = rv(i,k,j)
+              vel = rv_device(i,k,j)
               cr = vel*dt/dy/mu
               fqyl(i,k,j) = mu*(dy/dt)*flux_upwind_pd(field_old(i,k,j-1), field_old(i,k,j  ), cr)
 
@@ -6694,11 +6686,11 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
               dy = 2./(msftx(i,j)+msftx(i,j-1))/rdy  ! ADT eqn 48 d/dy
               mu = 0.5*((c1(k)*mut(i,j)+c2(k))+(c1(k)*mut(i,j-1)+c2(k)))
-              vel = rv(i,k,j)
+              vel = rv_device(i,k,j)
               cr = vel*dt/dy/mu
               fqyl(i,k,j) = mu*(dy/dt)*flux_upwind_pd(field_old(i,k,j-1), field_old(i,k,j  ), cr)
 
-              fqy(i, k, j ) = 0.5*rv(i,k,j)*      &
+              fqy(i, k, j ) = 0.5*rv_device(i,k,j)*      &
                      (field(i,k,j)+field(i,k,j-1))
               fqy(i,k,j) = fqy(i,k,j) - fqyl(i,k,j)
 
@@ -6717,7 +6709,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
               dy = 2./(msftx(i,j)+msftx(i,j-1))/rdy  ! ADT eqn 48 d/dy
               mu = 0.5*((c1(k)*mut(i,j)+c2(k))+(c1(k)*mut(i,j-1)+c2(k)))
-              vel = rv(i,k,j)
+              vel = rv_device(i,k,j)
               cr = vel*dt/dy/mu
               fqyl(i,k,j) = mu*(dy/dt)*flux_upwind_pd(field_old(i,k,j-1), field_old(i,k,j  ), cr)
 
@@ -6774,7 +6766,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
           dx = 2./(msfty(i,j)+msfty(i-1,j))/rdx  ! ADT eqn 48 d/dx
           mu = 0.5*((c1(k)*mut(i,j)+c2(k))+(c1(k)*mut(i-1,j)+c2(k)))
-          vel = ru(i,k,j)
+          vel = ru_device(i,k,j)
           cr = vel*dt/dx/mu
           fqxl(i,k,j) = mu*(dx/dt)*flux_upwind_pd(field_old(i-1,k,j), field_old(i,k,j  ), cr)
 
@@ -6801,10 +6793,10 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
                  DO k=kts,ktf
                     dx = 2./(msfty(i,j)+msfty(i-1,j))/rdx ! ADT eqn 48 d/dx
                     mu = 0.5*((c1(k)*mut(i,j)+c2(k))+(c1(k)*mut(i-1,j)+c2(k)))
-                    vel = ru(i,k,j)/mu
+                    vel = ru_device(i,k,j)/mu
                     cr = vel*dt/dx
                     fqxl(i,k,j) = mu*(dx/dt)*flux_upwind_pd(field_old(i-1,k,j), field_old(i,k,j  ), cr)
-                    fqx(i,k,j) = 0.5*(ru(i,k,j)) &
+                    fqx(i,k,j) = 0.5*(ru_device(i,k,j)) &
                     *(field(i,k,j)+field(i-1,k,j))
                     fqx(i,k,j) = fqx(i,k,j) - fqxl(i,k,j)
                  ENDDO
@@ -6818,7 +6810,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
                  DO k=kts,ktf
                     dx = 2./(msfty(i,j)+msfty(i-1,j))/rdx ! ADT eqn 48 d/dx
                     mu = 0.5*((c1(k)*mut(i,j)+c2(k))+(c1(k)*mut(i-1,j)+c2(k)))
-                    vel = ru(i,k,j)
+                    vel = ru_device(i,k,j)
                     cr = vel*dt/dx/mu
                     fqxl(i,k,j) = mu*(dx/dt)*flux_upwind_pd(field_old(i-1,k,j), field_old(i,k,j  ), cr)
                     fqx( i,k,j ) = vel*flux3_pd( field(i-2,k,j), field(i-1,k,j),  &
@@ -6840,10 +6832,10 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
               DO k=kts,ktf
                 dx = 2./(msfty(i,j)+msfty(i-1,j))/rdx  ! ADT eqn 48 d/dx
                 mu = 0.5*((c1(k)*mut(i,j)+c2(k))+(c1(k)*mut(i-1,j)+c2(k)))
-                vel = ru(i,k,j)
+                vel = ru_device(i,k,j)
                 cr = vel*dt/dx/mu
                 fqxl(i,k,j) = mu*(dx/dt)*flux_upwind_pd(field_old(i-1,k,j), field_old(i,k,j  ), cr)
-                fqx(i,k,j) = 0.5*(ru(i,k,j))      &
+                fqx(i,k,j) = 0.5*(ru_device(i,k,j))      &
                        *(field(i,k,j)+field(i-1,k,j))
                 fqx(i,k,j) = fqx(i,k,j) - fqxl(i,k,j)
               ENDDO
@@ -6858,7 +6850,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
               DO k=kts,ktf
                 dx = 2./(msfty(i,j)+msfty(i-1,j))/rdx  ! ADT eqn 48 d/dx
                 mu = 0.5*((c1(k)*mut(i,j)+c2(k))+(c1(k)*mut(i-1,j)+c2(k)))
-                vel = ru(i,k,j)
+                vel = ru_device(i,k,j)
                 cr = vel*dt/dx/mu
                 fqxl(i,k,j) = mu*(dx/dt)*flux_upwind_pd(field_old(i-1,k,j), field_old(i,k,j  ), cr)
                 fqx( i,k,j ) = vel*flux3_pd( field(i-2,k,j), field(i-1,k,j),  &
@@ -7367,12 +7359,12 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
       !$omp target teams distribute parallel do collapse(2)
        DO j = j_start, j_end
        DO k = kts, ktf
-         ub = MIN( 0.5*(ru(its,k,j)+ru(its+1,k,j)), 0. )
+         ub = MIN( 0.5*(ru_device(its,k,j)+ru_device(its+1,k,j)), 0. )
          tendency(its,k,j) = tendency(its,k,j)                     &
                - rdx*(                                             &
                        ub*(   field_old(its+1,k,j)                 &
                             - field_old(its  ,k,j)   ) +           &
-                       field(its,k,j)*(ru(its+1,k,j)-ru(its,k,j))  &
+                       field(its,k,j)*(ru_device(its+1,k,j)-ru_device(its,k,j))  &
                                                                 )
        ENDDO
        ENDDO
@@ -7384,12 +7376,12 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
       !$omp target teams distribute parallel do collapse(2)
        DO j = j_start, j_end
        DO k = kts, ktf
-         ub = MAX( 0.5*(ru(ite-1,k,j)+ru(ite,k,j)), 0. )
+         ub = MAX( 0.5*(ru_device(ite-1,k,j)+ru_device(ite,k,j)), 0. )
          tendency(i_end,k,j) = tendency(i_end,k,j)                   &
                - rdx*(                                               &
                        ub*(  field_old(i_end  ,k,j)                  &
                            - field_old(i_end-1,k,j) ) +              &
-                       field(i_end,k,j)*(ru(ite,k,j)-ru(ite-1,k,j))  &
+                       field(i_end,k,j)*(ru_device(ite,k,j)-ru_device(ite-1,k,j))  &
                                                                     )
        ENDDO
        ENDDO
@@ -7401,12 +7393,12 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
       !$omp target teams distribute parallel do collapse(2)
        DO i = i_start, i_end
        DO k = kts, ktf
-         vb = MIN( 0.5*(rv(i,k,jts)+rv(i,k,jts+1)), 0. )
+         vb = MIN( 0.5*(rv_device(i,k,jts)+rv_device(i,k,jts+1)), 0. )
          tendency(i,k,jts) = tendency(i,k,jts)                     &
                - rdy*(                                             &
                        vb*(  field_old(i,k,jts+1)                  &
                            - field_old(i,k,jts  ) ) +              &
-                       field(i,k,jts)*(rv(i,k,jts+1)-rv(i,k,jts))  &
+                       field(i,k,jts)*(rv_device(i,k,jts+1)-rv_device(i,k,jts))  &
                                                                 )
        ENDDO
        ENDDO
@@ -7418,12 +7410,12 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
       !$omp target teams distribute parallel do collapse(2)
        DO i = i_start, i_end
        DO k = kts, ktf
-         vb = MAX( 0.5*(rv(i,k,jte-1)+rv(i,k,jte)), 0. )
+         vb = MAX( 0.5*(rv_device(i,k,jte-1)+rv_device(i,k,jte)), 0. )
          tendency(i,k,j_end) = tendency(i,k,j_end)                   &
                - rdy*(                                               &
                        vb*(   field_old(i,k,j_end  )                 &
                             - field_old(i,k,j_end-1) ) +             &
-                       field(i,k,j_end)*(rv(i,k,jte)-rv(i,k,jte-1))  &
+                       field(i,k,j_end)*(rv_device(i,k,jte)-rv_device(i,k,jte-1))  &
                                                                     )
        ENDDO
        ENDDO
@@ -7436,12 +7428,12 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
        ! Assuming rv(i,k,jds) = 0.
        DO i = i_start, i_end
        DO k = kts, ktf
-         vb = MIN( 0.5*rv(i,k,jts+1), 0. )
+         vb = MIN( 0.5*rv_device(i,k,jts+1), 0. )
          tendency(i,k,jts) = tendency(i,k,jts)                     &
                - rdy*(                                             &
                        vb*(  field_old(i,k,jts+1)                  &
                            - field_old(i,k,jts  ) ) +              &
-                       field(i,k,jts)*rv(i,k,jts+1)                &
+                       field(i,k,jts)*rv_device(i,k,jts+1)                &
                                                                 )
        ENDDO
        ENDDO
@@ -7454,12 +7446,12 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
        ! Assuming rv(i,k,jde) = 0.
        DO i = i_start, i_end
        DO k = kts, ktf
-         vb = MAX( 0.5*rv(i,k,jte-1), 0. )
+         vb = MAX( 0.5*rv_device(i,k,jte-1), 0. )
          tendency(i,k,j_end) = tendency(i,k,j_end)                   &
                - rdy*(                                               &
                        vb*(   field_old(i,k,j_end  )                 &
                             - field_old(i,k,j_end-1) ) +             &
-                       field(i,k,j_end)*(-rv(i,k,jte-1))             &
+                       field(i,k,j_end)*(-rv_device(i,k,jte-1))             &
                                                                     )
        ENDDO
        ENDDO
@@ -8009,7 +8001,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
   END IF
 
       !$omp target exit data map(delete: h_tendency, z_tendency)
-      !$omp target exit data map(delete: field_old, field, mut, msftx, msfty, rv, ru, c1, c2)
+      !$omp target exit data map(delete: field_old, field, mut, msftx, msfty, c1, c2)
       !$omp target exit data map(from: tendency)
      !$omp target exit data map(delete: fqx,fqxl,fqy,fqyl,fqz,fqzl,flux_out,ph_low,rom)
 END SUBROUTINE advect_scalar_pd

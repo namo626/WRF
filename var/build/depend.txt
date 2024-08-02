@@ -39,7 +39,8 @@ module_dm.o : module_dm.F module_comm_dm.o module_utility.o module_comm_nesting_
 module_domain.o : module_domain.F module_alloc_space_9.o module_alloc_space_8.o module_alloc_space_7.o module_alloc_space_6.o module_alloc_space_5.o module_alloc_space_4.o module_alloc_space_3.o module_alloc_space_2.o module_alloc_space_1.o module_alloc_space_0.o module_domain_type.o module_utility.o module_wrf_error.o module_configure.o module_machine.o module_driver_constants.o 
 module_domain_type.o : module_domain_type.F module_streams.o module_utility.o module_driver_constants.o 
 module_driver_constants.o : module_driver_constants.F 
-module_em.o : module_em.F module_state_description.o module_model_constants.o 
+module_offload_advect.o : module_offload_advect.f90
+module_em.o : module_em.F module_state_description.o module_model_constants.o module_offload_advect.o
 module_get_file_names.o : module_get_file_names.F 
 module_integrate.o : module_integrate.F module_utility.o module_timing.o module_configure.o module_nesting.o module_driver_constants.o module_domain.o 
 module_internal_header_util.o : module_internal_header_util.F 

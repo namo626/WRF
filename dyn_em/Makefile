@@ -7,6 +7,7 @@ RM      =       rm -f
 
 MODULES =                 		\
         module_advect_em.o   		\
+		module_offload_advect.o \
         module_ieva_em.o            \
 	  module_diffusion_em.o  		\
 	  module_small_step_em.o 		\

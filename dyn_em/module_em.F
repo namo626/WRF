@@ -3,6 +3,7 @@
 !
 
 MODULE module_em
+      use module_offload_advect
 
    USE module_model_constants
    
@@ -1242,6 +1243,8 @@ SUBROUTINE rk_scalar_tend ( scs, sce, config_flags,          &
    ENDIF
    
    CALL nl_get_time_step ( 1, time_step )
+
+      call update_offload_advect(ims,ime,kms,kme,jms,jme, ru, rv)
 
    scalar_loop : DO im = scs, sce
 

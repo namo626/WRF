@@ -6244,13 +6244,27 @@ use module_offload_advect, only : ru_device, rv_device
 
       !$omp target enter data map(to: field_old, field, msftx,msfty, mut, c1,c2)
       !$omp target enter data map(to: rom)
-      !$omp target enter data map(to: tendency)
+      !$omp target enter data map(alloc: tendency)
 
      !$omp target enter data map(alloc: fqx,fqxl,fqy,fqyl,fqz,fqzl,flux_out,ph_low)
      !$omp target enter data map(alloc: h_tendency, z_tendency)
 ! set order for the advection schemes
 
 !  write(6,*) ' in pd advection routine '
+
+
+      !$omp target teams distribute parallel do collapse(3)
+      do jj = 1,jme-jms+1
+         do kk = 1,kme-kms+1
+            do ii = 1,ime-ims+1
+               j = jj + jms - 1
+               i = ii + ims - 1
+               k = kk + kms - 1
+               tendency(i,k,j) = 0.
+            enddo
+         enddo
+      enddo
+
 
     ! Empty arrays just in case:
     IF (config_flags%polar) THEN

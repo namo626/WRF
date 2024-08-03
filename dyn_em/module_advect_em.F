@@ -8043,7 +8043,7 @@ use module_offload_advect, only : ru_device, rv_device
   ENDDO
   END IF
 
-      !$omp target exit data map(delete: h_tendency, z_tendency)
+      !$omp target exit data map(from: h_tendency, z_tendency)
       !$omp target exit data map(delete: field_old, field, mut, msftx, msfty, c1, c2)
       !$omp target exit data map(from: tendency)
      !$omp target exit data map(delete: fqx,fqxl,fqy,fqyl,fqz,fqzl,flux_out,ph_low,rom)

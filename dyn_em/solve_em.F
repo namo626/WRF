@@ -1,5 +1,5 @@
 !WRF:MEDIATION_LAYER:SOLVER
-
+#define OFFLOAD 0
 SUBROUTINE solve_em ( grid , config_flags  &
 ! Arguments generated from Registry
 #include "dummy_new_args.inc"
@@ -100,12 +100,13 @@ SUBROUTINE solve_em ( grid , config_flags  &
    ! Local data
 
       real, allocatable, device, dimension(:,:,:) :: field_d, field_old_d
+      real, allocatable, dimension(:,:,:) :: field_h
       integer(kind=cuda_Stream_Kind), allocatable :: stream(:)
       integer istat
       real cudatime
        type (cudaEvent) :: startEvent, stopEvent
 
-      logical :: async = .false.
+      logical :: async = .true.
 
    INTEGER                         :: k_start , k_end, its, ite, jts, jte
    INTEGER                         :: ids , ide , jds , jde , kds , kde , &
@@ -323,6 +324,7 @@ SUBROUTINE solve_em ( grid , config_flags  &
       if (.not. allocated(field_d)) then
           allocate( field_d(ims:ime, kms:kme, jms:jme) )
           allocate( field_old_d(ims:ime, kms:kme, jms:jme) )
+          allocate( field_h(ims:ime, kms:kme, jms:jme) )
        endif
 
 
@@ -2220,11 +2222,14 @@ BENCH_END(small_step_finish_tim)
 
           istat = cudaEventRecord(startEvent,0)
 
+#if OFFLOAD
           ! transfer first slice
           if (async) then
           istat = cudaMemcpyAsync(field_d, moist(ims:ime,kms:kme,jms:jme,PARAM_FIRST_SCALAR), &
             (ime-ims+1)*(kme-kms+1)*(jme-jms+1))
          endif
+#endif
+
 
            !field_d = moist(ims:ime,kms:kme,jms:jme, PARAM_FIRST_SCALAR)
          moist_variable_loop: DO im = PARAM_FIRST_SCALAR, num_3d_m
@@ -2270,11 +2275,15 @@ BENCH_START(rk_scalar_tend_tim)
                            grid%j_start(ij), grid%j_end(ij), &
                            k_start    , k_end               )
 
+#if OFFLOAD
+
                            if (.not. async) then
                               field_d = scalar(ims:ime, kms:kme, jms:jme, im)
                            endif
+#endif
 
 
+#if OFFLOAD
                            !$cuf kernel do(3) <<<*, (128,1,1) >>>
                            do j = jms,jme
                               do k = kms,kme
@@ -2284,7 +2293,6 @@ BENCH_START(rk_scalar_tend_tim)
                                  enddo
                               enddo
                            enddo
-
                            !$cuf kernel do(3) <<<*, (128,1,1) >>>
                            do j = jms,jme
                               do k = kms,kme
@@ -2294,7 +2302,6 @@ BENCH_START(rk_scalar_tend_tim)
                                  enddo
                               enddo
                            enddo
-
                            !$cuf kernel do(3) <<<*, (128,1,1) >>>
                            do j = jms,jme
                               do k = kms,kme
@@ -2304,7 +2311,6 @@ BENCH_START(rk_scalar_tend_tim)
                                  enddo
                               enddo
                            enddo
-
                            !$cuf kernel do(3) <<<*, (128,1,1) >>>
                            do j = jms,jme
                               do k = kms,kme
@@ -2322,6 +2328,43 @@ BENCH_START(rk_scalar_tend_tim)
                  (ime-ims+1)*(kme-kms+1)*(jme-jms+1))
               endif
            endif
+#else
+
+                           do j = jms,jme
+                              do k = kms,kme
+                                 do i = ims,ime
+                                    field_h(i,k,j) = 1.2*(i / ime)
+                                    field_h(i,k,j) = field_h(i,k,j)**2 + log(abs(sin(field_h(i,k,j))))
+                                 enddo
+                              enddo
+                           enddo
+                           do j = jms,jme
+                              do k = kms,kme
+                                 do i = ims,ime
+                                    field_h(i,k,j) = 1.2*(i / ime)
+                                    field_h(i,k,j) = field_h(i,k,j)**2 + log(abs(sin(field_h(i,k,j))))
+                                 enddo
+                              enddo
+                           enddo
+                           do j = jms,jme
+                              do k = kms,kme
+                                 do i = ims,ime
+                                    field_h(i,k,j) = 1.2*(i / ime)
+                                    field_h(i,k,j) = field_h(i,k,j)**2 + log(abs(sin(field_h(i,k,j))))
+                                 enddo
+                              enddo
+                           enddo
+                           do j = jms,jme
+                              do k = kms,kme
+                                 do i = ims,ime
+                                    field_h(i,k,j) = 1.2*(i / ime)
+                                    field_h(i,k,j) = field_h(i,k,j)**2 + log(abs(sin(field_h(i,k,j))))
+                                 enddo
+                              enddo
+                           enddo
+#endif
+
+
 
 
                IF( rk_step == 1 .AND. config_flags%use_q_diabatic == 1 )THEN

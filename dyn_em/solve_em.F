@@ -6,6 +6,7 @@ SUBROUTINE solve_em ( grid , config_flags  &
 !
                     )
 ! Driver layer modules
+        use cudafor
    USE module_state_description
    USE module_domain, ONLY : &
                   domain, get_ijk_from_grid, get_ijk_from_subgrid                          &
@@ -97,6 +98,14 @@ SUBROUTINE solve_em ( grid , config_flags  &
    TYPE (grid_config_rec_type) , INTENT(IN)          :: config_flags
 
    ! Local data
+
+      real, allocatable, device, dimension(:,:,:) :: field_d, field_old_d
+      integer(kind=cuda_Stream_Kind), allocatable :: stream(:)
+      integer istat
+      real cudatime
+       type (cudaEvent) :: startEvent, stopEvent
+
+      logical :: async = .false.
 
    INTEGER                         :: k_start , k_end, its, ite, jts, jte
    INTEGER                         :: ids , ide , jds , jde , kds , kde , &
@@ -302,6 +311,23 @@ SUBROUTINE solve_em ( grid , config_flags  &
    num_3d_m        = num_moist
    num_3d_c        = num_chem
    num_3d_s        = num_scalar
+
+      ! allocate cuda streams
+      if (.not. allocated(stream)) then
+         allocate( stream(num_3d_m) )
+         do i = 1,num_3d_m
+            istat = cudaStreamCreate( stream(i) )
+         enddo
+      endif
+
+      if (.not. allocated(field_d)) then
+          allocate( field_d(ims:ime, kms:kme, jms:jme) )
+          allocate( field_old_d(ims:ime, kms:kme, jms:jme) )
+       endif
+
+
+          istat = cudaEventCreate(startEvent)
+          istat = cudaEventCreate(stopEvent)
 
 !  backward integration needs to advect only QV
    if (grid%dfi_stage .EQ. DFI_BCK) then
@@ -2192,12 +2218,22 @@ BENCH_END(small_step_finish_tim)
 
        moist_scalar_advance: IF (num_3d_m >= PARAM_FIRST_SCALAR )  THEN
 
+          istat = cudaEventRecord(startEvent,0)
+
+          ! transfer first slice
+          if (async) then
+          istat = cudaMemcpyAsync(field_d, moist(ims:ime,kms:kme,jms:jme,PARAM_FIRST_SCALAR), &
+            (ime-ims+1)*(kme-kms+1)*(jme-jms+1))
+         endif
+
+           !field_d = moist(ims:ime,kms:kme,jms:jme, PARAM_FIRST_SCALAR)
          moist_variable_loop: DO im = PARAM_FIRST_SCALAR, num_3d_m
 
 ! adv_moist_cond is set in module_physics_init based on mp_physics choice
 !       true except for Ferrier scheme
 
            IF (grid%adv_moist_cond .or. im==p_qv ) THEN
+
 
              !$OMP PARALLEL DO   &
              !$OMP PRIVATE ( ij, tenddec )
@@ -2233,6 +2269,60 @@ BENCH_START(rk_scalar_tend_tim)
                            grid%i_start(ij), grid%i_end(ij), &
                            grid%j_start(ij), grid%j_end(ij), &
                            k_start    , k_end               )
+
+                           if (.not. async) then
+                              field_d = scalar(ims:ime, kms:kme, jms:jme, im)
+                           endif
+
+
+                           !$cuf kernel do(3) <<<*, (128,1,1) >>>
+                           do j = jms,jme
+                              do k = kms,kme
+                                 do i = ims,ime
+                                    field_d(i,k,j) = 1.2*(i / ime)
+                                    field_d(i,k,j) = field_d(i,k,j)**2 + log(abs(sin(field_d(i,k,j))))
+                                 enddo
+                              enddo
+                           enddo
+
+                           !$cuf kernel do(3) <<<*, (128,1,1) >>>
+                           do j = jms,jme
+                              do k = kms,kme
+                                 do i = ims,ime
+                                    field_d(i,k,j) = 1.2*(i / ime)
+                                    field_d(i,k,j) = field_d(i,k,j)**2 + log(abs(sin(field_d(i,k,j))))
+                                 enddo
+                              enddo
+                           enddo
+
+                           !$cuf kernel do(3) <<<*, (128,1,1) >>>
+                           do j = jms,jme
+                              do k = kms,kme
+                                 do i = ims,ime
+                                    field_d(i,k,j) = 1.2*(i / ime)
+                                    field_d(i,k,j) = field_d(i,k,j)**2 + log(abs(sin(field_d(i,k,j))))
+                                 enddo
+                              enddo
+                           enddo
+
+                           !$cuf kernel do(3) <<<*, (128,1,1) >>>
+                           do j = jms,jme
+                              do k = kms,kme
+                                 do i = ims,ime
+                                    field_d(i,k,j) = 1.2*(i / ime)
+                                    field_d(i,k,j) = field_d(i,k,j)**2 + log(abs(sin(field_d(i,k,j))))
+                                 enddo
+                              enddo
+                           enddo
+
+
+            if (async) then
+              if (im < num_3d_m) then
+                 istat = cudaMemcpyAsync(field_d, moist(ims:ime,kms:kme,jms:jme,im+1), &
+                 (ime-ims+1)*(kme-kms+1)*(jme-jms+1))
+              endif
+           endif
+
 
                IF( rk_step == 1 .AND. config_flags%use_q_diabatic == 1 )THEN
                IF( im.eq.p_qv .or. im.eq.p_qc )THEN
@@ -2355,6 +2445,10 @@ BENCH_END(flow_depbdy_tim)
            ENDIF  !-- if (grid%adv_moist_cond .or. im==p_qv ) then
 
          ENDDO moist_variable_loop
+
+         istat = cudaEventRecord(stopEvent,0)
+         istat = cudaEventElapsedTime(cudatime, startEvent, stopEvent)
+         write(*,*) 'Time for moist variables (ms): ', cudatime
 
        ENDIF moist_scalar_advance
 

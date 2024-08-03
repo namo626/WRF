@@ -6133,7 +6133,10 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
    INTEGER ,                                     INTENT(IN   ) :: time_step
 
    ! Local data
-   
+
+   REAL , DIMENSION( ims:ime , kms:kme , jms:jme ) , device :: tendency_d
+   REAL , DIMENSION( ims:ime , jms:jme ) , device :: msftx_d
+
    INTEGER :: i, j, k, itf, jtf, ktf
    INTEGER :: i_start, i_end, j_start, j_end
    INTEGER :: i_start_f, i_end_f, j_start_f, j_end_f
@@ -6144,8 +6147,9 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 !  storage for high and low order fluxes
 
    REAL,  DIMENSION( its-1:ite+2, kts:kte, jts-1:jte+2  ) :: fqx, fqy, fqz
+   REAL,  DIMENSION( its-1:ite+2, kts:kte, jts-1:jte+2  ), device :: fqx_d, fqxl_d
 
-   REAL,  DIMENSION( its-1:ite+2, kts:kte, jts-1:jte+2  ) :: fqxl, fqyl, fqzl
+   REAL,  DIMENSION( its-1:ite+2, kts:kte, jts-1:jte+2  )  :: fqxl, fqyl, fqzl
 
    INTEGER :: horz_order, vert_order
    
@@ -7800,19 +7804,26 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
   IF(degrade_xs) i_start = MAX(its,ids+1)
   IF(degrade_xe) i_end   = MIN(ite,ide-2)
 
+      tendency_d = tendency
+      msftx_d = msftx
+      fqx_d = fqx
+      fqxl_d = fqxl
+
+      !$cuf kernel do(3) <<< *, (128,1,1) >>>
   DO j = j_start, j_end
   DO k = kts, ktf
-!DEC$ vector always  
   DO i = i_start, i_end
 
      ! Un-"canceled" map scale factor, ADT Eq. 48
-     tendency (i,k,j) = tendency(i,k,j)                           &
-               - msftx(i,j)*( rdx*( fqx (i+1,k,j)-fqx (i,k,j)     &
-                                   +fqxl(i+1,k,j)-fqxl(i,k,j))   )
+     tendency_d (i,k,j) = tendency_d(i,k,j)                           &
+               - msftx_d(i,j)*( rdx*( fqx_d (i+1,k,j)-fqx_d (i,k,j)     &
+                                   +fqxl_d(i+1,k,j)-fqxl_d(i,k,j))   )
 
   ENDDO
   ENDDO
   ENDDO
+
+      tendency = tendency_d
 
   IF(tenddec) THEN
   DO j = j_start, j_end

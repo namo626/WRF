@@ -99,6 +99,7 @@ SUBROUTINE solve_em ( grid , config_flags  &
 
    ! Local data
 
+      double precision :: t1,t2
    INTEGER                         :: k_start , k_end, its, ite, jts, jte
    INTEGER                         :: ids , ide , jds , jde , kds , kde , &
                                       ims , ime , jms , jme , kms , kme , &
@@ -2190,7 +2191,7 @@ BENCH_END(small_step_finish_tim)
 !</pre>
 !</DESCRIPTION>
 
-      !call update_offload_advect(ims,ime,kms,kme,jms,jme, grid%ru_m, grid%rv_m)
+      call update_offload_advect(ims,ime,kms,kme,jms,jme, grid%ru_m, grid%rv_m)
 
        moist_scalar_advance: IF (num_3d_m >= PARAM_FIRST_SCALAR )  THEN
 
@@ -2773,6 +2774,7 @@ BENCH_END(tracer_adv_tim)
 !      scalar(ims:ime,kms:kme,jms:jme,PARAM_FIRST_SCALAR),&
 !      scalar_old(ims:ime,kms:kme,jms:jme,PARAM_FIRST_SCALAR), .false.)
 
+      t1 = MPI_Wtime()
        scalar_variable_loop: do is = PARAM_FIRST_SCALAR, num_3d_s
          !$OMP PARALLEL DO   &
          !$OMP PRIVATE ( ij, tenddec )
@@ -2959,6 +2961,10 @@ BENCH_END(tracer_adv_tim)
          !$OMP END PARALLEL DO
 
        ENDDO scalar_variable_loop
+
+       t2 = MPI_Wtime()
+
+       print *, 'Scalar loop (s): ', t2-t1
 
      ENDIF other_scalar_advance
 

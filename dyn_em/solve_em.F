@@ -1,5 +1,5 @@
 !WRF:MEDIATION_LAYER:SOLVER
-#define OFFLOAD 0
+#define OFFLOAD 1
 SUBROUTINE solve_em ( grid , config_flags  &
 ! Arguments generated from Registry
 #include "dummy_new_args.inc"
@@ -2227,6 +2227,8 @@ BENCH_END(small_step_finish_tim)
           if (async) then
           istat = cudaMemcpyAsync(field_d, moist(ims:ime,kms:kme,jms:jme,PARAM_FIRST_SCALAR), &
             (ime-ims+1)*(kme-kms+1)*(jme-jms+1))
+          istat = cudaMemcpyAsync(field_old_d, moist(ims:ime,kms:kme,jms:jme,PARAM_FIRST_SCALAR), &
+            (ime-ims+1)*(kme-kms+1)*(jme-jms+1))
          endif
 #endif
 
@@ -2279,6 +2281,7 @@ BENCH_START(rk_scalar_tend_tim)
 
                            if (.not. async) then
                               field_d = scalar(ims:ime, kms:kme, jms:jme, im)
+                              field_old_d = scalar_old(ims:ime, kms:kme, jms:jme, im)
                            endif
 #endif
 
@@ -2325,6 +2328,8 @@ BENCH_START(rk_scalar_tend_tim)
             if (async) then
               if (im < num_3d_m) then
                  istat = cudaMemcpyAsync(field_d, moist(ims:ime,kms:kme,jms:jme,im+1), &
+                 (ime-ims+1)*(kme-kms+1)*(jme-jms+1))
+                 istat = cudaMemcpyAsync(field_old_d, moist(ims:ime,kms:kme,jms:jme,im+1), &
                  (ime-ims+1)*(kme-kms+1)*(jme-jms+1))
               endif
            endif
@@ -2903,6 +2908,18 @@ BENCH_END(tracer_adv_tim)
 !  next the other scalar species
      other_scalar_advance: IF (num_3d_s >= PARAM_FIRST_SCALAR)  THEN
 
+          istat = cudaEventRecord(startEvent,0)
+
+#if OFFLOAD
+          ! transfer first slice
+          if (async) then
+          istat = cudaMemcpyAsync(field_d, scalar(ims:ime,kms:kme,jms:jme,PARAM_FIRST_SCALAR), &
+            (ime-ims+1)*(kme-kms+1)*(jme-jms+1))
+          istat = cudaMemcpyAsync(field_old_d, scalar_old(ims:ime,kms:kme,jms:jme,PARAM_FIRST_SCALAR), &
+            (ime-ims+1)*(kme-kms+1)*(jme-jms+1))
+         endif
+#endif
+
        scalar_variable_loop: do is = PARAM_FIRST_SCALAR, num_3d_s
          !$OMP PARALLEL DO   &
          !$OMP PRIVATE ( ij, tenddec )
@@ -2936,6 +2953,98 @@ BENCH_END(tracer_adv_tim)
                                  grid%i_start(ij), grid%i_end(ij), &
                                  grid%j_start(ij), grid%j_end(ij), &
                                  k_start    , k_end               )
+#if OFFLOAD
+
+                           if (.not. async) then
+                              field_d = scalar(ims:ime, kms:kme, jms:jme, is)
+                              field_old_d = scalar_old(ims:ime, kms:kme, jms:jme, is)
+                           endif
+#endif
+
+
+#if OFFLOAD
+                           !$cuf kernel do(3) <<<*, (128,1,1) >>>
+                           do j = jms,jme
+                              do k = kms,kme
+                                 do i = ims,ime
+                                    field_d(i,k,j) = 1.2*(i / ime)
+                                    field_d(i,k,j) = field_d(i,k,j)**2 + log(abs(sin(field_d(i,k,j))))
+                                 enddo
+                              enddo
+                           enddo
+                           !$cuf kernel do(3) <<<*, (128,1,1) >>>
+                           do j = jms,jme
+                              do k = kms,kme
+                                 do i = ims,ime
+                                    field_d(i,k,j) = 1.2*(i / ime)
+                                    field_d(i,k,j) = field_d(i,k,j)**2 + log(abs(sin(field_d(i,k,j))))
+                                 enddo
+                              enddo
+                           enddo
+                           !$cuf kernel do(3) <<<*, (128,1,1) >>>
+                           do j = jms,jme
+                              do k = kms,kme
+                                 do i = ims,ime
+                                    field_d(i,k,j) = 1.2*(i / ime)
+                                    field_d(i,k,j) = field_d(i,k,j)**2 + log(abs(sin(field_d(i,k,j))))
+                                 enddo
+                              enddo
+                           enddo
+                           !$cuf kernel do(3) <<<*, (128,1,1) >>>
+                           do j = jms,jme
+                              do k = kms,kme
+                                 do i = ims,ime
+                                    field_d(i,k,j) = 1.2*(i / ime)
+                                    field_d(i,k,j) = field_d(i,k,j)**2 + log(abs(sin(field_d(i,k,j))))
+                                 enddo
+                              enddo
+                           enddo
+
+
+            if (async) then
+              if (is < num_3d_s) then
+                 istat = cudaMemcpyAsync(field_d, scalar(ims:ime,kms:kme,jms:jme,is+1), &
+                 (ime-ims+1)*(kme-kms+1)*(jme-jms+1))
+                 istat = cudaMemcpyAsync(field_old_d, scalar_old(ims:ime,kms:kme,jms:jme,is+1), &
+                 (ime-ims+1)*(kme-kms+1)*(jme-jms+1))
+              endif
+           endif
+#else
+
+                           do j = jms,jme
+                              do k = kms,kme
+                                 do i = ims,ime
+                                    field_h(i,k,j) = 1.2*(i / ime)
+                                    field_h(i,k,j) = field_h(i,k,j)**2 + log(abs(sin(field_h(i,k,j))))
+                                 enddo
+                              enddo
+                           enddo
+                           do j = jms,jme
+                              do k = kms,kme
+                                 do i = ims,ime
+                                    field_h(i,k,j) = 1.2*(i / ime)
+                                    field_h(i,k,j) = field_h(i,k,j)**2 + log(abs(sin(field_h(i,k,j))))
+                                 enddo
+                              enddo
+                           enddo
+                           do j = jms,jme
+                              do k = kms,kme
+                                 do i = ims,ime
+                                    field_h(i,k,j) = 1.2*(i / ime)
+                                    field_h(i,k,j) = field_h(i,k,j)**2 + log(abs(sin(field_h(i,k,j))))
+                                 enddo
+                              enddo
+                           enddo
+                           do j = jms,jme
+                              do k = kms,kme
+                                 do i = ims,ime
+                                    field_h(i,k,j) = 1.2*(i / ime)
+                                    field_h(i,k,j) = field_h(i,k,j)**2 + log(abs(sin(field_h(i,k,j))))
+                                 enddo
+                              enddo
+                           enddo
+#endif
+
 
            IF( rk_step == 1 ) THEN
              IF ( config_flags%nested .OR. &
@@ -3083,6 +3192,9 @@ BENCH_END(tracer_adv_tim)
          !$OMP END PARALLEL DO
 
        ENDDO scalar_variable_loop
+         istat = cudaEventRecord(stopEvent,0)
+         istat = cudaEventElapsedTime(cudatime, startEvent, stopEvent)
+         write(*,*) 'Time for scalar variables (ms): ', cudatime
 
      ENDIF other_scalar_advance
 

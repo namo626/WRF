@@ -107,6 +107,7 @@ SUBROUTINE solve_em ( grid , config_flags  &
        type (cudaEvent) :: startEvent, stopEvent
 
       logical :: async = .true.
+      double precision :: t1, t2
 
    INTEGER                         :: k_start , k_end, its, ite, jts, jte
    INTEGER                         :: ids , ide , jds , jde , kds , kde , &
@@ -2220,20 +2221,8 @@ BENCH_END(small_step_finish_tim)
 
        moist_scalar_advance: IF (num_3d_m >= PARAM_FIRST_SCALAR )  THEN
 
-          istat = cudaEventRecord(startEvent,0)
-
-#if OFFLOAD
-          ! transfer first slice
-          if (async) then
-          istat = cudaMemcpyAsync(field_d, moist(ims:ime,kms:kme,jms:jme,PARAM_FIRST_SCALAR), &
-            (ime-ims+1)*(kme-kms+1)*(jme-jms+1))
-          istat = cudaMemcpyAsync(field_old_d, moist(ims:ime,kms:kme,jms:jme,PARAM_FIRST_SCALAR), &
-            (ime-ims+1)*(kme-kms+1)*(jme-jms+1))
-         endif
-#endif
 
 
-           !field_d = moist(ims:ime,kms:kme,jms:jme, PARAM_FIRST_SCALAR)
          moist_variable_loop: DO im = PARAM_FIRST_SCALAR, num_3d_m
 
 ! adv_moist_cond is set in module_physics_init based on mp_physics choice
@@ -2403,9 +2392,6 @@ BENCH_END(flow_depbdy_tim)
 
          ENDDO moist_variable_loop
 
-         istat = cudaEventRecord(stopEvent,0)
-         istat = cudaEventElapsedTime(cudatime, startEvent, stopEvent)
-         write(*,*) 'Time for moist variables (ms): ', cudatime
 
        ENDIF moist_scalar_advance
 
@@ -2817,22 +2803,27 @@ BENCH_END(tracer_adv_tim)
 !  next the other scalar species
      other_scalar_advance: IF (num_3d_s >= PARAM_FIRST_SCALAR)  THEN
 
-          istat = cudaEventRecord(startEvent,0)
+      t1 = MPI_Wtime()
 
-#if OFFLOAD
-          ! transfer first slice
-          if (async) then
-          istat = cudaMemcpyAsync(field_d, scalar(ims:ime,kms:kme,jms:jme,PARAM_FIRST_SCALAR), &
-            (ime-ims+1)*(kme-kms+1)*(jme-jms+1))
-          istat = cudaMemcpyAsync(field_old_d, scalar_old(ims:ime,kms:kme,jms:jme,PARAM_FIRST_SCALAR), &
-            (ime-ims+1)*(kme-kms+1)*(jme-jms+1))
-         endif
-#endif
 
        scalar_variable_loop: do is = PARAM_FIRST_SCALAR, num_3d_s
          !$OMP PARALLEL DO   &
          !$OMP PRIVATE ( ij, tenddec )
          scalar_tile_loop_1: DO ij = 1 , grid%num_tiles
+
+#if OFFLOAD
+          ! transfer first slice
+          if (async) then
+          istat = cudaMemcpyAsync(field_d, scalar(ims:ime,kms:kme,jms:jme,is), &
+            (ime-ims+1)*(kme-kms+1)*(jme-jms+1))
+          istat = cudaMemcpyAsync(field_old_d, scalar_old(ims:ime,kms:kme,jms:jme,is), &
+            (ime-ims+1)*(kme-kms+1)*(jme-jms+1))
+         else
+            field_d = scalar(ims:ime,kms:kme,jms:jme,is)
+            field_old_d = scalar_old(ims:ime,kms:kme,jms:jme,is)
+         endif
+
+#endif
 
            CALL wrf_debug ( 200 , ' call rk_scalar_tend' )
            tenddec = .false.
@@ -3010,9 +3001,9 @@ BENCH_END(tracer_adv_tim)
          !$OMP END PARALLEL DO
 
        ENDDO scalar_variable_loop
-         istat = cudaEventRecord(stopEvent,0)
-         istat = cudaEventElapsedTime(cudatime, startEvent, stopEvent)
-         write(*,*) 'Time for scalar variables (ms): ', cudatime
+
+       t2 = MPI_Wtime()
+       write(*,*) 'Time for scalar variable loop (s): ', t2 - t1
 
      ENDIF other_scalar_advance
 

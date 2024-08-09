@@ -6141,6 +6141,7 @@ SUBROUTINE advect_scalar_pd   ( field, field_old, tendency,    &
 
 !  WCS, 3 December 2002, 24 February 2003
 use module_offload_advect, only : ru_device, rv_device
+      use MPI
 
    IMPLICIT NONE
    
@@ -6184,7 +6185,8 @@ use module_offload_advect, only : ru_device, rv_device
    INTEGER ,                                     INTENT(IN   ) :: time_step
 
    ! Local data
-   
+
+      double precision :: t1, ts, te
    INTEGER :: i, j, k, itf, jtf, ktf, ii, kk, jj
    INTEGER :: i_start, i_end, j_start, j_end
    INTEGER :: i_start_f, i_end_f, j_start_f, j_end_f
@@ -6242,6 +6244,7 @@ use module_offload_advect, only : ru_device, rv_device
 
     LOGICAL, PARAMETER :: pd_limit = .true.
 
+      !ts = MPI_Wtime()
 
       !$omp target enter data map(to: field_old, field, msftx,msfty, mut, c1,c2)
       !$omp target enter data map(to: rom)
@@ -6253,6 +6256,8 @@ use module_offload_advect, only : ru_device, rv_device
 
 !  write(6,*) ' in pd advection routine '
 
+
+      ts = MPI_Wtime()
 
       !$omp target teams distribute parallel do collapse(3)
       do jj = 1,jme-jms+1
@@ -6620,6 +6625,8 @@ use module_offload_advect, only : ru_device, rv_device
 !  compute fluxes, 5th order
 
       if (j_start_f >= j_start .and. j_end_f <= j_end+1) then
+         !t1 = MPI_Wtime()
+
       !$omp target teams distribute parallel do collapse(3)
       DO jj = 1, j_end_f-j_start_f+1
         DO kk=1,ktf-kts+1
@@ -6643,6 +6650,7 @@ use module_offload_advect, only : ru_device, rv_device
         ENDDO
         ENDDO
       ENDDO
+      !print *, 'Loop 1 (s): ', MPI_Wtime() - t1
       endif
 
       !j_loop_y_flux_5 : DO j = j_start, j_end+1
@@ -8042,11 +8050,15 @@ use module_offload_advect, only : ru_device, rv_device
   ENDDO
   ENDDO
   END IF
+      te = MPI_Wtime()
 
       !$omp target exit data map(from: h_tendency, z_tendency)
       !$omp target exit data map(delete: field_old, field, mut, msftx, msfty, c1, c2)
       !$omp target exit data map(from: tendency)
      !$omp target exit data map(delete: fqx,fqxl,fqy,fqyl,fqz,fqzl,flux_out,ph_low,rom)
+
+      !te = MPI_Wtime()
+      print *, "advect_scalar_pd (ms): ", 1000.*(te - ts)
 END SUBROUTINE advect_scalar_pd
 
 !----------------------------------------------------------------

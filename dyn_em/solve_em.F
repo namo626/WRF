@@ -106,8 +106,9 @@ SUBROUTINE solve_em ( grid , config_flags  &
       real cudatime
        type (cudaEvent) :: startEvent, stopEvent
 
-      logical :: async = .true.
+      logical :: async = .false.
       double precision :: t1, t2
+      integer :: ll
 
    INTEGER                         :: k_start , k_end, its, ite, jts, jte
    INTEGER                         :: ids , ide , jds , jde , kds , kde , &
@@ -2812,16 +2813,30 @@ BENCH_END(tracer_adv_tim)
          scalar_tile_loop_1: DO ij = 1 , grid%num_tiles
 
 #if OFFLOAD
-          ! transfer first slice
           if (async) then
-          istat = cudaMemcpyAsync(field_d, scalar(ims:ime,kms:kme,jms:jme,is), &
-            (ime-ims+1)*(kme-kms+1)*(jme-jms+1))
-          istat = cudaMemcpyAsync(field_old_d, scalar_old(ims:ime,kms:kme,jms:jme,is), &
-            (ime-ims+1)*(kme-kms+1)*(jme-jms+1))
+             do i = 1, 4
+                istat = cudaMemcpyAsync(field_d, scalar(ims,kms,jms,is), &
+                (ime-ims+1)*(kme-kms+1)*(jme-jms+1),stream=stream(1))
+            enddo
          else
-            field_d = scalar(ims:ime,kms:kme,jms:jme,is)
-            field_old_d = scalar_old(ims:ime,kms:kme,jms:jme,is)
+            do i = 1, 4
+               istat = cudaMemcpy(field_d, scalar(ims,kms,jms,is), &
+               (ime-ims+1)*(kme-kms+1)*(jme-jms+1))
+            enddo
          endif
+
+         do ll = 1,10
+            !$cuf kernel do(3) <<< *, (128,1,1), stream=stream(2) >>>
+            do j = jms,jme
+               do k = kms,kme
+                  do i = ims,ime
+                     field_old_d(i,k,j) = 0.6
+                     field_old_d(i,k,j) = field_old_d(i,k,j)**2 + sin(real(i))
+                  enddo
+               enddo
+            enddo
+         enddo
+
 
 #endif
 
@@ -3002,6 +3017,7 @@ BENCH_END(tracer_adv_tim)
 
        ENDDO scalar_variable_loop
 
+       istat = cudaDeviceSynchronize()
        t2 = MPI_Wtime()
        write(*,*) 'Time for scalar variable loop (s): ', t2 - t1
 

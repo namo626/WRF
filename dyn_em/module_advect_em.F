@@ -6625,9 +6625,9 @@ use module_offload_advect, only : ru_device, rv_device
 !  compute fluxes, 5th order
 
       if (j_start_f >= j_start .and. j_end_f <= j_end+1) then
-         !t1 = MPI_Wtime()
+         t1 = MPI_Wtime()
 
-      !$omp target teams distribute parallel do collapse(3)
+      !!$omp target teams distribute parallel do collapse(3)
       DO jj = 1, j_end_f-j_start_f+1
         DO kk=1,ktf-kts+1
         DO ii = 1,i_end-i_start+1
@@ -6650,7 +6650,11 @@ use module_offload_advect, only : ru_device, rv_device
         ENDDO
         ENDDO
       ENDDO
-      !print *, 'Loop 1 (s): ', MPI_Wtime() - t1
+
+      ! barrier for timing
+      !!$omp target update from(fqyl,fqy)
+      print *, 'Loop 1 (ms): ', 1000.*(MPI_Wtime() - t1)
+      !$omp target update to(fqyl, fqy)
       endif
 
       !j_loop_y_flux_5 : DO j = j_start, j_end+1

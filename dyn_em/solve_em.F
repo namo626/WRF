@@ -2825,17 +2825,6 @@ BENCH_END(tracer_adv_tim)
             enddo
          endif
 
-         do ll = 1,10
-            !$cuf kernel do(3) <<< *, (128,1,1), stream=stream(2) >>>
-            do j = jms,jme
-               do k = kms,kme
-                  do i = ims,ime
-                     field_old_d(i,k,j) = 0.6
-                     field_old_d(i,k,j) = field_old_d(i,k,j)**2 + sin(real(i))
-                  enddo
-               enddo
-            enddo
-         enddo
 
 
 #endif
@@ -3019,7 +3008,7 @@ BENCH_END(tracer_adv_tim)
 
        istat = cudaDeviceSynchronize()
        t2 = MPI_Wtime()
-       write(*,*) 'Time for scalar variable loop (s): ', t2 - t1
+       write(*,*) 'Time for scalar variable loop (ms): ', 1000.*(t2 - t1)
 
      ENDIF other_scalar_advance
 

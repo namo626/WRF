@@ -3023,6 +3023,42 @@ SUBROUTINE advect_v   ( v, v_old, tendency,            &
 
 END SUBROUTINE advect_v
 
+
+      pure real function flux4_d(q_im2, q_im1, q_i, q_ip1, ua)
+      implicit none
+      !$omp declare target
+      real, intent(in) :: q_im2, q_im1, q_i, q_ip1, ua
+
+      flux4_d = ( 7.*(q_i + q_im1) - (q_ip1 + q_im2) )/12.0
+      end function flux4_d
+
+      pure real function flux3_d(q_im2, q_im1, q_i, q_ip1, ua, time_step)
+      implicit none
+      !$omp declare target
+      real, intent(in) :: q_im2, q_im1, q_i, q_ip1, ua
+      integer, intent(in) :: time_step
+      flux3_d = flux4_d(q_im2, q_im1, q_i, q_ip1, ua) +       &
+      sign(1,time_step)*sign(1.,ua)*((q_ip1 - q_im2)-3.*(q_i-q_im1))/12.0
+      end function flux3_d
+
+
+      pure real function flux6_d(q_im3, q_im2, q_im1, q_i, q_ip1, q_ip2, ua)
+      implicit none
+      !$omp declare target
+      real, intent(in) :: q_im3, q_im2, q_im1, q_i, q_ip1, q_ip2, ua
+      flux6_d = ( 37.*(q_i+q_im1) - 8.*(q_ip1+q_im2)                  &
+      +(q_ip2+q_im3) )/60.0
+      end function flux6_d
+
+      pure real function flux5_d(q_im3, q_im2, q_im1, q_i, q_ip1, q_ip2, ua, time_step)
+      implicit none
+      !$omp declare target
+      real, intent(in) :: q_im3, q_im2, q_im1, q_i, q_ip1, q_ip2, ua
+      integer, intent(in) :: time_step
+      flux5_d = flux6_d(q_im3, q_im2, q_im1, q_i, q_ip1, q_ip2, ua)    &
+      -sign(1,time_step)*sign(1.,ua)*(                    &
+      (q_ip2-q_im3)-5.*(q_ip1-q_im2)+10.*(q_i-q_im1) )/60.0
+      end function flux5_d
 !-------------------------------------------------------------------
 
 #endif
@@ -3077,7 +3113,7 @@ SUBROUTINE advect_scalar   ( field, field_old, tendency,    &
 
    ! Local data
    
-   INTEGER :: i, j, k, itf, jtf, ktf
+   INTEGER :: i, j, k, itf, jtf, ktf, ii, jj, kk
    INTEGER :: i_start, i_end, j_start, j_end
    INTEGER :: i_start_f, i_end_f, j_start_f, j_end_f
    INTEGER :: jmin, jmax, jp, jm, imin, imax
@@ -3449,42 +3485,61 @@ SUBROUTINE advect_scalar   ( field, field_old, tendency,    &
      jp1 = 2
      jp0 = 1
 
-     j_loop_y_flux_5 : DO j = j_start, j_end+1
+      !$omp target data map(tofrom: tendency) map(to: field, rv, msftx) map(alloc: fqy)
+      if (j_start_f >= j_start .and. j_end_f <= j_end+1) then
 
-      IF( (j >= j_start_f ) .and. (j <= j_end_f) ) THEN ! use full stencil
+         !$omp target teams distribute parallel do collapse(3)
+         DO jj = 1, j_end_f-j_start_f+1
+            DO kk=1,ktf-kts+1
+               DO ii = 1,i_end-i_start+1
+                  j = jj + j_start_f - 1
+                  k = kk + kts - 1
+                  i = ii + i_start - 1
 
-        DO k=kts,ktf
-        DO i = i_start, i_end
-          vel = rv(i,k,j)
-          fqy( i, k, jp1 ) = vel*flux5(                                &
+                  vel = rv(i,k,j)
+                  fqy( i, k, jp1 ) = vel*flux5_d(                                &
                   field(i,k,j-3), field(i,k,j-2), field(i,k,j-1),       &
-                  field(i,k,j  ), field(i,k,j+1), field(i,k,j+2),  vel )
-        ENDDO
-        ENDDO
+                  field(i,k,j  ), field(i,k,j+1), field(i,k,j+2),  vel, time_step )
+               ENDDO
+            ENDDO
+         ENDDO
+
+      ENDIF
 
 
-      ELSE IF ( j == jds+1 ) THEN   ! 2nd order flux next to south boundary
 
+         j = jds+1
+         if (j >= j_start .and. j <= j_end+1) then
+
+         !$omp target teams distribute parallel do collapse(2)
             DO k=kts,ktf
-            DO i = i_start, i_end
-              fqy(i,k, jp1) = 0.5*rv(i,k,j)*          &
-                     (field(i,k,j)+field(i,k,j-1))
+               DO i = i_start, i_end
+                  fqy(i,k, jp1) = 0.5*rv(i,k,j)*          &
+                  (field(i,k,j)+field(i,k,j-1))
 
+               ENDDO
             ENDDO
-            ENDDO
+         endif
 
-     ELSE IF  ( j == jds+2 ) THEN  ! third of 4th order flux 2 in from south boundary
 
+         j = jds+2
+         if (j >= j_start .and. j <= j_end+1) then
+
+         !$omp target teams distribute parallel do collapse(2)
             DO k=kts,ktf
-            DO i = i_start, i_end
-              vel = rv(i,k,j)
-              fqy( i, k, jp1 ) = vel*flux3(              &
-                   field(i,k,j-2),field(i,k,j-1),field(i,k,j),field(i,k,j+1),vel )
+               DO i = i_start, i_end
+                  vel = rv(i,k,j)
+                  fqy( i, k, jp1 ) = vel*flux3_d(              &
+                  field(i,k,j-2),field(i,k,j-1),field(i,k,j),field(i,k,j+1),vel, time_step )
+               ENDDO
             ENDDO
-            ENDDO
+         endif
 
-     ELSE IF ( j == jde-1 ) THEN  ! 2nd order flux next to north boundary
 
+         j = jde-1
+         if (j >= j_start .and. j <= j_end+1) then
+
+         !$omp target teams distribute parallel do collapse(2)
             DO k=kts,ktf
             DO i = i_start, i_end
               fqy(i, k, jp1) = 0.5*rv(i,k,j)*      &
@@ -3492,18 +3547,24 @@ SUBROUTINE advect_scalar   ( field, field_old, tendency,    &
             ENDDO
             ENDDO
 
-     ELSE IF ( j == jde-2 ) THEN  ! 3rd or 4th order flux 2 in from north boundary
+         endif
 
+
+         j = jde-2
+         if (j >= j_start .and. j <= j_end+1) then
+
+         !$omp target teams distribute parallel do collapse(2)
             DO k=kts,ktf
             DO i = i_start, i_end
               vel = rv(i,k,j)
-              fqy( i, k, jp1) = vel*flux3(             &
+              fqy( i, k, jp1) = vel*flux3_d(             &
                    field(i,k,j-2),field(i,k,j-1),    &
-                   field(i,k,j),field(i,k,j+1),vel )
+                   field(i,k,j),field(i,k,j+1),vel , time_step)
             ENDDO
             ENDDO
+         endif
 
-     ENDIF
+
 
 !  y flux-divergence into tendency
 
@@ -3511,41 +3572,47 @@ SUBROUTINE advect_scalar   ( field, field_old, tendency,    &
         ! Same process as for advect_u - tendencies run from jds to jde-1
         ! (latitudes are as for u grid, longitudes are displaced)
         ! Therefore: flow is only from one side for points next to poles
-        IF ( config_flags%polar .AND. (j == jds+1) ) THEN
-          DO k=kts,ktf
-          DO i = i_start, i_end
-            mrdy=msftx(i,j-1)*rdy     ! see ADT eqn 48 [rho->rho*q] dividing by my, 2nd term RHS
-            tendency(i,k,j-1) = tendency(i,k,j-1) - mrdy*fqy(i,k,jp1)
-          END DO
-          END DO
-        ELSE IF( config_flags%polar .AND. (j == jde) ) THEN
-          DO k=kts,ktf
-          DO i = i_start, i_end
-            mrdy=msftx(i,j-1)*rdy     ! see ADT eqn 48 [rho->rho*q] dividing by my, 2nd term RHS
-            tendency(i,k,j-1) = tendency(i,k,j-1) + mrdy*fqy(i,k,jp0)
-          END DO
-          END DO
-        ELSE  ! normal code
 
-        IF(j > j_start) THEN
+         !$omp target teams distribute firstprivate(jp1,jp0) private(jtmp)
+         DO j = j_start, j_end+1
+            IF ( config_flags%polar .AND. (j == jds+1) ) THEN
+               !$omp parallel do collapse(2) private(mrdy)
+               DO k=kts,ktf
+                  DO i = i_start, i_end
+                     mrdy=msftx(i,j-1)*rdy ! see ADT eqn 48 [rho->rho*q] dividing by my, 2nd term RHS
+                     tendency(i,k,j-1) = tendency(i,k,j-1) - mrdy*fqy(i,k,jp1)
+                  END DO
+               END DO
+            ELSE IF( config_flags%polar .AND. (j == jde) ) THEN
+               !$omp parallel do collapse(2) private(mrdy)
+               DO k=kts,ktf
+                  DO i = i_start, i_end
+                     mrdy=msftx(i,j-1)*rdy ! see ADT eqn 48 [rho->rho*q] dividing by my, 2nd term RHS
+                     tendency(i,k,j-1) = tendency(i,k,j-1) + mrdy*fqy(i,k,jp0)
+                  END DO
+               END DO
+            ELSE                ! normal code
 
-          DO k=kts,ktf
-          DO i = i_start, i_end
-            mrdy=msftx(i,j-1)*rdy    ! see ADT eqn 48 [rho->rho*q] dividing by my, 2nd term RHS
-            tendency(i,k,j-1) = tendency(i,k,j-1) - mrdy*(fqy(i,k,jp1)-fqy(i,k,jp0))
-          ENDDO
-          ENDDO
+               IF(j > j_start) THEN
 
-        ENDIF
+               !$omp parallel do collapse(2) private(mrdy)
+                  DO k=kts,ktf
+                     DO i = i_start, i_end
+                        mrdy=msftx(i,j-1)*rdy ! see ADT eqn 48 [rho->rho*q] dividing by my, 2nd term RHS
+                        tendency(i,k,j-1) = tendency(i,k,j-1) - mrdy*(fqy(i,k,jp1)-fqy(i,k,jp0))
+                     ENDDO
+                  ENDDO
 
-        END IF
+               ENDIF
+            END IF
 
         jtmp = jp1
         jp1 = jp0
         jp0 = jtmp
 
-      ENDDO j_loop_y_flux_5
+         ENDDO
 
+!$omp end target data
 !  next, x - flux divergence
 
       i_start = its

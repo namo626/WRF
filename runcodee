@@ -1,0 +1,121 @@
+#!/bin/bash
+ date
+
+ ml cpu
+#ml use /global/common/software/m4232/modulefiles_test/pm
+ ml codee
+ ml -t
+
+ RPWD=$(realpath $PWD)     # if not in HOME, can use RPWD=$PWD
+
+# (1) All
+
+#codee screening --config compile_commands.json \
+#                --exclude ${RPWD}/phys/module_sf_noahmplsm.f90 \
+#                --exclude ${RPWD}/phys/module_shcu_deng.f90 \
+#                --exclude ${RPWD}/phys/module_cu_kf.f90 \
+#                --verbose
+ 
+# (2) show failures
+
+#codee screening --show-failures=all \
+#                --config compile_commands.json \
+#                --exclude ${RPWD}/phys/module_sf_noahmplsm.f90 \
+#                --exclude ${RPWD}/phys/module_shcu_deng.f90 \
+#                --exclude ${RPWD}/phys/module_cu_kf.f90 \
+#                --verbose
+
+# (3) Screening report of the entire phys directory
+
+#codee screening --config compile_commands.json \
+##               --brief   ${RPWD}/phys/ \
+##               --exclude ${RPWD}/phys/module_sf_noahmplsm.f90 \
+##               --exclude ${RPWD}/phys/module_shcu_deng.f90 \
+##               --exclude ${RPWD}/phys/module_cu_kf.f90 \
+##               --verbose
+#codee screening --config compile_commands.json --brief ${RPWD}/phys/ \
+#                --exclude ${RPWD}/phys/module_sf_noahmplsm.f90 \
+#                --exclude ${RPWD}/phys/module_shcu_deng.f90 \
+#                --exclude ${RPWD}/phys/module_cu_kf.f90
+
+#
+
+#codee screening --config compile_commands.json \
+##               --exclude ${RPWD}/phys/module_sf_noahmplsm.f90 \
+##               --exclude ${RPWD}/phys/module_shcu_deng.f90 \
+##               --exclude ${RPWD}/phys/module_cu_kf.f90 \
+##               --verbose
+ 
+# (4) screeing report of Thompson
+
+#codee screening --config compile_commands.json \
+#                --brief  ${RPWD}/phys/module_mp_thompson.f90
+ 
+#codee screening --config compile_commands.json \
+#                --brief  ${RPWD}/phys/module_mp_thompson.f90 --target-arch gpu
+ 
+# Checks report of Thompson (add --verbose to see more detals)
+
+#codee checks    --config compile_commands.json \
+#                --brief  ${RPWD}/phys/module_mp_thompson.f90
+ 
+#codee checks    --config compile_commands.json \
+#                --brief  ${RPWD}/phys/module_mp_thompson.f90 --target-arch gpu
+ 
+# Codee diagnose report of Thompson
+
+#codee diagnose  --summary \
+#                --config compile_commands.json \
+#                --brief  ${RPWD}/phys/module_mp_thompson.f90
+ 
+#codee diagnose  --summary \
+#                --config compile_commands.json \
+#                --brief  ${RPWD}/phys/module_mp_thompson.f90 --target-arch gpu
+
+# (5) Focus on a single function, e.g., Kernals_KS
+ 
+#codee screening --config compile_commands.json \
+#                         ${RPWD}/phys/module_mp_fast_sbm.f90:Kernals_KS --target-arch gpu
+
+# (6) Check the lines
+ 
+#codee checks    --verbose                      \
+#                --config compile_commands.json \
+#                         ${RPWD}/phys/module_mp_fast_sbm.f90:Kernals_KS --target-arch gpu
+
+# (7) Apply fix with codee: loop interchange
+ 
+#codee rewrite   --memory loop-interchange --in-place \
+#                --config compile_commands.json \
+#                         ${RPWD}/phys/module_mp_fast_sbm.f90:6225:3
+
+# (8) Check again with the modified file:
+ 
+ codee checks    --verbose                      \
+                 --config compile_commands.json \
+                          ${RPWD}/phys/module_mp_fast_sbm.f90:Kernals_KS --target-arch gpu
+
+# (8) Apply the fix with codee: OpenMP offloading 
+
+#codee rewrite   --offload omp-teams --in-place \
+#                --config compile_commands.json \
+#                         ${RPWD}/phys/module_mp_fast_sbm.f90:6293:4
+#codee rewrite   --offload omp-teams --in-place \
+#                --config compile_commands.json \
+#                         ${RPWD}/phys/module_mp_fast_sbm.f90:6225:3,6236:4,6263:4,6291:4,6379:7
+
+# (9) Check again with the modified file:
+ 
+#codee checks    --verbose                      \
+#                --config compile_commands.json \
+#                         ${RPWD}/phys/module_mp_fast_sbm.f90:Kernals_KS --target-arch gpu
+
+# (9) Apply fix with codee: OpenMP offloading 
+
+#codee rewrite   --offload omp-teams --in-place \
+#                --config compile_commands.json \
+#                         ${RPWD}/phys/module_mp_fast_sbm.f90:6238:4,6265:4,6392:7
+
+#codee rewrite --help
+
+ date

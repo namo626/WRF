@@ -1,5 +1,5 @@
 !WRF:MEDIATION_LAYER:SOLVER
-#define OFFLOAD 1
+#define OFFLOAD 0
 SUBROUTINE solve_em ( grid , config_flags  &
 ! Arguments generated from Registry
 #include "dummy_new_args.inc"
@@ -100,13 +100,13 @@ SUBROUTINE solve_em ( grid , config_flags  &
    ! Local data
 
       real, allocatable, device, dimension(:,:,:) :: field_d, field_old_d
-      real, allocatable, dimension(:,:,:) :: field_h
+      real, pinned, allocatable, dimension(:,:,:) :: field_h
       integer(kind=cuda_Stream_Kind), allocatable :: stream(:)
       integer istat
       real cudatime
        type (cudaEvent) :: startEvent, stopEvent
 
-      logical :: async = .false.
+      logical :: async = .true.
       double precision :: t1, t2
       integer :: ll
 
@@ -2815,8 +2815,8 @@ BENCH_END(tracer_adv_tim)
 #if OFFLOAD
           if (async) then
              do i = 1, 4
-                istat = cudaMemcpyAsync(field_d, scalar(ims,kms,jms,is), &
-                (ime-ims+1)*(kme-kms+1)*(jme-jms+1),stream=stream(1))
+                istat = cudaMemcpyAsync(field_d, field_h, &
+                (ime-ims+1)*(kme-kms+1)*(jme-jms+1),stream=stream(i))
             enddo
          else
             do i = 1, 4
@@ -2825,6 +2825,22 @@ BENCH_END(tracer_adv_tim)
             enddo
          endif
 
+#if 0
+
+         do ll = 1,100
+            !$cuf kernel do(3) <<< *, (128,1,1), stream=stream(5) >>>
+            do j = jms,jme
+               do k = kms,kme
+                  do i = ims,ime
+                     field_old_d(i,k,j) = 0.6
+                     field_old_d(i,k,j) = field_old_d(i,k,j)**2 + sin(real(i))
+                  enddo
+               enddo
+            enddo
+         enddo
+
+
+#endif
 
 
 #endif
